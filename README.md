@@ -56,9 +56,9 @@ Project NIDS/
 | Komponen | Teknologi |
 |---|---|
 | Backend | Python Flask |
-| Database | SQLite (SQLAlchemy) |
-| ML - DDoS | XGBoost + Random Forest (CICIDS2017) |
-| ML - Web Attack | TF-IDF n-gram + Random Forest |
+| Database | MySQL XAMPP / PostgreSQL (SQLAlchemy) |
+| ML - DDoS | XGBoost Classifier (CICIDS2017) |
+| ML - Web Attack | Character TF-IDF N-gram + XGBoost |
 | Auth | Flask-Login |
 | Notifikasi | Telegram Bot API |
 | Scheduler | APScheduler |

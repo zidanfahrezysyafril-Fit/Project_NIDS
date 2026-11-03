@@ -687,8 +687,8 @@ def api_model_status():
     from detectors.cicids_flow_detector import flow_detector
     return jsonify({
         'xgb_loaded': flow_detector.xgb_model is not None,
-        'rf_loaded': flow_detector.rf_model is not None,
         'scaler_loaded': flow_detector.scaler is not None,
+        'algorithm': flow_detector.algorithm,
     })
 
 

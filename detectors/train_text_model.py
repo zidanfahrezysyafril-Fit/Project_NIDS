@@ -1,14 +1,15 @@
 """
 Standalone Training Script for Web Attack Text Classifier (SQLi & XSS vs Benign).
-Uses Character N-Grams (3-5) + Random Forest to prevent regex overfitting and reduce false alarms.
+Uses Character N-Grams (3-5) + XGBoost Classifier (Extreme Gradient Boosting).
 """
 import os
 import joblib
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
+from xgboost import XGBClassifier
 
 def train_and_save_model(output_path=None):
     if output_path is None:
@@ -16,7 +17,8 @@ def train_and_save_model(output_path=None):
         output_path = os.path.join(base_dir, 'data', 'web_attack_model.pkl')
         
     print("=" * 60)
-    print("PELATIHAN MODEL KLASIFIKASI TEKS PAYLOAD (SQLi & XSS vs BENIGN)")
+    print("PELATIHAN MODEL KLASIFIKASI TEKS PAYLOAD MENGGUNAKAN XGBOOST")
+    print("Target: SQL Injection & XSS vs BENIGN")
     print("=" * 60)
 
     # Curated authentic dataset of benign web requests and real attack payloads
@@ -66,12 +68,16 @@ def train_and_save_model(output_path=None):
     ] * 25 # 300 XSS samples
 
     X = benign_samples + sqli_samples + xss_samples
-    y = ['BENIGN'] * len(benign_samples) + ['SQL Injection'] * len(sqli_samples) + ['Cross-Site Scripting (XSS)'] * len(xss_samples)
+    y_raw = ['BENIGN'] * len(benign_samples) + ['SQL Injection'] * len(sqli_samples) + ['Cross-Site Scripting (XSS)'] * len(xss_samples)
 
-    print(f"Total Sampel Dataset Pelatihan: {len(X)} baris")
+    print(f"Total Sampel Dataset: {len(X)} baris")
     print(f"- BENIGN: {len(benign_samples)}")
     print(f"- SQL Injection: {len(sqli_samples)}")
     print(f"- XSS: {len(xss_samples)}")
+
+    # Encode label ke integer untuk XGBoost
+    le = LabelEncoder()
+    y = le.fit_transform(y_raw)
 
     # Character N-gram TF-IDF Vectorizer
     vectorizer = TfidfVectorizer(analyzer='char', ngram_range=(3, 5), max_features=3000, lowercase=True)
@@ -79,15 +85,23 @@ def train_and_save_model(output_path=None):
 
     X_train, X_test, y_train, y_test = train_test_split(X_features, y, test_size=0.2, random_state=42, stratify=y)
 
-    clf = RandomForestClassifier(n_estimators=80, random_state=42, n_jobs=-1)
+    # Latih XGBoost Classifier
+    clf = XGBClassifier(
+        n_estimators=100,
+        learning_rate=0.1,
+        max_depth=6,
+        random_state=42,
+        eval_metric='mlogloss',
+        n_jobs=-1
+    )
     clf.fit(X_train, y_train)
 
     y_pred = clf.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     print("\n" + "=" * 60)
-    print(f"Hasil Evaluasi Model Test: Akurasi = {acc * 100:.2f}%")
+    print(f"Hasil Evaluasi XGBoost Model: Akurasi = {acc * 100:.2f}%")
     print("Classification Report:")
-    print(classification_report(y_test, y_pred))
+    print(classification_report(y_test, y_pred, target_names=le.classes_))
     print("=" * 60)
 
     # Save bundle
@@ -95,10 +109,12 @@ def train_and_save_model(output_path=None):
     bundle = {
         'model': clf,
         'vectorizer': vectorizer,
-        'classes': clf.classes_
+        'label_encoder': le,
+        'classes': list(le.classes_),
+        'algorithm': 'XGBoost'
     }
     joblib.dump(bundle, output_path)
-    print(f"Model berhasil disimpan di: {output_path}")
+    print(f"Model XGBoost berhasil disimpan di: {output_path}")
 
 if __name__ == '__main__':
     train_and_save_model()

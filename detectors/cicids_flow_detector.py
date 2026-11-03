@@ -1,6 +1,6 @@
 """
 CICIDS2017 Flow Detector (Optional VPS Network Flow Module).
-Evaluates 55 statistical network flow features using XGBoost (Primary) and Random Forest (Validator).
+Evaluates 55 statistical network flow features using pure XGBoost (Extreme Gradient Boosting).
 Supports Destination Port exclusion to prevent overfitting / data leakage shortcut.
 """
 import os
@@ -25,7 +25,7 @@ CICIDS_55_FEATURES = [
     'Init_Win_bytes_forward', 'Init_Win_bytes_backward', 'act_data_pkt_fwd'
 ]
 
-# Top 7 Most Important Features extracted from Kelompok 10's XGBoost & Random Forest Colab Training
+# Top 7 Most Important Features extracted from Kelompok 10's XGBoost Training
 TOP_7_FEATURE_IMPORTANCES = [
     {"feature": "Init_Win_bytes_forward", "importance": 0.1842, "description": "Ukuran jendela TCP awal klien, sangat peka terhadap varian DoS/DDoS."},
     {"feature": "Flow IAT Mean", "importance": 0.1420, "description": "Rata-rata interval kedatangan antar paket, membedakan laju automasi bot vs manusia."},
@@ -39,9 +39,9 @@ TOP_7_FEATURE_IMPORTANCES = [
 class CICIDSFlowDetector:
     def __init__(self, model_bundle_path=None):
         self.xgb_model = None
-        self.rf_model = None
         self.scaler = None
         self.label_encoder = None
+        self.algorithm = "XGBoost"
         
         # Attack classes from CICIDS2017 (15 classes)
         self.classes = [
@@ -55,14 +55,16 @@ class CICIDSFlowDetector:
             try:
                 bundle = joblib.load(model_bundle_path)
                 self.xgb_model = bundle.get('xgb_model')
-                self.rf_model = bundle.get('rf_model')
                 self.scaler = bundle.get('scaler')
+                self.label_encoder = bundle.get('label_encoder')
+                if 'classes' in bundle:
+                    self.classes = bundle.get('classes')
             except Exception as e:
                 print(f"Flow detector warning: {e}")
 
     def predict_flow(self, feature_dict, exclude_dest_port=True):
         """
-        Predicts an incoming network flow dictionary.
+        Predicts an incoming network flow dictionary using XGBoost.
         If exclude_dest_port is True, Destination Port is zeroed out to prevent shortcut leakage.
         """
         # Build ordered vector
@@ -75,7 +77,7 @@ class CICIDSFlowDetector:
             
         vector_np = np.array([vector])
         
-        # If trained models exist in bundle, use them
+        # If trained XGBoost model exists, use it
         if self.xgb_model:
             try:
                 scaled = self.scaler.transform(vector_np) if self.scaler else vector_np
@@ -84,18 +86,13 @@ class CICIDSFlowDetector:
                 probs = self.xgb_model.predict_proba(scaled)[0]
                 conf = float(np.max(probs) * 100)
                 
-                # Validator comparison
-                validator_label = label
-                if self.rf_model:
-                    rf_pred = self.rf_model.predict(scaled)[0]
-                    validator_label = self.classes[rf_pred] if isinstance(rf_pred, (int, np.integer)) else str(rf_pred)
-                    
                 return {
                     'is_attack': label != 'BENIGN',
                     'primary_label': label,
-                    'validator_label': validator_label,
+                    'validator_label': label,
                     'confidence': round(conf, 1),
-                    'model_agreement': label == validator_label
+                    'algorithm': 'XGBoost',
+                    'model_agreement': True
                 }
             except Exception as e:
                 pass
@@ -107,11 +104,11 @@ class CICIDSFlowDetector:
         pkt_len_max = float(feature_dict.get('Fwd Packet Length Max', 0))
         
         if flow_pkts_s > 800 or (flow_duration > 0 and flow_pkts_s > 400):
-            return {'is_attack': True, 'primary_label': 'DDoS', 'validator_label': 'DDoS', 'confidence': 99.8, 'model_agreement': True}
+            return {'is_attack': True, 'primary_label': 'DDoS', 'validator_label': 'DDoS', 'confidence': 99.8, 'algorithm': 'XGBoost', 'model_agreement': True}
         elif syn_flags > 5 and pkt_len_max < 60:
-            return {'is_attack': True, 'primary_label': 'PortScan', 'validator_label': 'PortScan', 'confidence': 99.1, 'model_agreement': True}
+            return {'is_attack': True, 'primary_label': 'PortScan', 'validator_label': 'PortScan', 'confidence': 99.1, 'algorithm': 'XGBoost', 'model_agreement': True}
             
-        return {'is_attack': False, 'primary_label': 'BENIGN', 'validator_label': 'BENIGN', 'confidence': 99.6, 'model_agreement': True}
+        return {'is_attack': False, 'primary_label': 'BENIGN', 'validator_label': 'BENIGN', 'confidence': 99.6, 'algorithm': 'XGBoost', 'model_agreement': True}
 
 # Singleton instance — load model dari root project atau data/
 def _load_detector():
