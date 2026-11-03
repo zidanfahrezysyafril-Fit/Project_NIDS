@@ -1,0 +1,137 @@
+{% extends "base_app.html" %}
+{% block title %}AI Assistant – {{ site.name }}{% endblock %}
+{% block page_title %}🤖 AI Security Assistant{% endblock %}
+
+{% block content %}
+<div class="grid-2" style="align-items:start;">
+
+  <!-- Chat Panel -->
+  <div class="card" style="grid-column:1/3;">
+    <div class="card-header">
+      <div class="card-title">🤖 Tanya Jawab Keamanan</div>
+      <div style="font-size:12px;color:var(--text-muted);">IP dianonim otomatis untuk privasi</div>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="chat-box" id="chat-box">
+      <!-- Welcome message -->
+      <div class="chat-msg assistant">
+        <div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">🤖</div>
+        <div class="chat-bubble">
+          Halo! Saya adalah <strong>NIDS AI Assistant</strong>. Tanyakan apa saja seputar keamanan website Anda, analisis serangan, atau langkah mitigasi. Data IP akan dianonim secara otomatis untuk menjaga privasi.
+        </div>
+      </div>
+
+      {% for msg in history %}
+      <div class="chat-msg {{ msg.role }}">
+        {% if msg.role == 'assistant' %}
+        <div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">🤖</div>
+        {% else %}
+        <div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">{{ current_user.full_name[0]|upper if current_user.full_name else '?' }}</div>
+        {% endif %}
+        <div class="chat-bubble">{{ msg.content }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Quick Questions -->
+    <div style="margin:12px 0 8px;display:flex;flex-wrap:wrap;gap:8px;">
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Apa serangan yang paling sering terjadi di website saya?">
+        📊 Serangan terbanyak?
+      </button>
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Bagaimana cara mencegah serangan DDoS di shared hosting?">
+        💥 Cara cegah DDoS?
+      </button>
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Berikan contoh payload XSS yang berbahaya dan cara membloknya">
+        🕷️ Contoh payload XSS?
+      </button>
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Buatkan aturan .htaccess untuk memblokir SQL Injection">
+        📝 Generate .htaccess?
+      </button>
+    </div>
+
+    <!-- Input Row -->
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" class="form-control"
+             placeholder="Ketik pertanyaan seputar keamanan..."
+             autocomplete="off" />
+      <button class="btn btn-primary" id="btn-send-chat">
+        ➤ Kirim
+      </button>
+    </div>
+
+    <!-- Rate limit info -->
+    <div style="font-size:11px;color:var(--text-dim);margin-top:8px;text-align:right;">
+      Limit: 20 pertanyaan/hari
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const chatBox   = document.getElementById('chat-box');
+const chatInput = document.getElementById('chat-input');
+const btnSend   = document.getElementById('btn-send-chat');
+const WEBSITE_ID = {{ site.id }};
+
+function scrollBottom() {
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+scrollBottom();
+
+function addMsg(role, text) {
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  const icon = role === 'assistant' ? '🤖' : '{{ current_user.full_name[0]|upper if current_user.full_name else "?" }}';
+  div.innerHTML = `
+    <div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">${icon}</div>
+    <div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  chatBox.appendChild(div);
+  scrollBottom();
+}
+
+async function sendQuestion(q) {
+  if (!q.trim()) return;
+  addMsg('user', q);
+  chatInput.value = '';
+  btnSend.disabled = true;
+  btnSend.textContent = '⏳ ...';
+
+  // Typing indicator
+  const typing = document.createElement('div');
+  typing.className = 'chat-msg assistant';
+  typing.id = 'typing-indicator';
+  typing.innerHTML = `<div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">🤖</div>
+    <div class="chat-bubble" style="color:var(--text-muted);">⏳ Menganalisis...</div>`;
+  chatBox.appendChild(typing);
+  scrollBottom();
+
+  try {
+    const res = await fetch(`/assistant/${WEBSITE_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q })
+    });
+    const data = await res.json();
+    document.getElementById('typing-indicator')?.remove();
+    addMsg('assistant', data.answer || 'Maaf, tidak dapat memproses pertanyaan.');
+  } catch(e) {
+    document.getElementById('typing-indicator')?.remove();
+    addMsg('assistant', '❌ Terjadi kesalahan koneksi. Coba lagi.');
+  } finally {
+    btnSend.disabled = false;
+    btnSend.textContent = '➤ Kirim';
+  }
+}
+
+btnSend.addEventListener('click', () => sendQuestion(chatInput.value));
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendQuestion(chatInput.value); });
+
+// Quick questions
+document.querySelectorAll('.quick-q').forEach(btn => {
+  btn.addEventListener('click', () => sendQuestion(btn.dataset.q));
+});
+</script>
+{% endblock %}

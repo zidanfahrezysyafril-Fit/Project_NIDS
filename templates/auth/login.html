@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login – NIDS Monitor</title>
+  <meta name="description" content="Login ke platform NIDS Monitor untuk memantau keamanan website Anda.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+<body>
+
+<!-- Flash Messages -->
+<div class="flash-container" id="flash-container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">
+        <span>{% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else %}ℹ️{% endif %}</span>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🛡️</div>
+      <h1>NIDS Monitor</h1>
+      <p>Platform Deteksi Serangan Website</p>
+    </div>
+
+    <!-- Form Login -->
+    <form method="POST" action="{{ url_for('login') }}" id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input
+          type="email" id="email" name="email"
+          class="form-control"
+          placeholder="nama@email.com"
+          required autocomplete="email" autofocus
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div style="position:relative;">
+          <input
+            type="password" id="password" name="password"
+            class="form-control"
+            placeholder="••••••••"
+            required autocomplete="current-password"
+            style="padding-right:42px;"
+          />
+          <button type="button" id="toggle-pw"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                   background:none;border:none;cursor:pointer;font-size:16px;color:#7986a3;"
+            title="Tampilkan password">👁️</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" id="btn-login">
+        🔐 Masuk
+      </button>
+    </form>
+
+    <div class="auth-divider"><span>belum punya akun?</span></div>
+
+    <a href="{{ url_for('register') }}" class="btn btn-secondary" style="width:100%;justify-content:center;" id="btn-goto-register">
+      📝 Daftar Sekarang
+    </a>
+
+  </div>
+</div>
+
+<script>
+  // Toggle password visibility
+  document.getElementById('toggle-pw').addEventListener('click', function() {
+    const pw = document.getElementById('password');
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+    this.textContent = pw.type === 'password' ? '👁️' : '🙈';
+  });
+
+  // Auto-dismiss flash messages
+  setTimeout(() => {
+    document.querySelectorAll('.flash').forEach(el => {
+      el.style.transition = 'opacity 0.4s';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 400);
+    });
+  }, 4000);
+</script>
+</body>
+</html>

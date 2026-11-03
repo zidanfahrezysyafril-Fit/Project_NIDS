@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daftar – NIDS Monitor</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+</head>
+<body>
+
+<div class="flash-container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">
+        <span>{% if category == 'success' %}✅{% elif category == 'danger' %}❌{% else %}⚠️{% endif %}</span>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🛡️</div>
+      <h1>Buat Akun</h1>
+      <p>Mulai pantau keamanan website Anda</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('register') }}" id="register-form">
+      <div class="form-group">
+        <label class="form-label" for="name">Nama Lengkap</label>
+        <input type="text" id="name" name="name" class="form-control"
+               placeholder="Nama Anda" required autofocus />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input type="email" id="email" name="email" class="form-control"
+               placeholder="nama@email.com" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div style="position:relative;">
+          <input type="password" id="password" name="password" class="form-control"
+                 placeholder="Min. 8 karakter" required minlength="8"
+                 style="padding-right:42px;" />
+          <button type="button" id="toggle-pw"
+            style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                   background:none;border:none;cursor:pointer;font-size:16px;color:#7986a3;">👁️</button>
+        </div>
+      </div>
+
+      <!-- Password strength indicator -->
+      <div id="pw-strength" style="height:4px;border-radius:99px;background:#1a1f30;margin-top:-12px;margin-bottom:16px;overflow:hidden;">
+        <div id="pw-bar" style="height:100%;width:0%;background:var(--danger);transition:all 0.3s;border-radius:99px;"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px;" id="btn-register">
+        🚀 Buat Akun
+      </button>
+    </form>
+
+    <div class="auth-divider"><span>sudah punya akun?</span></div>
+
+    <a href="{{ url_for('login') }}" class="btn btn-secondary" style="width:100%;justify-content:center;" id="btn-goto-login">
+      🔐 Masuk
+    </a>
+
+  </div>
+</div>
+
+<script>
+  document.getElementById('toggle-pw').addEventListener('click', function() {
+    const pw = document.getElementById('password');
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+    this.textContent = pw.type === 'password' ? '👁️' : '🙈';
+  });
+
+  // Password strength
+  document.getElementById('password').addEventListener('input', function() {
+    const v = this.value;
+    let score = 0;
+    if (v.length >= 8) score++;
+    if (/[A-Z]/.test(v)) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const colors = ['#ff5252','#ffab40','#40c4ff','#00e676'];
+    const bar = document.getElementById('pw-bar');
+    bar.style.width = (score * 25) + '%';
+    bar.style.background = colors[score - 1] || '#1a1f30';
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.flash').forEach(el => {
+      el.style.transition = 'opacity 0.4s';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 400);
+    });
+  }, 4000);
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+{% extends "base_app.html" %}
+{% block title %}Website Saya – NIDS Monitor{% endblock %}
+{% block page_title %}Website Dipantau{% endblock %}
+
+{% block content %}
+<div class="flex-center" style="justify-content:space-between;margin-bottom:24px;">
+  <div>
+    <h2 style="font-size:20px;font-weight:700;">🌐 Website Anda</h2>
+    <p class="text-muted" style="font-size:13px;margin-top:4px;">Kelola dan pantau website yang terdaftar</p>
+  </div>
+  <a href="{{ url_for('add_website') }}" class="btn btn-primary" id="btn-add-website">
+    ➕ Tambah Website
+  </a>
+</div>
+
+{% if websites %}
+  <div class="website-grid">
+    {% for site in websites %}
+    <div class="website-card" id="site-{{ site.id }}" style="display:flex;flex-direction:column;justify-content:space-between;">
+      <div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,rgba(108,99,255,0.3),rgba(0,212,255,0.2));display:flex;align-items:center;justify-content:center;font-size:20px;">🌐</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ site.name }}</div>
+            <div class="website-card-url" style="color:var(--text-muted);font-size:12px;">{{ site.target_url }}</div>
+          </div>
+          <!-- Status badge -->
+          <span class="badge badge-{{ 'low' if site.status == 'Terhubung' else 'critical' if site.status == 'Serangan Aktif' else 'medium' }}">
+            {{ '🟢 Terhubung' if site.status == 'Terhubung' else ('🚨 Serangan Aktif' if site.status == 'Serangan Aktif' else '⏸ ' + site.status) }}
+          </span>
+        </div>
+
+        <div class="website-card-stats mb-4">
+          <div class="ws-stat">
+            <div class="ws-stat-val text-danger">{{ site.alerts|selectattr('severity','equalto','Kritis')|list|length }}</div>
+            <div class="ws-stat-lbl">Kritis</div>
+          </div>
+          <div class="ws-stat">
+            <div class="ws-stat-val text-warning">{{ site.alerts|selectattr('severity','equalto','Tinggi')|list|length }}</div>
+            <div class="ws-stat-lbl">Tinggi</div>
+          </div>
+          <div class="ws-stat">
+            <div class="ws-stat-val" style="color:var(--info);">{{ site.alerts|length }}</div>
+            <div class="ws-stat-lbl">Total Alert</div>
+          </div>
+          <div class="ws-stat" style="margin-left:auto;">
+            <div style="font-size:11px;color:var(--text-dim);">
+              {% if site.last_ping_at %}
+                {{ site.last_ping_at.strftime('%d/%m %H:%M') }}
+              {% else %}
+                Belum terhubung
+              {% endif %}
+            </div>
+            <div class="ws-stat-lbl">Terakhir Ping</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div style="display:flex;align-items:center;gap:8px;padding-top:12px;border-top:1px solid var(--border);margin-top:8px;">
+        <a href="{{ url_for('dashboard', website_id=site.id) }}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center;">
+          📊 Dashboard
+        </a>
+        <a href="{{ url_for('website_setup', website_id=site.id) }}" class="btn btn-secondary btn-sm" title="Setup & API Key">
+          ⚙️ Setup
+        </a>
+        <form method="POST" action="{{ url_for('delete_website', website_id=site.id) }}" onsubmit="return confirm('Hapus website \'{{ site.name }}\'? Semua data alert dan log akan terhapus.');" style="margin:0;">
+          <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--danger);padding:6px 10px;" title="Hapus Website">
+            🗑️
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <!-- Empty state -->
+  <div style="text-align:center;padding:80px 20px;">
+    <div style="font-size:64px;margin-bottom:20px;">🕵️</div>
+    <h3 style="font-size:18px;font-weight:600;margin-bottom:8px;">Belum Ada Website</h3>
+    <p class="text-muted" style="font-size:14px;max-width:320px;margin:0 auto 24px;">
+      Tambahkan website pertama Anda untuk mulai memantau serangan secara real-time.
+    </p>
+    <a href="{{ url_for('add_website') }}" class="btn btn-primary" id="btn-add-first">
+      ➕ Tambah Website Pertama
+    </a>
+  </div>
+{% endif %}
+{% endblock %}

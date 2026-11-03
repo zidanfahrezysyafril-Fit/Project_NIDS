@@ -1,0 +1,221 @@
+{% extends "base_app.html" %}
+{% block title %}Database Explorer – {{ db_info.database }}{% endblock %}
+{% block page_title %}🗄️ Database Explorer (PostgreSQL){% endblock %}
+
+{% block content %}
+<!-- Info Bar Database -->
+<div class="card mb-6" style="background:linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.8));border:1px solid rgba(148,163,184,0.15);">
+  <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:42px;height:42px;border-radius:10px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(59,130,246,0.3);">
+        🐘
+      </div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;">
+          {{ db_info.database }}
+          <span class="badge badge-success" style="font-size:11px;padding:3px 8px;">● {{ db_info.status }}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+          Engine: <strong style="color:var(--text);">{{ db_info.engine }}</strong> &nbsp;|&nbsp; Host: <code>{{ db_info.host }}</code>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table=table_name) }}" class="btn btn-secondary btn-sm" title="Refresh">
+        🔄 Refresh
+      </a>
+      <span style="font-size:12px;color:var(--text-muted);background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);">
+        Total: <strong style="color:var(--text);">{{ pagination.total if pagination else 0 }}</strong> data
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs Pilihan Tabel -->
+<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;margin-bottom:16px;">
+  <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='alerts') }}"
+     class="btn btn-sm {% if table_name == 'alerts' %}btn-primary{% else %}btn-secondary{% endif %}"
+     style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+    <span>🔔 Alerts</span>
+    <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.alerts }}</span>
+  </a>
+
+  <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='log_entries') }}"
+     class="btn btn-sm {% if table_name == 'log_entries' %}btn-primary{% else %}btn-secondary{% endif %}"
+     style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+    <span>📜 Log Entries</span>
+    <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.log_entries }}</span>
+  </a>
+
+  <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='websites') }}"
+     class="btn btn-sm {% if table_name == 'websites' %}btn-primary{% else %}btn-secondary{% endif %}"
+     style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+    <span>🌐 Websites</span>
+    <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.websites }}</span>
+  </a>
+
+  <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='traffic_metrics') }}"
+     class="btn btn-sm {% if table_name == 'traffic_metrics' %}btn-primary{% else %}btn-secondary{% endif %}"
+     style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+    <span>📈 Traffic Metrics</span>
+    <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.traffic_metrics }}</span>
+  </a>
+
+  <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='users') }}"
+     class="btn btn-sm {% if table_name == 'users' %}btn-primary{% else %}btn-secondary{% endif %}"
+     style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+    <span>👤 Users</span>
+    <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.users }}</span>
+  </a>
+
+  <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='chat_messages') }}"
+     class="btn btn-sm {% if table_name == 'chat_messages' %}btn-primary{% else %}btn-secondary{% endif %}"
+     style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
+    <span>💬 Chat Messages</span>
+    <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.chat_messages }}</span>
+  </a>
+</div>
+
+<!-- Main Table Card -->
+<div class="card">
+  <!-- Search & Filter Bar -->
+  <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;">
+    <div style="font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px;">
+      <span>Tabel:</span>
+      <code style="background:rgba(59,130,246,0.15);color:#60a5fa;padding:3px 8px;border-radius:6px;">public.{{ table_name }}</code>
+    </div>
+
+    <form method="GET" action="{{ url_for('database_viewer', website_id=site.id if site else 1) }}" style="display:flex;gap:8px;">
+      <input type="hidden" name="table" value="{{ table_name }}">
+      <input type="text" name="q" value="{{ search }}" placeholder="Cari di tabel {{ table_name }}..."
+             class="form-control" style="width:240px;padding:6px 12px;font-size:13px;">
+      <button type="submit" class="btn btn-secondary btn-sm">🔍 Cari</button>
+      {% if search %}
+      <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table=table_name) }}" class="btn btn-secondary btn-sm">✕</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Data Table -->
+  <div class="table-container" style="overflow-x:auto;">
+    <table class="data-table" style="width:100%;font-size:13px;">
+      <thead>
+        <tr>
+          {% for col in columns %}
+          <th style="padding:10px 12px;white-space:nowrap;background:rgba(15,23,42,0.6);">{{ col }}</th>
+          {% endfor %}
+          <th style="padding:10px 12px;background:rgba(15,23,42,0.6);text-align:right;">Aksi / Detail</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if rows %}
+          {% for r in rows %}
+          <tr style="border-bottom:1px solid rgba(148,163,184,0.08);transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+            {% for v in r.vals %}
+            <td style="padding:10px 12px;white-space:nowrap;">
+              {% if 'Kritis' in v|string %}
+                <span class="badge badge-critical">{{ v }}</span>
+              {% elif 'Tinggi' in v|string or 'Peringatan' in v|string %}
+                <span class="badge badge-warning">{{ v }}</span>
+              {% elif 'DDoS' in v|string %}
+                <span class="badge badge-ddos">💥 {{ v }}</span>
+              {% elif 'SQL' in v|string %}
+                <span class="badge badge-sqli">💉 {{ v }}</span>
+              {% elif 'XSS' in v|string %}
+                <span class="badge badge-xss">🕷️ {{ v }}</span>
+              {% elif 'Terdeteksi' in v|string or 'Aktif' in v|string %}
+                <span class="badge badge-success">{{ v }}</span>
+              {% else %}
+                <span style="color:var(--text);">{{ v }}</span>
+              {% endif %}
+            </td>
+            {% endfor %}
+            <td style="padding:10px 12px;text-align:right;white-space:nowrap;">
+              {% if r.detail %}
+              <button class="btn btn-secondary btn-sm" onclick="showDetail('{{ r.id }}', '{{ r.detail|e|replace('\n', ' ')|replace('\'', '\\\'') }}')" style="font-size:11px;padding:3px 8px;">
+                👁️ Detail
+              </button>
+              {% else %}
+              <span style="color:var(--text-muted);font-size:11px;">–</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="{{ columns|length + 1 }}" style="text-align:center;padding:36px;color:var(--text-muted);">
+              Tidak ada data ditemukan di tabel <code>{{ table_name }}</code>.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if pagination and pagination.pages > 1 %}
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid rgba(148,163,184,0.1);">
+    <div style="font-size:12px;color:var(--text-muted);">
+      Halaman <strong>{{ pagination.page }}</strong> dari <strong>{{ pagination.pages }}</strong> (Total: {{ pagination.total }} baris)
+    </div>
+    <div style="display:flex;gap:6px;">
+      {% if pagination.has_prev %}
+      <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table=table_name, page=pagination.prev_num, q=search) }}" class="btn btn-secondary btn-sm">
+        ‹ Sebelumnya
+      </a>
+      {% endif %}
+
+      {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+          {% if p == pagination.page %}
+          <span class="btn btn-primary btn-sm" style="font-weight:700;">{{ p }}</span>
+          {% else %}
+          <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table=table_name, page=p, q=search) }}" class="btn btn-secondary btn-sm">{{ p }}</a>
+          {% endif %}
+        {% else %}
+          <span style="color:var(--text-muted);padding:4px 8px;">…</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if pagination.has_next %}
+      <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table=table_name, page=pagination.next_num, q=search) }}" class="btn btn-secondary btn-sm">
+        Berikutnya ›
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Modal Detail -->
+<div id="detailModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;">
+  <div class="card" style="width:90%;max-width:550px;box-shadow:0 20px 40px rgba(0,0,0,0.5);">
+    <div class="card-header">
+      <div class="card-title">🔍 Detail Baris #<span id="modalRowId"></span></div>
+      <button class="btn btn-secondary btn-sm" onclick="closeDetail()">✕</button>
+    </div>
+    <div style="margin:16px 0;">
+      <pre id="modalContent" style="background:rgba(15,23,42,0.9);padding:14px;border-radius:8px;font-size:12px;color:#a5f3fc;overflow-x:auto;white-space:pre-wrap;word-break:break-all;border:1px solid rgba(148,163,184,0.1);max-height:300px;"></pre>
+    </div>
+    <div style="text-align:right;">
+      <button class="btn btn-primary btn-sm" onclick="closeDetail()">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showDetail(id, detailText) {
+  document.getElementById('modalRowId').textContent = id;
+  document.getElementById('modalContent').textContent = detailText;
+  const modal = document.getElementById('detailModal');
+  modal.style.display = 'flex';
+}
+function closeDetail() {
+  document.getElementById('detailModal').style.display = 'none';
+}
+window.onclick = function(e) {
+  const modal = document.getElementById('detailModal');
+  if (e.target === modal) closeDetail();
+}
+</script>
+{% endblock %}

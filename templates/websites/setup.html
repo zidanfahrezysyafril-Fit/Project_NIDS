@@ -1,0 +1,305 @@
+{% extends "base_app.html" %}
+{% block title %}Setup Konektor – {{ site.name }}{% endblock %}
+{% block page_title %}Setup Konektor{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;margin:0 auto;">
+
+  <!-- Progress indicator -->
+  <div style="display:flex;align-items:center;gap:0;margin-bottom:32px;">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;">✓</div>
+      <span style="font-size:13px;color:var(--success);font-weight:600;">Daftarkan Website</span>
+    </div>
+    <div style="flex:1;height:2px;background:var(--primary);margin:0 8px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+      <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">2</div>
+      <span style="font-size:13px;font-weight:600;color:var(--text-primary);">Pasang Konektor</span>
+    </div>
+    <div style="flex:1;height:2px;background:var(--border);margin:0 8px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);flex-shrink:0;">3</div>
+      <span style="font-size:13px;color:var(--text-dim);">Dashboard Live</span>
+    </div>
+  </div>
+
+  <!-- Success Banner -->
+  <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.25);border-radius:14px;padding:18px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;">
+    <div style="font-size:32px;">🎉</div>
+    <div>
+      <div style="font-size:15px;font-weight:700;color:var(--success);">Website Berhasil Didaftarkan!</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">
+        <strong>{{ site.name }}</strong> ({{ site.target_url }}) sudah terdaftar.
+        Sekarang pasang konektor di website Anda agar pemantauan bisa dimulai.
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key -->
+  <div class="card mb-6" style="border-color:rgba(108,99,255,0.3);">
+    <div class="card-header">
+      <div class="card-title">🔑 API Key Website Anda</div>
+      <span class="badge badge-medium">Rahasia</span>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">
+      API Key ini digunakan oleh konektor di website Anda untuk mengirim data log ke platform NIDS. <strong>Jangan bagikan kepada siapapun.</strong>
+    </p>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div style="flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a78bfa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="api-key-display">
+        {{ site.api_key }}
+      </div>
+      <button class="btn btn-secondary" onclick="copyApiKey()" id="btn-copy-key">
+        📋 Salin
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab: Pilih Platform -->
+  <div class="card mb-6">
+    <div class="card-header">
+      <div class="card-title">📦 Instruksi Pemasangan</div>
+    </div>
+
+    <!-- Tab buttons -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0;">
+      <button class="tab-btn active" onclick="switchTab('wordpress', this)" id="tab-wordpress">
+        🔷 WordPress
+      </button>
+      <button class="tab-btn" onclick="switchTab('php', this)" id="tab-php">
+        🐘 PHP Biasa
+      </button>
+      <button class="tab-btn" onclick="switchTab('manual', this)" id="tab-manual">
+        📁 Upload Log
+      </button>
+    </div>
+
+    <!-- Tab: WordPress -->
+    <div id="content-wordpress" class="tab-content">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Download Plugin WordPress NIDS</div>
+            <div class="step-desc">Download file plugin <code>nids-connector.zip</code> dan install di WordPress Anda.</div>
+            <a href="{{ url_for('static', filename='connectors/nids-connector.zip') }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-plugin">
+              ⬇️ Download Plugin
+            </a>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Aktifkan Plugin</div>
+            <div class="step-desc">Di WordPress: <code>Plugin → Upload Plugin → Aktifkan</code></div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Masukkan API Key</div>
+            <div class="step-desc">Di menu <code>Pengaturan → NIDS Monitor</code>, tempelkan API Key berikut:</div>
+            <div style="background:rgba(0,0,0,0.3);border-radius:6px;padding:10px 14px;margin-top:8px;font-family:monospace;font-size:12px;color:#a78bfa;word-break:break-all;">{{ site.api_key }}</div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">4</div>
+          <div>
+            <div class="step-title">Selesai – Mulai Pantau</div>
+            <div class="step-desc">Setelah tersimpan, status website akan berubah dari <span class="badge badge-medium" style="font-size:10px;">⏸ Menunggu</span> menjadi <span class="badge badge-low" style="font-size:10px;">🟢 Terhubung</span>.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: PHP Biasa -->
+    <div id="content-php" class="tab-content" style="display:none;">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Upload File Konektor</div>
+            <div class="step-desc">Upload file <code>nids_agent.php</code> ke root folder website Anda via cPanel File Manager atau FTP.</div>
+            <a href="{{ url_for('static', filename='connectors/nids_agent.php') }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-php">
+              ⬇️ Download nids_agent.php
+            </a>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Konfigurasi API Key</div>
+            <div class="step-desc">Buka <code>nids_agent.php</code> dan isi konstanta berikut:</div>
+            <pre class="code-block" style="margin-top:8px;">define('NIDS_API_KEY', '{{ site.api_key }}');
+define('NIDS_ENDPOINT', '{{ request.host_url }}api/ingest');</pre>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Atur Cron Job</div>
+            <div class="step-desc">Di cPanel → Cron Jobs, tambahkan jadwal setiap 1 menit:</div>
+            <pre class="code-block" style="margin-top:8px;">* * * * * php /home/username/public_html/nids_agent.php</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Manual -->
+    <div id="content-manual" class="tab-content" style="display:none;">
+      <div style="text-align:center;padding:30px 20px;">
+        <div style="font-size:48px;margin-bottom:14px;">📁</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Upload Log Access Secara Manual</div>
+        <p style="font-size:13px;color:var(--text-muted);max-width:380px;margin:0 auto 20px;">
+          Mode ini tidak real-time. Anda mengunduh file <code>access.log</code> dari cPanel
+          dan menguploadnya ke platform untuk dianalisis.
+        </p>
+        <a href="{{ url_for('dashboard', website_id=site.id) }}" class="btn btn-primary" id="btn-upload-log">
+          📤 Upload Log Sekarang
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Quick Test & Simulation Box -->
+  <div class="card mb-6" style="border-color:rgba(0,230,118,0.25);background:rgba(0,230,118,0.02);">
+    <div class="card-header">
+      <div class="card-title">🧪 Uji Coba Langsung (Simulasi AI)</div>
+      <span class="badge badge-low" id="status-live-badge">{{ site.status }}</span>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">
+      Belum sempat memasang plugin di hosting? Uji respons platform NIDS dengan simulasi serangan virtual ke website ini:
+    </p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <button class="btn btn-secondary btn-sm" onclick="runSim('ping')" id="btn-sim-ping">
+        🟢 Ping Bersih (Normal)
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="runSim('sqli')" id="btn-sim-sqli" style="border-color:rgba(167,139,250,0.5);">
+        💉 Simulasi SQLi
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="runSim('xss')" id="btn-sim-xss" style="border-color:rgba(255,171,64,0.5);">
+        🕷️ Simulasi XSS
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="runSim('ddos')" id="btn-sim-ddos" style="border-color:rgba(255,82,82,0.5);">
+        💥 Simulasi DDoS
+      </button>
+    </div>
+    <div id="sim-feedback" style="display:none;margin-top:12px;padding:10px 14px;border-radius:8px;font-size:12px;"></div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div style="display:flex;gap:12px;justify-content:space-between;align-items:center;">
+    <div style="font-size:12px;color:var(--text-dim);">
+      Bisa diakses kembali kapan saja melalui menu <strong>Setup Konektor</strong>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <a href="{{ url_for('websites') }}" class="btn btn-secondary" id="btn-later">
+        Daftar Website
+      </a>
+      <a href="{{ url_for('dashboard', website_id=site.id) }}" class="btn btn-primary" id="btn-go-dashboard">
+        Buka Dashboard Live →
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.tab-btn {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: -1px;
+  transition: all 0.2s;
+}
+.tab-btn:hover { color: var(--text-primary); }
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.setup-step {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+.step-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.step-desc  { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+</style>
+
+<script>
+function copyApiKey() {
+  const key = document.getElementById('api-key-display').textContent.trim();
+  navigator.clipboard.writeText(key).then(() => {
+    const btn = document.getElementById('btn-copy-key');
+    btn.textContent = '✅ Tersalin!';
+    btn.style.color = 'var(--success)';
+    setTimeout(() => {
+      btn.textContent = '📋 Salin';
+      btn.style.color = '';
+    }, 2500);
+  });
+}
+
+function switchTab(name, btn) {
+  // Hide all tabs
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  // Show selected
+  document.getElementById('content-' + name).style.display = 'block';
+  btn.classList.add('active');
+}
+
+async function runSim(type) {
+  const fb = document.getElementById('sim-feedback');
+  fb.style.display = 'block';
+  fb.style.background = 'rgba(255,255,255,0.05)';
+  fb.style.color = 'var(--text-muted)';
+  fb.textContent = '⏳ Mengirim simulasi ke engine AI NIDS...';
+
+  try {
+    const res = await fetch("{{ url_for('simulate_attack', website_id=site.id) }}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: type })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      fb.style.background = 'rgba(0,230,118,0.12)';
+      fb.style.color = 'var(--success)';
+      fb.innerHTML = `✅ <strong>Sukses!</strong> ${data.message} Status konektor diperbarui. <a href="{{ url_for('dashboard', website_id=site.id) }}" style="color:var(--primary);text-decoration:underline;margin-left:8px;">Lihat di Dashboard →</a>`;
+      const badge = document.getElementById('status-live-badge');
+      if (badge) {
+        badge.textContent = 'Terhubung';
+        badge.className = 'badge badge-low';
+      }
+    } else {
+      fb.style.background = 'rgba(255,82,82,0.12)';
+      fb.style.color = 'var(--danger)';
+      fb.textContent = '❌ Gagal: ' + (data.error || 'Terjadi kesalahan');
+    }
+  } catch (err) {
+    fb.style.background = 'rgba(255,82,82,0.12)';
+    fb.style.color = 'var(--danger)';
+    fb.textContent = '❌ Koneksi error: ' + err.message;
+  }
+}
+</script>
+{% endblock %}

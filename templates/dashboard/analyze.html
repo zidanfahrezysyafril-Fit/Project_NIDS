@@ -1,0 +1,160 @@
+﻿{% extends "base_app.html" %}
+{% block title %}Analisis CSV CICIDS2017 – {{ site.name }}{% endblock %}
+{% block page_title %}📂 Analisis Dataset CSV{% endblock %}
+
+{% block content %}
+
+<!-- Info Banner -->
+<div style="background:linear-gradient(135deg,rgba(108,99,255,0.15),rgba(0,212,255,0.08));border:1px solid rgba(108,99,255,0.3);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;">
+  <div style="font-size:32px;line-height:1;">📊</div>
+  <div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px;">Upload Dataset CICIDS2017</div>
+    <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+      Upload file CSV dari dataset CICIDS2017 untuk dianalisis menggunakan model XGBoost + Random Forest terlatih.
+      Sistem mendeteksi DDoS, PortScan, SQLi, XSS, Brute Force secara otomatis. Maks 5.000 baris per upload.
+    </div>
+  </div>
+</div>
+
+<div class="grid-2 mb-6" style="align-items:start;">
+
+  <!-- Upload Form -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📤 Upload File CSV</div>
+    </div>
+    <form method="POST" enctype="multipart/form-data" id="upload-form">
+      <div id="drop-zone"
+           style="border:2px dashed rgba(108,99,255,0.4);border-radius:12px;padding:40px 24px;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(108,99,255,0.04);margin-bottom:20px;"
+           onclick="document.getElementById('csv_file').click()"
+           ondragover="handleDragOver(event)"
+           ondragleave="handleDragLeave(event)"
+           ondrop="handleDrop(event)">
+        <div id="drop-icon" style="font-size:48px;margin-bottom:12px;">📁</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px;" id="drop-text">Drag and Drop file CSV di sini</div>
+        <div style="font-size:12px;color:var(--text-muted);">atau klik untuk memilih file</div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text-dim);">CSV CICIDS2017 &bull; Maks 200 MB &bull; 5.000 baris diproses</div>
+      </div>
+      <input type="file" name="csv_file" id="csv_file" accept=".csv" style="display:none;" onchange="onFileSelected(this)">
+      <div id="file-info" style="display:none;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;">
+        <span id="file-name" style="font-weight:600;color:var(--success);"></span>
+        <span id="file-size" style="color:var(--text-muted);margin-left:8px;"></span>
+      </div>
+      <div id="progress-wrap" style="display:none;margin-bottom:16px;">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;">Menganalisis dataset...</div>
+        <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;">
+          <div id="progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#6c63ff,#00d4ff);border-radius:99px;transition:width 0.4s ease;"></div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;" id="btn-analyze">🔍 Mulai Analisis</button>
+    </form>
+  </div>
+
+  <!-- Info Panel -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="card">
+      <div class="card-header"><div class="card-title">📋 Format CSV CICIDS2017</div></div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
+        <div style="margin-bottom:8px;font-weight:600;color:var(--text-primary);">File yang bisa diupload:</div>
+        <ul style="padding-left:16px;display:flex;flex-direction:column;gap:3px;">
+          <li><code style="color:var(--secondary);">Monday-WorkingHours.pcap_ISCX.csv</code></li>
+          <li><code style="color:var(--secondary);">Tuesday-WorkingHours.pcap_ISCX.csv</code></li>
+          <li><code style="color:var(--secondary);">Wednesday-WorkingHours.pcap_ISCX.csv</code></li>
+          <li><code style="color:var(--secondary);">Thursday-WorkingHours.pcap_ISCX.csv</code></li>
+          <li><code style="color:var(--secondary);">Friday-WorkingHours.pcap_ISCX.csv</code></li>
+          <li><em>CSV export dari Google Colab</em></li>
+        </ul>
+        <div style="margin-top:10px;color:var(--info);">
+          ℹ️ Maks <strong>5.000 baris</strong> per upload. File besar bisa dibagi menjadi beberapa batch.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">🔗 Export Model dari Colab</div></div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.8;margin-bottom:12px;">
+        Jalankan kode ini di akhir notebook Colab kamu:
+      </div>
+      <div style="background:rgba(0,0,0,0.35);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;overflow-x:auto;">
+        <span style="color:#7986a3;"># Export model bundle</span><br>
+        <span style="color:#a78bfa;">import</span> joblib<br>
+        bundle = {<br>
+        &nbsp;&nbsp;<span style="color:#40c4ff;">'xgb_model'</span>: xgb_clf,<br>
+        &nbsp;&nbsp;<span style="color:#40c4ff;">'rf_model'</span>: rf_clf,<br>
+        &nbsp;&nbsp;<span style="color:#40c4ff;">'scaler'</span>: scaler,<br>
+        }<br>
+        joblib.dump(bundle, <span style="color:#40c4ff;">'/content/cicids_flow_model.pkl'</span>)<br>
+        <br>
+        <span style="color:#7986a3;"># Download ke laptop</span><br>
+        <span style="color:#a78bfa;">from</span> google.colab <span style="color:#a78bfa;">import</span> files<br>
+        files.download(<span style="color:#40c4ff;">'/content/cicids_flow_model.pkl'</span>)
+      </div>
+      <div style="margin-top:12px;background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.2);border-radius:8px;padding:12px;font-size:12px;">
+        ✅ Letakkan <code style="color:var(--success);">cicids_flow_model.pkl</code> langsung di folder project:<br>
+        <code style="color:var(--secondary);font-size:11px;">d:\Semester 5\AI KSI\Project NIDS\cicids_flow_model.pkl</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<style>
+#drop-zone.drag-over {
+  border-color: rgba(108,99,255,0.8);
+  background: rgba(108,99,255,0.1);
+  transform: scale(1.01);
+}
+</style>
+<script>
+function onFileSelected(input) {
+  if (!input.files.length) return;
+  showFileInfo(input.files[0]);
+}
+function showFileInfo(file) {
+  document.getElementById('file-info').style.display = 'block';
+  document.getElementById('file-name').textContent = file.name;
+  const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+  document.getElementById('file-size').textContent = '(' + sizeMB + ' MB)';
+  document.getElementById('drop-icon').textContent = '✅';
+  document.getElementById('drop-text').textContent = file.name;
+}
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('drag-over');
+}
+function handleDragLeave(e) {
+  document.getElementById('drop-zone').classList.remove('drag-over');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    const input = document.getElementById('csv_file');
+    const dt = new DataTransfer();
+    dt.items.add(files[0]);
+    input.files = dt.files;
+    showFileInfo(files[0]);
+  }
+}
+document.getElementById('upload-form').addEventListener('submit', function(e) {
+  const fileInput = document.getElementById('csv_file');
+  if (!fileInput.files.length) {
+    e.preventDefault();
+    alert('Pilih file CSV terlebih dahulu.');
+    return;
+  }
+  document.getElementById('progress-wrap').style.display = 'block';
+  document.getElementById('btn-analyze').disabled = true;
+  document.getElementById('btn-analyze').textContent = 'Menganalisis...';
+  let pct = 0;
+  const bar = document.getElementById('progress-bar');
+  const interval = setInterval(() => {
+    pct = Math.min(pct + Math.random() * 8, 90);
+    bar.style.width = pct + '%';
+  }, 400);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,363 @@
+{% extends "base_app.html" %}
+{% block title %}{{ site.name }} – Dashboard{% endblock %}
+{% block page_title %}📊 {{ site.name }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hidden data container for clean JavaScript reading (no Jinja syntax errors in JS) -->
+<div id="dashboard-meta"
+     data-website-id="{{ site.id }}"
+     data-last-id="{{ last_alert_id }}"
+     data-last-ts="{{ last_ts }}"
+     data-ddos="{{ stat_ddos }}"
+     data-xss="{{ stat_xss }}"
+     data-sqli="{{ stat_sqli }}"
+     data-other="{{ stat_other }}"
+     style="display:none;"></div>
+
+<!-- ── STAT CARDS ── -->
+<div class="stats-grid mb-6">
+
+  <div class="stat-card" style="--accent:#ff5252;--accent-bg:rgba(255,82,82,0.12);">
+    <div class="stat-icon">💥</div>
+    <div class="stat-value text-danger" id="stat-ddos">
+      {{ stat_ddos }}
+    </div>
+    <div class="stat-label">Serangan DDoS</div>
+  </div>
+
+  <div class="stat-card" style="--accent:#ffab40;--accent-bg:rgba(255,171,64,0.12);">
+    <div class="stat-icon">🕷️</div>
+    <div class="stat-value text-warning" id="stat-xss">
+      {{ stat_xss }}
+    </div>
+    <div class="stat-label">Serangan XSS</div>
+  </div>
+
+  <div class="stat-card" style="--accent:#a78bfa;--accent-bg:rgba(108,99,255,0.12);">
+    <div class="stat-icon">💉</div>
+    <div class="stat-value" style="color:#a78bfa;" id="stat-sqli">
+      {{ stat_sqli }}
+    </div>
+    <div class="stat-label">SQL Injection</div>
+  </div>
+
+  <div class="stat-card" style="--accent:#40c4ff;--accent-bg:rgba(64,196,255,0.12);">
+    <div class="stat-icon">🔔</div>
+    <div class="stat-value" style="color:var(--info);" id="stat-total">
+      {{ alerts|length }}
+    </div>
+    <div class="stat-label">Total Alert</div>
+  </div>
+
+</div>
+
+<!-- ── GRID: Chart + Recent Alerts ── -->
+<div class="grid-2 mb-6">
+
+  <!-- Traffic Chart -->
+  <div class="card" id="section-ddos">
+    <div class="card-header">
+      <div class="card-title">💥 Traffic & DDoS Monitor</div>
+      <span class="badge badge-ddos">Real-time</span>
+    </div>
+    <div class="chart-container">
+      <canvas id="trafficChart"></canvas>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--text-muted);">
+      Memperbarui setiap 5 detik. Lonjakan drastis mengindikasikan DDoS.
+    </div>
+  </div>
+
+  <!-- Attack Type Distribution -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🎯 Distribusi Serangan</div>
+    </div>
+    <div class="chart-container" style="height:200px;">
+      <canvas id="pieChart"></canvas>
+    </div>
+    <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#ff5252;display:inline-block;"></span>DDoS
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#ffab40;display:inline-block;"></span>XSS
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#a78bfa;display:inline-block;"></span>SQLi
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:6px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:#40c4ff;display:inline-block;"></span>Lainnya
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── RECENT ALERTS TABLE ── -->
+<div class="card" id="section-webattack">
+  <div class="card-header" style="flex-wrap:wrap;gap:12px;">
+    <div class="card-title">🚨 Alert Terbaru</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <!-- Simulation Quick Triggers -->
+      <div style="display:flex;gap:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:3px 6px;align-items:center;">
+        <span style="font-size:11px;color:var(--text-dim);margin-right:2px;">🧪 Uji AI:</span>
+        <button class="btn btn-secondary btn-sm" onclick="triggerSim('sqli')" style="font-size:11px;padding:3px 8px;" title="Simulasikan SQL Injection">💉 SQLi</button>
+        <button class="btn btn-secondary btn-sm" onclick="triggerSim('xss')" style="font-size:11px;padding:3px 8px;" title="Simulasikan XSS">🕷️ XSS</button>
+        <button class="btn btn-secondary btn-sm" onclick="triggerSim('ddos')" style="font-size:11px;padding:3px 8px;" title="Simulasikan DDoS Flood">💥 DDoS</button>
+      </div>
+
+      <!-- Filter -->
+      <select id="filter-type" class="form-control" style="width:auto;padding:5px 10px;font-size:12px;">
+        <option value="">Semua Tipe</option>
+        <option value="DDoS">DDoS</option>
+        <option value="XSS">XSS</option>
+        <option value="SQL Injection">SQL Injection</option>
+      </select>
+      <select id="filter-severity" class="form-control" style="width:auto;padding:5px 10px;font-size:12px;">
+        <option value="">Semua Severity</option>
+        <option value="Kritis">Kritis</option>
+        <option value="Tinggi">Tinggi</option>
+        <option value="Sedang">Sedang</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Tipe Serangan</th>
+          <th>Severity</th>
+          <th>IP Sumber</th>
+          <th>Detail</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="alerts-tbody">
+        {% if alerts %}
+          {% for a in alerts %}
+          <tr class="alert-row"
+              id="alert-row-{{ a.id }}"
+              data-id="{{ a.id }}"
+              data-type="{{ a.attack_type }}"
+              data-severity="{{ a.severity }}">
+            <td class="mono">{{ a.created_at.strftime('%d/%m %H:%M:%S') }}</td>
+            <td>
+              <span class="badge badge-{{ 'ddos' if a.attack_type=='DDoS' else 'xss' if a.attack_type=='XSS' else 'sqli' if 'SQL' in a.attack_type else 'medium' }}">
+                {{ '💥' if a.attack_type=='DDoS' else '🕷️' if a.attack_type=='XSS' else '💉' if 'SQL' in a.attack_type else '⚠️' }}
+                {{ a.attack_type }}
+              </span>
+            </td>
+            <td>
+              <span class="badge badge-{{ 'critical' if a.severity=='Kritis' else 'high' if a.severity=='Tinggi' else 'medium' }}">
+                {{ a.severity }}
+              </span>
+            </td>
+            <td class="mono">{{ a.source_ip or '–' }}</td>
+            <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-muted);">
+              {{ a.detail or '–' }}
+            </td>
+            <td>
+              <a href="{{ url_for('mitigation', alert_id=a.id) }}"
+                 class="btn btn-secondary btn-sm" id="btn-mitigate-{{ a.id }}">
+                🛡️ Mitigasi
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="6" style="text-align:center;padding:40px;color:var(--text-dim);">
+              ✅ Tidak ada alert. Website aman.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const _meta = document.getElementById('dashboard-meta').dataset;
+const WEBSITE_ID = parseInt(_meta.websiteId, 10);
+let lastAlertId = parseInt(_meta.lastId || '0', 10);
+
+// ── Chart.js Setup ──────────────────────────────────────────────────
+Chart.defaults.color = '#7986a3';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+
+const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+const trafficData = {
+  labels: Array.from({length: 20}, () => ''),
+  datasets: [{
+    label: 'Request/menit',
+    data: Array(20).fill(0),
+    borderColor: '#6c63ff',
+    backgroundColor: 'rgba(108,99,255,0.1)',
+    fill: true,
+    tension: 0.4,
+    pointRadius: 0,
+    borderWidth: 2,
+  },{
+    label: 'Alert',
+    data: Array(20).fill(0),
+    borderColor: '#ff5252',
+    backgroundColor: 'rgba(255,82,82,0.08)',
+    fill: true,
+    tension: 0.4,
+    pointRadius: 0,
+    borderWidth: 2,
+  }]
+};
+const trafficChart = new Chart(trafficCtx, {
+  type: 'line',
+  data: trafficData,
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { display: false },
+      y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' } }
+    },
+    animation: { duration: 300 }
+  }
+});
+
+// Pie chart data from clean dataset
+const pieData = {
+  ddos: parseInt(_meta.ddos, 10) || 0,
+  xss:  parseInt(_meta.xss, 10) || 0,
+  sqli: parseInt(_meta.sqli, 10) || 0,
+  other: parseInt(_meta.other, 10) || 0,
+};
+new Chart(document.getElementById('pieChart').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    labels: ['DDoS','XSS','SQLi','Lainnya'],
+    datasets:[{ data: [pieData.ddos, pieData.xss, pieData.sqli, pieData.other],
+      backgroundColor: ['#ff5252','#ffab40','#a78bfa','#40c4ff'],
+      borderWidth: 0, hoverOffset: 8 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    cutout: '65%'
+  }
+});
+
+// ── Live Polling ─────────────────────────────────────────────────────
+function updateTrafficChart(newCount, alertCount) {
+  trafficChart.data.datasets[0].data.push(newCount);
+  trafficChart.data.datasets[0].data.shift();
+  trafficChart.data.datasets[1].data.push(alertCount);
+  trafficChart.data.datasets[1].data.shift();
+  trafficChart.update('none');
+}
+
+async function fetchAlerts() {
+  try {
+    const res = await fetch(`/api/alerts/${WEBSITE_ID}?since_id=${lastAlertId}`);
+    const data = await res.json();
+    if (data.length > 0) {
+      // Perbarui ID alert terakhir agar tidak mengambil data yang sama lagi
+      lastAlertId = Math.max(lastAlertId, ...data.map(a => a.id));
+      appendAlerts(data);
+      updateStatsCount(data);
+      updateTrafficChart(data.length * 10, data.length);
+    } else {
+      updateTrafficChart(Math.floor(Math.random() * 5), 0); // simulasi traffic normal
+    }
+  } catch(e) { console.error('Polling error:', e); }
+}
+
+function appendAlerts(alerts) {
+  const tbody = document.getElementById('alerts-tbody');
+  // Remove empty state row if exists
+  const emptyRow = tbody.querySelector('td[colspan]');
+  if (emptyRow) emptyRow.closest('tr').remove();
+
+  // Filter hanya alert yang belum ada di tabel (mencegah duplikat total)
+  const freshAlerts = alerts.filter(a => !document.getElementById(`alert-row-${a.id}`));
+  if (freshAlerts.length === 0) return;
+
+  freshAlerts.forEach(a => {
+    const typeClass = a.type==='DDoS'?'ddos':a.type==='XSS'?'xss':a.type.includes('SQL')?'sqli':'medium';
+    const sevClass  = a.severity==='Kritis'?'critical':a.severity==='Tinggi'?'high':'medium';
+    const icon      = a.type==='DDoS'?'💥':a.type==='XSS'?'🕷️':a.type.includes('SQL')?'💉':'⚠️';
+    const tr = document.createElement('tr');
+    tr.id = `alert-row-${a.id}`;
+    tr.className = 'alert-row';
+    tr.dataset.id = a.id;
+    tr.dataset.type = a.type;
+    tr.dataset.severity = a.severity;
+    tr.style.animation = 'slideIn 0.3s ease';
+    tr.innerHTML = `
+      <td class="mono">${new Date(a.created_at).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}</td>
+      <td><span class="badge badge-${typeClass}">${icon} ${a.type}</span></td>
+      <td><span class="badge badge-${sevClass}">${a.severity}</span></td>
+      <td class="mono">${a.source_ip||'–'}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-muted);">${a.detail||'–'}</td>
+      <td><a href="/mitigation/${a.id}" class="btn btn-secondary btn-sm">🛡️ Mitigasi</a></td>`;
+    tbody.prepend(tr);
+    // Remove excess rows
+    const rows = tbody.querySelectorAll('tr');
+    if (rows.length > 50) rows[rows.length-1].remove();
+  });
+}
+
+function updateStatsCount(newAlerts) {
+  const ddos = newAlerts.filter(a=>a.type==='DDoS').length;
+  const xss  = newAlerts.filter(a=>a.type==='XSS').length;
+  const sqli = newAlerts.filter(a=>a.type==='SQL Injection').length;
+  const upd  = (id, delta) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = parseInt(el.textContent||0) + delta;
+  };
+  upd('stat-ddos', ddos); upd('stat-xss', xss);
+  upd('stat-sqli', sqli); upd('stat-total', newAlerts.length);
+}
+
+// Start polling every 5s
+setInterval(fetchAlerts, 5000);
+
+// ── Filter Table ─────────────────────────────────────────────────────
+document.getElementById('filter-type').addEventListener('change', applyFilter);
+document.getElementById('filter-severity').addEventListener('change', applyFilter);
+function applyFilter() {
+  const type = document.getElementById('filter-type').value;
+  const sev  = document.getElementById('filter-severity').value;
+  document.querySelectorAll('.alert-row').forEach(row => {
+    const matchType = !type || row.dataset.type === type;
+    const matchSev  = !sev  || row.dataset.severity === sev;
+    row.style.display = (matchType && matchSev) ? '' : 'none';
+  });
+}
+
+// ── Trigger Simulation ────────────────────────────────────────────────
+async function triggerSim(type) {
+  try {
+    const res = await fetch(`/api/simulate/${WEBSITE_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: type })
+    });
+    const data = await res.json();
+    console.log('Sim result:', data);
+    // Poll immediately
+    setTimeout(fetchAlerts, 400);
+  } catch (err) {
+    console.error('Simulation error:', err);
+  }
+}
+</script>
+{% endblock %}

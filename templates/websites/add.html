@@ -1,0 +1,191 @@
+{% extends "base_app.html" %}
+{% block title %}Tambah Website – NIDS Monitor{% endblock %}
+{% block page_title %}Tambah Website{% endblock %}
+
+{% block content %}
+<div style="max-width:600px;margin:0 auto;">
+
+  <!-- Progress indicator -->
+  <div style="display:flex;align-items:center;gap:0;margin-bottom:32px;">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+      <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">1</div>
+      <span style="font-size:13px;font-weight:600;color:var(--text-primary);">Daftarkan Website</span>
+    </div>
+    <div style="flex:1;height:2px;background:var(--border);margin:0 8px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);flex-shrink:0;">2</div>
+      <span style="font-size:13px;color:var(--text-dim);">Pasang Konektor</span>
+    </div>
+    <div style="flex:1;height:2px;background:var(--border);margin:0 8px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);flex-shrink:0;">3</div>
+      <span style="font-size:13px;color:var(--text-dim);">Dashboard Live</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🌐 Informasi Website</div>
+    </div>
+
+    <form method="POST" action="{{ url_for('add_website') }}" id="form-add-website" novalidate>
+
+      <!-- URL Input -->
+      <div class="form-group">
+        <label class="form-label" for="url">URL Website <span style="color:var(--danger);">*</span></label>
+        <div style="position:relative;">
+          <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:14px;">🔗</span>
+          <input type="text" id="url" name="url" class="form-control"
+                 placeholder="https://website-anda.com"
+                 style="padding-left:36px;"
+                 required autofocus
+                 oninput="handleUrlInput(this.value)" />
+        </div>
+        <div id="url-hint" style="font-size:11px;color:var(--text-dim);margin-top:5px;">
+          Masukkan URL lengkap. https:// akan ditambahkan otomatis jika lupa.
+        </div>
+      </div>
+
+      <!-- Nama -->
+      <div class="form-group">
+        <label class="form-label" for="name">Nama Tampilan</label>
+        <input type="text" id="name" name="name" class="form-control"
+               placeholder="Akan diisi otomatis dari URL" maxlength="80" />
+        <div style="font-size:11px;color:var(--text-dim);margin-top:5px;">
+          Nama singkat untuk memudahkan identifikasi (opsional).
+        </div>
+      </div>
+
+      <!-- Platform -->
+      <div class="form-group">
+        <label class="form-label">Platform Website</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+          <label class="platform-card" for="plat-wp">
+            <input type="radio" name="platform" id="plat-wp" value="wordpress" checked hidden />
+            <div class="platform-inner" id="plat-wp-box">
+              <div style="font-size:24px;margin-bottom:6px;">🔷</div>
+              <div style="font-size:12px;font-weight:600;">WordPress</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Plugin otomatis</div>
+            </div>
+          </label>
+          <label class="platform-card" for="plat-php">
+            <input type="radio" name="platform" id="plat-php" value="php" hidden />
+            <div class="platform-inner" id="plat-php-box">
+              <div style="font-size:24px;margin-bottom:6px;">🐘</div>
+              <div style="font-size:12px;font-weight:600;">PHP Biasa</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">File PHP + cron</div>
+            </div>
+          </label>
+          <label class="platform-card" for="plat-manual">
+            <input type="radio" name="platform" id="plat-manual" value="manual" hidden />
+            <div class="platform-inner" id="plat-manual-box">
+              <div style="font-size:24px;margin-bottom:6px;">📁</div>
+              <div style="font-size:12px;font-weight:600;">Upload Log</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Manual (non-live)</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div id="preview-box" style="display:none;background:rgba(108,99,255,0.07);border:1px solid rgba(108,99,255,0.2);border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Preview</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="preview-favicon" style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,rgba(108,99,255,0.3),rgba(0,212,255,0.2));display:flex;align-items:center;justify-content:center;font-size:16px;">🌐</div>
+          <div>
+            <div id="preview-name" style="font-size:14px;font-weight:600;">–</div>
+            <div id="preview-url" style="font-size:12px;color:var(--text-muted);">–</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <a href="{{ url_for('websites') }}" class="btn btn-secondary" id="btn-cancel-add">← Batal</a>
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;" id="btn-submit-add">
+          Lanjut – Pasang Konektor →
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<style>
+.platform-card { cursor: pointer; display: block; }
+.platform-inner {
+  text-align: center;
+  padding: 14px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+.platform-inner:hover {
+  border-color: var(--primary);
+  background: rgba(108,99,255,0.07);
+}
+input[type=radio]:checked + .platform-inner {
+  border-color: var(--primary);
+  background: rgba(108,99,255,0.12);
+  box-shadow: 0 0 0 2px rgba(108,99,255,0.3);
+}
+</style>
+
+<script>
+function handleUrlInput(val) {
+  const nameField = document.getElementById('name');
+  const previewBox = document.getElementById('preview-box');
+  const hint = document.getElementById('url-hint');
+
+  if (!val) { previewBox.style.display = 'none'; return; }
+
+  let url = val;
+  if (!url.startsWith('http')) url = 'https://' + url;
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace('www.','');
+    const nameSuggestion = host.split('.')[0];
+    nameSuggestion.charAt(0).toUpperCase();
+
+    // Auto-fill nama jika masih kosong
+    if (!nameField.value) {
+      nameField.placeholder = nameSuggestion.charAt(0).toUpperCase() + nameSuggestion.slice(1);
+    }
+
+    // Update preview
+    document.getElementById('preview-name').textContent =
+      nameField.value || (nameSuggestion.charAt(0).toUpperCase() + nameSuggestion.slice(1));
+    document.getElementById('preview-url').textContent = url;
+    previewBox.style.display = 'block';
+
+    hint.textContent = '✅ URL valid: ' + url;
+    hint.style.color = 'var(--success)';
+  } catch(e) {
+    hint.textContent = '⚠️ Format belum valid (contoh: https://website.com)';
+    hint.style.color = 'var(--warning)';
+    previewBox.style.display = 'none';
+  }
+}
+
+// Update preview name saat user ketik nama manual
+document.getElementById('name').addEventListener('input', function() {
+  const el = document.getElementById('preview-name');
+  if (el) el.textContent = this.value || document.getElementById('name').placeholder;
+});
+
+// Validasi sebelum submit
+document.getElementById('form-add-website').addEventListener('submit', function(e) {
+  const url = document.getElementById('url').value.trim();
+  if (!url) {
+    e.preventDefault();
+    document.getElementById('url-hint').textContent = '❌ URL wajib diisi!';
+    document.getElementById('url-hint').style.color = 'var(--danger)';
+    document.getElementById('url').focus();
+    return;
+  }
+  const btn = document.getElementById('btn-submit-add');
+  btn.textContent = '⏳ Mendaftarkan...';
+  btn.disabled = true;
+});
+</script>
+{% endblock %}

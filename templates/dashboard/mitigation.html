@@ -1,0 +1,119 @@
+{% extends "base_app.html" %}
+{% block title %}Mitigasi {{ alert.attack_type }} – NIDS Monitor{% endblock %}
+{% block page_title %}🛡️ Panduan Mitigasi{% endblock %}
+
+{% block content %}
+<div style="max-width:720px;margin:0 auto;">
+
+  <!-- Alert Info -->
+  <div class="card mb-6" style="border-color:{% if alert.severity=='Kritis' %}rgba(255,82,82,0.4){% elif alert.severity=='Tinggi' %}rgba(255,171,64,0.4){% else %}rgba(64,196,255,0.4){% endif %};">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="font-size:40px;">
+        {% if alert.attack_type=='DDoS' %}💥{% elif alert.attack_type=='XSS' %}🕷️{% elif 'SQL' in alert.attack_type %}💉{% else %}⚠️{% endif %}
+      </div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <h2 style="font-size:18px;font-weight:700;">{{ alert.attack_type }}</h2>
+          <span class="badge badge-{{ 'critical' if alert.severity=='Kritis' else 'high' if alert.severity=='Tinggi' else 'medium' }}">
+            {{ alert.severity }}
+          </span>
+        </div>
+        <div style="font-size:13px;color:var(--text-muted);">
+          🕐 {{ alert.created_at.strftime('%d %B %Y, %H:%M:%S') }} &nbsp;|&nbsp;
+          🌐 {{ site.name }} &nbsp;|&nbsp;
+          📡 {{ alert.source_ip or 'IP tidak diketahui' }}
+        </div>
+        {% if alert.detail %}
+        <div style="margin-top:8px;font-size:12px;background:rgba(0,0,0,0.2);border-radius:6px;padding:8px 12px;font-family:monospace;color:#a8d8a8;">
+          {{ alert.detail }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Mitigation Guide -->
+  {% if guide %}
+
+  <!-- Steps -->
+  <div class="card mb-6">
+    <div class="card-header">
+      <div class="card-title">📋 Langkah Mitigasi</div>
+      <span class="badge badge-medium">{{ guide.steps|length }} langkah</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      {% for step in guide.steps %}
+      <div style="display:flex;gap:14px;padding:14px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid var(--border);">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;">
+          {{ loop.index }}
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;">{{ step.title }}</div>
+          <div style="font-size:13px;color:var(--text-muted);">{{ step.description }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- .htaccess Rules -->
+  {% if guide.htaccess %}
+  <div class="card mb-6">
+    <div class="card-header">
+      <div class="card-title">📄 Aturan .htaccess</div>
+      <button class="btn btn-secondary btn-sm" id="btn-copy-htaccess" onclick="copyHtaccess()">📋 Salin</button>
+    </div>
+    <pre class="code-block" id="htaccess-code">{{ guide.htaccess }}</pre>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:10px;">
+      ⚠️ Backup file .htaccess Anda sebelum menerapkan aturan baru.
+      Tambahkan kode di atas ke dalam file <code style="color:var(--primary);">.htaccess</code> di root website.
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- References -->
+  {% if guide.references %}
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🔗 Referensi</div>
+    </div>
+    <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">
+      {% for ref in guide.references %}
+      <li style="font-size:13px;">
+        <a href="{{ ref.url }}" target="_blank" style="display:flex;align-items:center;gap:6px;">
+          🔗 {{ ref.title }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="card" style="text-align:center;padding:40px;">
+    <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+    <p class="text-muted">Panduan mitigasi untuk serangan ini belum tersedia.</p>
+  </div>
+  {% endif %}
+
+  <div style="margin-top:20px;">
+    <a href="{{ url_for('dashboard', website_id=site.id) }}" class="btn btn-secondary" id="btn-back-dashboard">
+      ← Kembali ke Dashboard
+    </a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function copyHtaccess() {
+  const code = document.getElementById('htaccess-code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.getElementById('btn-copy-htaccess');
+    btn.textContent = '✅ Tersalin!';
+    setTimeout(() => { btn.textContent = '📋 Salin'; }, 2000);
+  });
+}
+</script>
+{% endblock %}

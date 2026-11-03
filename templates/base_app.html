@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}NIDS Monitor{% endblock %}</title>
+  <meta name="description" content="Platform pemantauan keamanan website real-time – NIDS Monitor">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Flash Messages -->
+<div class="flash-container" id="flash-container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">
+        <span>{% if category=='success' %}✅{% elif category=='danger' %}❌{% elif category=='warning' %}⚠️{% else %}ℹ️{% endif %}</span>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🛡️</div>
+      <span class="brand-name">NIDS Monitor</span>
+    </div>
+
+    {% if site is defined %}
+    <!-- Website Switcher -->
+    <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+      <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;">Website Aktif</div>
+      <div style="display:flex;align-items:center;gap:8px;background:rgba(108,99,255,0.1);border:1px solid rgba(108,99,255,0.25);border-radius:8px;padding:8px 10px;">
+        <span style="font-size:16px;">🌐</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ site.name }}</div>
+          <div style="font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ site.url }}</div>
+        </div>
+      </div>
+      <a href="{{ url_for('websites') }}" style="font-size:11px;color:var(--text-muted);display:block;margin-top:6px;text-align:center;">
+        🔄 Ganti Website
+      </a>
+    </div>
+    {% endif %}
+
+    <div class="sidebar-section">Menu Utama</div>
+
+    <a href="{{ url_for('websites') }}"
+       class="nav-item {% if request.endpoint=='websites' %}active{% endif %}"
+       id="nav-websites">
+      <span class="icon">🌐</span> Website Saya
+    </a>
+
+    {% if site is defined %}
+    <a href="{{ url_for('dashboard', website_id=site.id) }}"
+       class="nav-item {% if request.endpoint=='dashboard' %}active{% endif %}"
+       id="nav-dashboard">
+      <span class="icon">📊</span> Dashboard
+    </a>
+
+    <a href="{{ url_for('website_setup', website_id=site.id) }}"
+       class="nav-item {% if request.endpoint=='website_setup' %}active{% endif %}"
+       id="nav-setup">
+      <span class="icon">⚙️</span> Setup Konektor
+    </a>
+    {% endif %}
+
+    <div class="sidebar-section">Deteksi</div>
+
+    {% if site is defined %}
+    <a href="{{ url_for('dashboard', website_id=site.id) }}#ddos"
+       class="nav-item {% if request.endpoint=='ddos' %}active{% endif %}"
+       id="nav-ddos">
+      <span class="icon">💥</span> Deteksi DDoS
+    </a>
+
+    <a href="{{ url_for('dashboard', website_id=site.id) }}#webattack"
+       class="nav-item {% if request.endpoint=='webattack' %}active{% endif %}"
+       id="nav-webattack">
+      <span class="icon">🕷️</span> Serangan Web
+    </a>
+
+    <a href="{{ url_for('assistant', website_id=site.id) }}"
+       class="nav-item {% if request.endpoint=='assistant' %}active{% endif %}"
+       id="nav-assistant">
+      <span class="icon">🤖</span> AI Assistant
+    </a>
+
+    <a href="{{ url_for('analyze_csv', website_id=site.id) }}"
+       class="nav-item {% if request.endpoint=='analyze_csv' %}active{% endif %}"
+       id="nav-analyze">
+      <span class="icon">📂</span> Analisis CSV
+    </a>
+    {% endif %}
+
+    <!-- Sidebar Footer - User Info -->
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="avatar">{{ current_user.full_name[0]|upper if current_user.full_name else current_user.email[0]|upper }}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="user-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            {{ current_user.full_name or current_user.email }}
+          </div>
+          <div class="user-role">{{ current_user.role|capitalize }}</div>
+        </div>
+        <a href="{{ url_for('logout') }}" id="btn-logout"
+           style="font-size:18px;color:var(--text-muted);transition:color 0.2s;"
+           title="Logout" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">
+          ↗️
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="topbar-actions">
+        {% if site is defined %}
+        <div class="live-badge" id="live-indicator">
+          <div class="live-dot"></div> LIVE
+        </div>
+        <a href="{{ url_for('add_website') }}" class="btn btn-secondary btn-sm" id="btn-topbar-add">
+          ➕ Tambah Website
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+</div><!-- end layout -->
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
