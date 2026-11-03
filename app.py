@@ -821,8 +821,28 @@ def analyze_csv(website_id):
     return render_template('dashboard/analyze.html', site=site)
 
 
+def ensure_database_exists():
+    """Memastikan database MySQL dibuat otomatis di XAMPP jika belum ada."""
+    try:
+        import pymysql
+        user = app.config.get('DB_USER', 'root')
+        password = app.config.get('DB_PASSWORD', '')
+        host = app.config.get('DB_HOST', '127.0.0.1')
+        port = int(app.config.get('DB_PORT', 3306))
+        dbname = app.config.get('DB_NAME', 'nids_monitor')
+
+        conn = pymysql.connect(host=host, port=port, user=user, password=password)
+        with conn.cursor() as cursor:
+            cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{dbname}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[INFO] Auto-create database check: {e}")
+
+
 # ── Bootstrap DB & Run ────────────────────────────────────────────────────────
 if __name__ == '__main__':
+    ensure_database_exists()
     with app.app_context():
         db.create_all()
         print("[OK] Database siap.")

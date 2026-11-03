@@ -56,7 +56,7 @@ Project NIDS/
 | Komponen | Teknologi |
 |---|---|
 | Backend | Python Flask |
-| Database | SQLite (SQLAlchemy) |
+| Database | MySQL / MariaDB via XAMPP (SQLAlchemy + PyMySQL) |
 | ML - DDoS | XGBoost + Random Forest (CICIDS2017) |
 | ML - Web Attack | TF-IDF n-gram + Random Forest |
 | Auth | Flask-Login |
