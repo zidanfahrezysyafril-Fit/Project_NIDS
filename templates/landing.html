@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NIDS Monitor – AI-Powered Network Intrusion Detection System</title>
+  <meta name="description" content="Platform Pemantauan Keamanan Siber Cerdas Berbasis Hybrid AI & XGBoost untuk Aplikasi Web Modern.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306B6D4' stroke-width='2'><path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/></svg>">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CDN (Gstatic / Local Friendly) -->
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+
+  <style>
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-7px); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50% { opacity: 0.75; transform: scale(1.05); }
+    }
+    @keyframes radarSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes scanBeam {
+      0% { top: 8%; opacity: 0; }
+      50% { opacity: 0.9; }
+      100% { top: 92%; opacity: 0; }
+    }
+    .anim-float-1 { animation: floatSlow 4s ease-in-out infinite; }
+    .anim-float-2 { animation: floatSlow 4.6s ease-in-out infinite 0.6s; }
+    .anim-float-3 { animation: floatSlow 5.2s ease-in-out infinite 1.2s; }
+    .anim-float-4 { animation: floatSlow 4.8s ease-in-out infinite 1.8s; }
+    .anim-radar { animation: radarSpin 8s linear infinite; }
+    .anim-beam { animation: scanBeam 3s ease-in-out infinite; }
+    .anim-pulse-glow { animation: pulseGlow 3s ease-in-out infinite; }
+    
+    .glass-card {
+      background: linear-gradient(135deg, rgba(20, 26, 36, 0.8) 0%, rgba(11, 15, 23, 0.92) 100%);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      border-color: rgba(6, 182, 212, 0.6);
+      box-shadow: 0 15px 35px -5px rgba(6, 182, 212, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transform: translateY(-4px) scale(1.02);
+    }
+    .grid-bg {
+      background-image: 
+        radial-gradient(circle at 50% 30%, rgba(6, 182, 212, 0.12) 0%, transparent 65%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+    }
+  </style>
+</head>
+<body class="bg-[#090D16] text-[#E6EDF3] font-['Inter',sans-serif] antialiased selection:bg-[#F97316] selection:text-white min-h-screen flex flex-col justify-between">
+
+  <!-- Ambient Cyber Lighting -->
+  <div class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-[#F97316]/15 rounded-full blur-[140px] pointer-events-none anim-pulse-glow z-0"></div>
+  <div class="fixed top-1/3 -right-20 w-[450px] h-[450px] bg-[#06B6D4]/18 rounded-full blur-[140px] pointer-events-none anim-pulse-glow z-0" style="animation-delay:1.5s;"></div>
+  <div class="fixed -bottom-40 left-1/3 w-[500px] h-[500px] bg-[#3B82F6]/10 rounded-full blur-[160px] pointer-events-none z-0"></div>
+
+  <!-- ── NAVBAR ── -->
+  <header class="relative z-30 max-w-7xl mx-auto w-full px-6 py-6 border-b border-[#30363D]/50 flex items-center justify-between">
+    <!-- Brand Logo (Squircle + White Vector Shield) -->
+    <a href="{{ url_for('landing') }}" class="flex items-center gap-3 group">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#2563EB] via-[#38BDF8] to-[#06B6D4] p-2 shadow-lg shadow-[#06B6D4]/25 flex items-center justify-center transition-transform group-hover:scale-105">
+        <svg class="w-6 h-6 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div>
+        <span class="text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+          NIDS <span class="text-[#06B6D4]">Monitor</span>
+        </span>
+        <span class="text-[10px] tracking-widest uppercase text-[#8B949E] block -mt-1 font-mono">
+          AI SOC Platform
+        </span>
+      </div>
+    </a>
+
+    <!-- Nav Links -->
+    <nav class="hidden md:flex items-center gap-8 text-xs font-medium text-[#8B949E]">
+      <a href="#beranda" class="text-white hover:text-[#06B6D4] transition-colors">Beranda</a>
+      <a href="#fitur" class="hover:text-white transition-colors">Fitur AI</a>
+      <a href="#arsitektur" class="hover:text-white transition-colors">Deteksi Lapis 3</a>
+      <a href="#mitigasi" class="hover:text-white transition-colors">Mitigasi .htaccess</a>
+      <a href="#tentang" class="hover:text-white transition-colors">Tentang Sistem</a>
+    </nav>
+
+    <!-- Login / Action Buttons -->
+    <div class="flex items-center gap-3">
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('websites') }}" class="px-5 py-2 rounded-full text-xs font-semibold bg-gradient-to-r from-[#06B6D4] via-[#2563EB] to-[#F97316] text-white shadow-lg shadow-[#06B6D4]/30 hover:shadow-[#F97316]/50 hover:scale-105 transition-all">
+          Masuk Dashboard →
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="px-5 py-2 rounded-full text-xs font-semibold bg-gradient-to-r from-[#06B6D4] via-[#2563EB] to-[#F97316] text-white shadow-lg shadow-[#06B6D4]/30 hover:shadow-[#F97316]/50 hover:scale-105 active:scale-95 transition-all">
+          Sistem Login →
+        </a>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- ── HERO MAIN SECTION ── -->
+  <main class="relative z-10 max-w-7xl mx-auto w-full px-6 py-12 md:py-20 grid-bg">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      
+      <!-- LEFT COLUMN: Headline & CTA -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Category Badge -->
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#161B22]/90 border border-[#06B6D4]/40 text-[11px] font-medium text-[#06B6D4] shadow-sm shadow-[#06B6D4]/10">
+          <svg class="w-3.5 h-3.5 text-[#06B6D4]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span class="text-white font-semibold">Keamanan Siber & Deteksi AI Real-Time</span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="text-3xl sm:text-4xl lg:text-[44px] font-black text-white leading-[1.12] tracking-tight">
+          Amankan Website dari Serangan Siber dengan 
+          <span class="bg-gradient-to-r from-[#06B6D4] via-[#F97316] to-[#FBBF24] bg-clip-text text-transparent">
+            Hybrid AI & XGBoost
+          </span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="text-sm text-[#8B949E] leading-relaxed max-w-lg">
+          Platform SOC cerdas generasi baru yang mendeteksi <strong class="text-white">SQL Injection</strong>, <strong class="text-white">Cross-Site Scripting (XSS)</strong>, dan <strong class="text-white">DDoS</strong> menggunakan deteksi bertingkat berbasis dataset benchmark <strong class="text-[#06B6D4]">CICIDS2017</strong> tanpa memperlambat performa server web target.
+        </p>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-wrap items-center gap-3.5 pt-2">
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('websites') }}" class="px-6 py-3 rounded-full text-xs font-bold bg-gradient-to-r from-[#06B6D4] via-[#3B82F6] to-[#F97316] text-white shadow-xl shadow-[#06B6D4]/25 hover:shadow-[#F97316]/40 hover:scale-105 transition-all flex items-center gap-2">
+              <span>Buka Dashboard SOC</span>
+              <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
+          {% else %}
+            <a href="{{ url_for('login') }}" class="px-6 py-3 rounded-full text-xs font-bold bg-gradient-to-r from-[#06B6D4] via-[#3B82F6] to-[#F97316] text-white shadow-xl shadow-[#06B6D4]/25 hover:shadow-[#F97316]/40 hover:scale-105 transition-all flex items-center gap-2">
+              <span>Buka Dashboard SOC</span>
+              <svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
+          {% endif %}
+          <a href="#arsitektur" class="px-5 py-3 rounded-full text-xs font-semibold bg-[#161B22] text-[#C9D1D9] border border-[#30363D] hover:border-[#06B6D4] hover:text-white transition-all">
+            Pelajari Arsitektur
+          </a>
+        </div>
+
+        <!-- Micro stats -->
+        <div class="pt-3 flex flex-wrap items-center gap-6 text-[11px] text-[#8B949E]">
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-[#10B981]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span class="text-[#C9D1D9]">Non-Blocking (&lt;500ms)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-[#10B981]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span class="text-[#C9D1D9]">1 Akun = 1 Website</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-[#10B981]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span class="text-[#C9D1D9]">Waktu Lokal WIB</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CENTER COLUMN: Interactive Holographic Radar Shield Graphic -->
+      <div class="lg:col-span-3 flex justify-center items-center py-4 relative">
+        <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
+          
+          <!-- Outer Radar Rings -->
+          <div class="absolute inset-0 rounded-full border border-[#06B6D4]/30 animate-pulse"></div>
+          <div class="absolute inset-4 rounded-full border border-[#F97316]/25"></div>
+          <div class="absolute inset-10 rounded-full border border-dashed border-[#06B6D4]/40 anim-radar"></div>
+          <div class="absolute inset-16 rounded-full border border-[#F97316]/40"></div>
+
+          <!-- Scanning Beam Ray -->
+          <div class="absolute inset-0 rounded-full overflow-hidden anim-radar pointer-events-none">
+            <div class="w-1/2 h-1/2 bg-gradient-to-br from-[#06B6D4]/45 via-[#F97316]/15 to-transparent origin-bottom-right"></div>
+          </div>
+
+          <!-- Digital Core Platform Base with White Vector Shield SVG -->
+          <div class="relative z-10 w-32 h-32 rounded-2xl bg-gradient-to-tr from-[#0D1117] via-[#161B22] to-[#1F2937] border-2 border-[#06B6D4]/70 shadow-[0_0_40px_rgba(6,182,212,0.45)] flex flex-col items-center justify-center text-center p-3">
+            <svg class="w-9 h-9 text-white drop-shadow-[0_0_12px_rgba(6,182,212,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span class="text-[10px] font-mono font-bold text-[#06B6D4] mt-1.5 tracking-wider">AI ACTIVE</span>
+            <span class="text-[9px] text-[#8B949E] font-mono">14 Features</span>
+          </div>
+
+          <!-- Scanning Vertical Laser Line -->
+          <div class="absolute w-full h-[2px] bg-gradient-to-r from-transparent via-[#F97316] to-transparent anim-beam pointer-events-none"></div>
+
+          <!-- Floating Orbit Nodes -->
+          <div class="absolute top-2 right-8 w-2.5 h-2.5 rounded-full bg-[#10B981] shadow-[0_0_10px_#10B981] anim-pulse-glow"></div>
+          <div class="absolute bottom-4 left-6 w-2.5 h-2.5 rounded-full bg-[#F97316] shadow-[0_0_10px_#F97316] anim-pulse-glow" style="animation-delay:1s;"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: 4 Floating Frosted Glass Cards -->
+      <div class="lg:col-span-4 flex flex-col gap-3.5">
+        
+        <!-- Card 1: Model Accuracy -->
+        <div class="glass-card rounded-2xl p-4 flex items-center justify-between anim-float-1">
+          <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#1E40AF] to-[#3B82F6] shadow-md shadow-[#3B82F6]/30 flex items-center justify-center text-white flex-shrink-0">
+              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <rect x="9" y="9" width="6" height="6" />
+                <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-xl font-black tracking-tight text-white leading-none">99.1%</div>
+              <div class="text-xs text-[#8B949E] mt-1">Weighted F1-Score AI</div>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#3B82F6]/20 text-[#60A5FA] border border-[#3B82F6]/40">
+            XGBoost
+          </span>
+        </div>
+
+        <!-- Card 2: False Positive Elimination -->
+        <div class="glass-card rounded-2xl p-4 flex items-center justify-between anim-float-2">
+          <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#065F46] to-[#10B981] shadow-md shadow-[#10B981]/30 flex items-center justify-center text-white flex-shrink-0">
+              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-xl font-black tracking-tight text-white leading-none">0%</div>
+              <div class="text-xs text-[#8B949E] mt-1">False Positive Rate</div>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10B981]/20 text-[#34D399] border border-[#10B981]/40">
+            Sanity Check
+          </span>
+        </div>
+
+        <!-- Card 3: Layered Defense -->
+        <div class="glass-card rounded-2xl p-4 flex items-center justify-between anim-float-3">
+          <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#C2410C] to-[#F97316] shadow-md shadow-[#F97316]/30 flex items-center justify-center text-white flex-shrink-0">
+              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-xl font-black tracking-tight text-white leading-none">Tier 3</div>
+              <div class="text-xs text-[#8B949E] mt-1">Lapisan Pertahanan</div>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#F97316]/20 text-[#FB923C] border border-[#F97316]/40">
+            L1 • L2 • L3
+          </span>
+        </div>
+
+        <!-- Card 4: 24/7 Monitoring -->
+        <div class="glass-card rounded-2xl p-4 flex items-center justify-between anim-float-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#0E7490] to-[#06B6D4] shadow-md shadow-[#06B6D4]/30 flex items-center justify-center text-white flex-shrink-0">
+              <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <div>
+              <div class="text-xl font-black tracking-tight text-white leading-none">24/7</div>
+              <div class="text-xs text-[#8B949E] mt-1">Telemetri Real-Time</div>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-[#06B6D4]/20 text-[#22D3EE] border border-[#06B6D4]/40">
+            Live Stream
+          </span>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ── SECTION: 3 DEFENSE LAYERS ── -->
+  <section id="arsitektur" class="relative z-10 max-w-7xl mx-auto w-full px-6 py-16 border-t border-[#30363D]/40">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <div class="text-[#06B6D4] font-mono text-xs uppercase tracking-widest mb-2 font-bold">Arsitektur Berlapis</div>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Pertahanan 3 Tingkat (Tiered Defense)</h2>
+      <p class="text-xs sm:text-sm text-[#8B949E] mt-2">Setiap request yang masuk melalui tiga lapis filter cerdas sebelum mencapai kerentanan server backend.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <!-- Tier 1 -->
+      <div class="p-6 rounded-2xl bg-[#121722] border border-[#30363D] hover:border-[#F97316] transition-all group">
+        <div class="w-12 h-12 rounded-xl bg-[#F97316]/15 border border-[#F97316]/30 flex items-center justify-center text-[#F97316] mb-4 group-hover:scale-105 transition-transform">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div class="text-xs font-mono font-bold text-[#F97316] mb-1">TIER 1 &bull; HEURISTIK</div>
+        <h3 class="text-lg font-bold text-white mb-2">DDoS Rate Limiting</h3>
+        <p class="text-xs text-[#8B949E] leading-relaxed">
+          Sliding-Window Request Counter membatasi frekuensi request per alamat IP secara mandiri (misal: 100 req / 10s) untuk menangkal serangan HTTP Flooding sebelum membebani server.
+        </p>
+      </div>
+
+      <!-- Tier 2 -->
+      <div class="p-6 rounded-2xl bg-[#121722] border border-[#30363D] hover:border-[#06B6D4] transition-all group">
+        <div class="w-12 h-12 rounded-xl bg-[#06B6D4]/15 border border-[#06B6D4]/30 flex items-center justify-center text-[#06B6D4] mb-4 group-hover:scale-105 transition-transform">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+          </svg>
+        </div>
+        <div class="text-xs font-mono font-bold text-[#06B6D4] mb-1">TIER 2 &bull; LAYER 7 APLIKASI</div>
+        <h3 class="text-lg font-bold text-white mb-2">Web Attack Detector</h3>
+        <p class="text-xs text-[#8B949E] leading-relaxed">
+          18 pola regex terverifikasi memeriksa URI dan POST body untuk menghentikan SQL Injection dan XSS, diperkuat mekanisme <em>Structural Sanity Check</em> untuk 0% False Positive.
+        </p>
+      </div>
+
+      <!-- Tier 3 -->
+      <div class="p-6 rounded-2xl bg-[#121722] border border-[#30363D] hover:border-[#3B82F6] transition-all group">
+        <div class="w-12 h-12 rounded-xl bg-[#3B82F6]/15 border border-[#3B82F6]/30 flex items-center justify-center text-[#3B82F6] mb-4 group-hover:scale-105 transition-transform">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <rect x="9" y="9" width="6" height="6" />
+            <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3" />
+          </svg>
+        </div>
+        <div class="text-xs font-mono font-bold text-[#3B82F6] mb-1">TIER 3 &bull; MACHINE LEARNING</div>
+        <h3 class="text-lg font-bold text-white mb-2">CICIDS2017 Classifier</h3>
+        <p class="text-xs text-[#8B949E] leading-relaxed">
+          Model XGBoost dan Random Forest terlatih pada dataset standar internasional CICIDS2017 untuk mengklasifikasi 14 karakteristik anomali aliran jaringan (L3/L4) secara akurat.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── FOOTER BAR ── -->
+  <footer class="relative z-10 border-t border-[#30363D]/50 bg-[#080B12] py-8">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8B949E]">
+      <div class="flex items-center gap-3">
+        <div class="w-2.5 h-2.5 rounded-full bg-[#10B981] animate-ping"></div>
+        <span>SOC Gateway: <strong class="text-white font-mono">http://0.0.0.0:5000 (Active)</strong></span>
+      </div>
+      <div class="text-center sm:text-right">
+        <span>Kelompok 10 &bull; Riset Keamanan Siber dan Informasi (KSI) &bull; Semester 5</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -64,7 +64,7 @@ def filter_unquote(val):
     return urllib.parse.unquote(str(val))
 
 
-# ── Routes: Auth ─────────────────────────────────────────────────────────────
+# ── Routes: Auth & Landing ───────────────────────────────────────────────────
 @app.route('/')
 def index():
     if current_user.is_authenticated:
@@ -81,7 +81,14 @@ def index():
             return redirect(url_for('dashboard', website_id=first_site.id))
         # Belum punya website
         return redirect(url_for('websites'))
-    return redirect(url_for('login'))
+    # Jika belum login, tampilkan landing page publik
+    return render_template('landing.html')
+
+
+@app.route('/landing')
+def landing():
+    """Halaman publik Landing Page NIDS Monitor."""
+    return render_template('landing.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
