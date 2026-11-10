@@ -6,11 +6,19 @@
 <div class="flex-center" style="justify-content:space-between;margin-bottom:24px;">
   <div>
     <h2 style="font-size:20px;font-weight:700;">🌐 Website Anda</h2>
-    <p class="text-muted" style="font-size:13px;margin-top:4px;">Kelola dan pantau website yang terdaftar</p>
+    <p class="text-muted" style="font-size:13px;margin-top:4px;">
+      Kelola dan pantau website target Anda (Kebijakan 1 Akun = 1 Website Terisolasi)
+    </p>
   </div>
-  <a href="{{ url_for('add_website') }}" class="btn btn-primary" id="btn-add-website">
-    ➕ Tambah Website
-  </a>
+  {% if websites and websites|length >= 1 %}
+    <a href="{{ url_for('edit_website', website_id=websites[0].id) }}" class="btn btn-secondary" id="btn-edit-website" style="display:inline-flex;align-items:center;gap:6px;">
+      ✏️ Ubah Website
+    </a>
+  {% else %}
+    <a href="{{ url_for('add_website') }}" class="btn btn-primary" id="btn-add-website">
+      ➕ Tambah Website
+    </a>
+  {% endif %}
 </div>
 
 {% if websites %}
@@ -63,6 +71,9 @@
         </a>
         <a href="{{ url_for('website_setup', website_id=site.id) }}" class="btn btn-secondary btn-sm" title="Setup & API Key">
           ⚙️ Setup
+        </a>
+        <a href="{{ url_for('edit_website', website_id=site.id) }}" class="btn btn-secondary btn-sm" title="Ubah Website">
+          ✏️ Ubah
         </a>
         <form method="POST" action="{{ url_for('delete_website', website_id=site.id) }}" onsubmit="return confirm('Hapus website \'{{ site.name }}\'? Semua data alert dan log akan terhapus.');" style="margin:0;">
           <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--danger);padding:6px 10px;" title="Hapus Website">

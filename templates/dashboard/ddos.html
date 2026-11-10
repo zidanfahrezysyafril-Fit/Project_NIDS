@@ -1,0 +1,171 @@
+{% extends "base_app.html" %}
+{% block title %}Deteksi & Mitigasi DDoS – {{ site.name }}{% endblock %}
+{% block page_title %}💥 Deteksi & Mitigasi DDoS (Layer 3 & 4){% endblock %}
+
+{% block content %}
+
+<!-- Info Banner -->
+<div style="background:linear-gradient(135deg,rgba(255,82,82,0.12),rgba(255,171,64,0.06));border:1px solid rgba(255,82,82,0.25);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;">
+  <div style="font-size:32px;line-height:1;">💥</div>
+  <div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:#fff;">Inspeksi Anomali Aliran & Serangan Volumetrik</div>
+    <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+      Halaman ini memantau lalu lintas jaringan pada lapisan transport (L3/L4) menggunakan <strong>Tier 1 Sliding-Window Rate Limiter</strong> untuk menangkis lonjakan permintaan dan <strong>Tier 3 XGBoost Flow Classifier</strong> berbasis 14 fitur vital CICIDS2017 untuk mendeteksi SYN Flood, DoS Hulk, PortScan, dan Slowloris secara real-time.
+    </div>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="grid-4 mb-6">
+  <div class="card stat-card">
+    <div class="stat-icon" style="background:rgba(255,82,82,0.15);color:#ff5252;">💥</div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#ff5252;">{{ count_ddos }}</div>
+      <div class="stat-label">Insiden DDoS</div>
+    </div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon" style="background:rgba(255,171,64,0.15);color:#ffab40;">🌊</div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#ffab40;">{{ count_dos_hulk }}</div>
+      <div class="stat-label">DoS Hulk Flooding</div>
+    </div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff;">🔍</div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#40c4ff;">{{ count_portscan }}</div>
+      <div class="stat-label">Port Scanning</div>
+    </div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon" style="background:rgba(167,139,250,0.15);color:#a78bfa;">⏳</div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#a78bfa;">{{ count_slowloris }}</div>
+      <div class="stat-label">Slowloris Attack</div>
+    </div>
+  </div>
+</div>
+
+<!-- Grid 2: Configuration & Flow Engine Info -->
+<div class="grid-2 mb-6" style="align-items:start;">
+
+  <!-- Form Konfigurasi Rate Limiter -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⚙️ Konfigurasi Tier 1 Rate Limiter</div>
+      <span class="badge" style="background:rgba(0,230,118,0.15);color:#00e676;">Aktif</span>
+    </div>
+    <form method="POST">
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">
+        Sesuaikan ambang batas frekuensi request per unit waktu. Permintaan yang melampaui batas ini akan otomatis ditandai sebagai anomali DDoS sebelum membebani server backend.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div>
+          <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Batas Maksimal Permintaan (Req)</label>
+          <input type="number" name="ddos_threshold_req" class="form-control" value="{{ site.ddos_threshold_req or 100 }}" min="10" max="10000" required style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:#fff;">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Default: 100 requests</div>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Jendela Waktu Sliding (Detik)</label>
+          <input type="number" name="ddos_window_sec" class="form-control" value="{{ site.ddos_window_sec or 10 }}" min="1" max="300" required style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:#fff;">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Default: 10 detik</div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">💾 Simpan Ambang Batas Rate Limiter</button>
+    </form>
+  </div>
+
+  <!-- Info Fitur Alur XGBoost -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🧠 Tier 3 Flow Engine (XGBoost 14 Fitur)</div>
+      <span class="badge" style="background:rgba(64,196,255,0.15);color:#40c4ff;">Model .pkl Ready</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">
+      <div style="margin-bottom:8px;color:var(--text-primary);font-weight:600;">Karakteristik Alur yang Dianalisis:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;">
+        <div>• Flow Packets/s</div>
+        <div>• Flow Bytes/s</div>
+        <div>• Packet Length Mean</div>
+        <div>• Packet Length Std</div>
+        <div>• Flow Duration</div>
+        <div>• Flow IAT Mean</div>
+        <div>• SYN / ACK Flag Count</div>
+        <div>• Init_Win_bytes_fwd</div>
+      </div>
+      <div style="margin-top:12px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:11px;border:1px solid var(--border);">
+        <strong>Jendela Deteksi Waktu Nyata:</strong> Alur dievaluasi saat mencapai batas tidak aktif <em>5.0 detik</em> atau saat menerima lonjakan <em>&ge; 50 paket</em> tanpa menunggu koneksi ditutup secara formal.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Recent DDoS Alerts Table -->
+<div class="card">
+  <div class="card-header" style="flex-wrap:wrap;gap:12px;">
+    <div class="card-title">🚨 Riwayat Insiden DDoS & Aliran Jaringan (L3/L4)</div>
+    <a href="{{ url_for('export_alerts_csv', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px;text-decoration:none;">
+      📥 Unduh Laporan CSV
+    </a>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Tipe Serangan</th>
+          <th>Severity</th>
+          <th>Status</th>
+          <th>IP Sumber</th>
+          <th>Telemetri Alur</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if alerts %}
+          {% for a in alerts %}
+          <tr class="alert-row">
+            <td class="mono" style="font-size:12px;">{{ a.created_at|wib('%d/%m %H:%M:%S') }}</td>
+            <td>
+              <span class="badge badge-ddos">
+                💥 {{ a.attack_type }}
+              </span>
+            </td>
+            <td>
+              <span class="badge badge-{{ 'critical' if a.severity=='Kritis' else 'high' }}">
+                {{ a.severity }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" style="font-size:10px;background:{{ 'rgba(0,230,118,0.15)' if a.status=='Ditangani' else 'rgba(255,171,64,0.15)' if a.status=='False Positive' else 'rgba(255,82,82,0.15)' }};color:{{ '#00e676' if a.status=='Ditangani' else '#ffab40' if a.status=='False Positive' else '#ff5252' }};">
+                {{ a.status }}
+              </span>
+            </td>
+            <td class="mono">{{ a.source_ip }}</td>
+            <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-muted);">
+              {{ a.detail or 'Flow Telemetry' }}
+            </td>
+            <td>
+              <a href="{{ url_for('mitigation', alert_id=a.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 7px;">
+                🛡️ Mitigasi
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align:center;padding:40px;color:var(--text-dim);">
+              ✅ Tidak ada insiden DDoS atau anomali alur jaringan yang terdeteksi.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+

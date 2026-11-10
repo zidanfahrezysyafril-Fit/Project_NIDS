@@ -4,10 +4,12 @@
  * Kelompok 10 - AI for Security
  * 
  * Cara Penggunaan:
- * 1. Letakkan file ini di folder website Anda.
- * 2. Ubah konfigurasi NIDS_SERVER_URL dan NIDS_API_KEY di bawah.
- * 3. Tambahkan baris berikut di baris paling atas file index.php website Anda:
- *    require_once __DIR__ . '/nids_agent.php';
+ * 1. Letakkan file ini di root folder website (atau di dalam folder public/ jika menggunakan Laravel).
+ * 2. Konfigurasi NIDS_SERVER_URL dan NIDS_API_KEY di bawah (jika tidak otomatis).
+ * 3. Tambahkan baris pemanggil di baris paling atas file index.php website Anda:
+ *    if (file_exists(__DIR__ . '/nids_agent.php')) {
+ *        require_once __DIR__ . '/nids_agent.php';
+ *    }
  */
 
 // ── Konfigurasi ─────────────────────────────────────────────────────────────
@@ -30,20 +32,32 @@ if (!defined('NIDS_API_KEY')) {
         return;
     }
 
-    // Tangkap IP pengunjung (support Cloudflare / Reverse Proxy)
+    // Tangkap IP pengunjung (support Reverse Proxy, Cloudflare, VPN, & Testbed)
     $client_ip = '127.0.0.1';
-    if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+    if (!empty($_SERVER['HTTP_X_ATTACKER_IP'])) {
+        $client_ip = trim($_SERVER['HTTP_X_ATTACKER_IP']);
+    } elseif (!empty($_GET['simulate_ip'])) {
+        $client_ip = trim($_GET['simulate_ip']);
+    } elseif (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
         $client_ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
+    } elseif (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+        $client_ip = $_SERVER['HTTP_X_REAL_IP'];
     } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
         $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
         $client_ip = trim($parts[0]);
+    } elseif (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+        $client_ip = $_SERVER['HTTP_CLIENT_IP'];
     } elseif (!empty($_SERVER['REMOTE_ADDR'])) {
         $client_ip = $_SERVER['REMOTE_ADDR'];
     }
 
+    if ($client_ip === '::1') {
+        $client_ip = '127.0.0.1';
+    }
+
     $uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/';
 
-    // Abaikan aset statis
+    // Abaikan aset statis (CSS, JS, gambar, font)
     if (preg_match('/\.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$/i', $uri)) {
         return;
     }
@@ -53,7 +67,13 @@ if (!defined('NIDS_API_KEY')) {
 
     $post_body = '';
     if ($method === 'POST' && !empty($_POST)) {
-        $post_body = substr(http_build_query($_POST), 0, 500);
+        $post_body = substr(http_build_query($_POST), 0, 1000);
+    } elseif ($method === 'POST') {
+        // Fallback untuk raw JSON payload
+        $raw_input = @file_get_contents('php://input');
+        if (!empty($raw_input)) {
+            $post_body = substr($raw_input, 0, 1000);
+        }
     }
 
     $payload = json_encode([
@@ -68,7 +88,7 @@ if (!defined('NIDS_API_KEY')) {
 
     $endpoint = $server_url . '/api/ingest';
 
-    // Kirim secara non-blocking via curl jika tersedia
+    // Kirim secara non-blocking via curl jika tersedia (timeout 500ms agar aplikasi web tidak lambat)
     if (function_exists('curl_init')) {
         $ch = curl_init($endpoint);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -78,7 +98,8 @@ if (!defined('NIDS_API_KEY')) {
             'X-NIDS-KEY: ' . $api_key,
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT_MS, 500); // 500ms timeout cepat
+        curl_setopt($ch, CURLOPT_TIMEOUT_MS, 500);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 300);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         @curl_exec($ch);

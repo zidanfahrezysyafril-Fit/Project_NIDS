@@ -1,0 +1,229 @@
+{% extends "base_app.html" %}
+{% block title %}Serangan Web (SQLi & XSS) – {{ site.name }}{% endblock %}
+{% block page_title %}🕷️ Deteksi Serangan Web (Layer 7){% endblock %}
+
+{% block content %}
+
+<!-- Info Banner -->
+<div style="background:linear-gradient(135deg,rgba(167,139,250,0.12),rgba(64,196,255,0.06));border:1px solid rgba(167,139,250,0.25);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;">
+  <div style="font-size:32px;line-height:1;">🕷️</div>
+  <div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:#fff;">Inspeksi Muatan Teks HTTP & Pengendalian False Positive</div>
+    <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">
+      Halaman ini menginspeksi muatan URI, query string, dan request body pada lapisan aplikasi (L7) menggunakan <strong>Tier 2 XGBoost + TF-IDF Character N-Gram</strong> yang diperkuat mekanisme <strong>Structural Sanity Check</strong> untuk menangkap eksploitasi SQL Injection dan XSS tanpa memicu alarm palsu pada teks dan tanda baca yang sah.
+    </div>
+  </div>
+</div>
+
+<!-- Stat Cards -->
+<div class="grid-4 mb-6">
+  <div class="card stat-card">
+    <div class="stat-icon" style="background:rgba(167,139,250,0.15);color:#a78bfa;">💉</div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#a78bfa;">{{ count_sqli }}</div>
+      <div class="stat-label">SQL Injection</div>
+    </div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon" style="background:rgba(255,171,64,0.15);color:#ffab40;">🕷️</div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#ffab40;">{{ count_xss }}</div>
+      <div class="stat-label">Cross-Site Scripting</div>
+    </div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff;">🛡️</div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#40c4ff;">{{ count_sqli + count_xss + count_other }}</div>
+      <div class="stat-label">Total Serangan Web</div>
+    </div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-icon" style="background:rgba(0,230,118,0.15);color:#00e676;">✅</div>
+    <div class="stat-body">
+      <div class="stat-value" style="color:#00e676;font-size:16px;">Aktif (0% FP)</div>
+      <div class="stat-label">Sanity Check Gating</div>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Live Payload Tester -->
+<div class="card mb-6">
+  <div class="card-header">
+    <div class="card-title">🔬 Penguji Muatan Interaktif (Live Payload Tester)</div>
+    <span class="badge" style="background:rgba(167,139,250,0.15);color:#a78bfa;">Uji Nyata L7</span>
+  </div>
+  <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">
+    Ketikkan teks query URL atau payload berbahaya di bawah ini untuk melihat langsung bagaimana Tier 2 Detector mengevaluasi dan membedakan antara masukan normal (seperti nama orang atau tanda petik biasa) dan muatan serangan siber nyata:
+  </div>
+
+  <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+    <input type="text" id="payload-input" class="form-control" placeholder="Contoh: /search?author=O'Reilly atau ?id=1' OR '1'='1" style="flex:1;min-width:300px;padding:10px 14px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;">
+    <button class="btn btn-primary" onclick="testPayloadNow()" id="btn-test-payload" style="padding:10px 20px;">
+      🔍 Uji Muatan
+    </button>
+  </div>
+
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--text-dim);margin-bottom:16px;">
+    <span>Uji Cepat Contoh:</span>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="setSample('O\'Reilly and sons bookstore search')" style="font-size:11px;padding:2px 8px;">Normal: O'Reilly</button>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="setSample('laptop-asus--rog-filter-price')" style="font-size:11px;padding:2px 8px;">Normal: Slug --</button>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="setSample('\' OR \'1\'=\'1')" style="font-size:11px;padding:2px 8px;color:#ff5252;">SQLi: ' OR '1'='1</button>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="setSample('1 UNION SELECT null, username, password FROM users--')" style="font-size:11px;padding:2px 8px;color:#ff5252;">SQLi: UNION SELECT</button>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="setSample('<script>alert(document.cookie)</script>')" style="font-size:11px;padding:2px 8px;color:#ffab40;">XSS: Script Tag</button>
+  </div>
+
+  <!-- Result Box -->
+  <div id="test-result-box" style="display:none;border-radius:10px;padding:16px;border:1px solid var(--border);background:rgba(0,0,0,0.3);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;" id="res-badge-title">
+        <span id="res-icon">✅</span>
+        <span id="res-status-text">Hasil Analisis</span>
+      </div>
+      <div style="font-size:12px;font-weight:700;" id="res-confidence-text">Confidence: 0.0%</div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;" id="res-desc-text">Deskripsi deteksi...</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;background:rgba(0,0,0,0.4);padding:8px 12px;border-radius:6px;color:#40c4ff;word-break:break-all;" id="res-sample-text">
+      Payload Sample
+    </div>
+  </div>
+</div>
+
+<!-- Web Attack Alerts Table -->
+<div class="card">
+  <div class="card-header" style="flex-wrap:wrap;gap:12px;">
+    <div class="card-title">🚨 Riwayat Insiden Serangan Web (SQLi & XSS)</div>
+    <a href="{{ url_for('export_alerts_csv', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px;text-decoration:none;">
+      📥 Unduh Laporan CSV
+    </a>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Waktu</th>
+          <th>Tipe Serangan</th>
+          <th>Severity</th>
+          <th>Status</th>
+          <th>IP Sumber</th>
+          <th>Cuplikan Muatan Payload</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if alerts %}
+          {% for a in alerts %}
+          <tr class="alert-row">
+            <td class="mono" style="font-size:12px;">{{ a.created_at|wib('%d/%m %H:%M:%S') }}</td>
+            <td>
+              <span class="badge badge-{{ 'sqli' if 'SQL' in a.attack_type else 'xss' if 'XSS' in a.attack_type else 'medium' }}">
+                {{ '💉' if 'SQL' in a.attack_type else '🕷️' if 'XSS' in a.attack_type else '⚠️' }}
+                {{ a.attack_type }}
+              </span>
+            </td>
+            <td>
+              <span class="badge badge-{{ 'critical' if a.severity=='Kritis' else 'high' }}">
+                {{ a.severity }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" style="font-size:10px;background:{{ 'rgba(0,230,118,0.15)' if a.status=='Ditangani' else 'rgba(255,171,64,0.15)' if a.status=='False Positive' else 'rgba(255,82,82,0.15)' }};color:{{ '#00e676' if a.status=='Ditangani' else '#ffab40' if a.status=='False Positive' else '#ff5252' }};">
+                {{ a.status }}
+              </span>
+            </td>
+            <td class="mono">{{ a.source_ip }}</td>
+            <td style="max-width:320px;font-size:12px;">
+              <div style="font-family:'JetBrains Mono',monospace;color:#c084fc;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ a.target_endpoint|unquote }}">
+                {{ a.target_endpoint|unquote if a.target_endpoint and a.target_endpoint not in ('/', '') else (a.detail or '–') }}
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                {% if a.payload_sample and a.payload_sample not in ["'", "--", ""] %}
+                  <span style="color:#f472b6;font-family:monospace;">{{ a.payload_sample[:40] }}</span> &bull;
+                {% endif %}
+                {{ a.pattern_detected }}
+              </div>
+            </td>
+            <td>
+              <a href="{{ url_for('mitigation', alert_id=a.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 7px;">
+                🛡️ Mitigasi
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7" style="text-align:center;padding:40px;color:var(--text-dim);">
+              ✅ Tidak ada insiden serangan web SQLi atau XSS yang terdeteksi.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function setSample(text) {
+  document.getElementById('payload-input').value = text;
+  testPayloadNow();
+}
+
+async function testPayloadNow() {
+  const input = document.getElementById('payload-input').value.trim();
+  if (!input) return;
+
+  const btn = document.getElementById('btn-test-payload');
+  const box = document.getElementById('test-result-box');
+  const resIcon = document.getElementById('res-icon');
+  const resTitle = document.getElementById('res-status-text');
+  const resConf = document.getElementById('res-confidence-text');
+  const resDesc = document.getElementById('res-desc-text');
+  const resSample = document.getElementById('res-sample-text');
+
+  btn.disabled = true;
+  btn.textContent = 'Menganalisis...';
+
+  try {
+    const res = await fetch('/api/test-payload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payload: input })
+    });
+    const d = await res.json();
+    box.style.display = 'block';
+
+    if (d.is_attack) {
+      box.style.borderColor = 'rgba(255,82,82,0.5)';
+      box.style.background = 'rgba(255,82,82,0.08)';
+      resIcon.textContent = '🚨';
+      resTitle.textContent = `TERDETEKSI SEBAGAI SERANGAN: ${d.label}`;
+      resTitle.style.color = '#ff5252';
+      resConf.textContent = `Confidence: ${d.confidence}%`;
+      resConf.style.color = '#ff5252';
+      resDesc.textContent = `Metode Deteksi: ${d.description}`;
+      resSample.textContent = `Fragmen Teridentifikasi: ${d.sample || d.payload_input}`;
+    } else {
+      box.style.borderColor = 'rgba(0,230,118,0.5)';
+      box.style.background = 'rgba(0,230,118,0.08)';
+      resIcon.textContent = '✅';
+      resTitle.textContent = 'STATUS: NORMAL (BENIGN) - AMAN';
+      resTitle.style.color = '#00e676';
+      resConf.textContent = `Confidence: ${d.confidence}%`;
+      resConf.style.color = '#00e676';
+      resDesc.textContent = 'Muatan tidak mengandung pola eksploitasi berbahaya atau dilindungi oleh Structural Sanity Check.';
+      resSample.textContent = `Input Terverifikasi: ${d.payload_input}`;
+    }
+  } catch (err) {
+    console.error('Payload test error:', err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔍 Uji Muatan';
+  }
+}
+</script>
+{% endblock %}
+

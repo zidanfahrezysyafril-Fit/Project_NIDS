@@ -3,8 +3,7 @@ from datetime import timedelta
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-# Muat variabel environment dari file .env jika ada
+# Muat variabel environment dari file .env (jika ada)
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 def _find_model(filename):
@@ -17,19 +16,37 @@ def _find_model(filename):
         return data_path
     return data_path  # default path (meski belum ada)
 
+def _get_database_uri():
+    """
+    Menyusun koneksi database secara otomatis:
+    1. Prioritas 1: DATABASE_URL eksplisit di .env
+    2. Prioritas 2: Variabel DB_USER, DB_HOST (Format XAMPP MySQL/MariaDB dari .env)
+    3. Prioritas 3: Fallback ke PostgreSQL lokal
+    """
+    if os.environ.get('DATABASE_URL'):
+        return os.environ.get('DATABASE_URL')
+    
+    db_user = os.environ.get('DB_USER')
+    if db_user:
+        db_password = os.environ.get('DB_PASSWORD', '')
+        db_host = os.environ.get('DB_HOST', '127.0.0.1')
+        db_port = os.environ.get('DB_PORT', '3306')
+        db_name = os.environ.get('DB_NAME', 'nids_monitor')
+        auth = f"{db_user}:{db_password}" if db_password else db_user
+        return f"mysql+pymysql://{auth}@{db_host}:{db_port}/{db_name}"
+        
+    return os.environ.get('POSTGRES_URL', 'postgresql+psycopg2://postgres:root@127.0.0.1:5432/nids_monitor')
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'nids-monitor-kelompok10-cybersecurity-secret-key-2026')
+    SQLALCHEMY_DATABASE_URI = _get_database_uri()
 
     # Konfigurasi Database XAMPP (MySQL / MariaDB)
     DB_USER = os.environ.get('DB_USER', 'root')
     DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
     DB_HOST = os.environ.get('DB_HOST', '127.0.0.1')
-    DB_PORT = os.environ.get('DB_PORT', '3306')
+    DB_PORT = int(os.environ.get('DB_PORT', 3306))
     DB_NAME = os.environ.get('DB_NAME', 'nids_monitor')
-
-    # Format URI MySQL menggunakan driver PyMySQL
-    MYSQL_DEFAULT_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', MYSQL_DEFAULT_URI)
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Session config (30 days persistence)

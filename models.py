@@ -136,7 +136,13 @@ class Alert(db.Model):
 
     @property
     def detail(self):
-        return self.pattern_detected or self.payload_sample or self.target_endpoint or 'Pola anomali'
+        import urllib.parse
+        if self.target_endpoint and self.target_endpoint not in ('/', ''):
+            decoded = urllib.parse.unquote(self.target_endpoint)
+            return decoded
+        if self.payload_sample:
+            return self.payload_sample
+        return self.pattern_detected or 'Pola anomali'
 
 
 class LogEntry(db.Model):
