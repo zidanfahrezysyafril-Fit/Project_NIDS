@@ -1,0 +1,142 @@
+{% extends "base_app.html" %}
+{% block title %}Ubah Website – NIDS Monitor{% endblock %}
+{% block page_title %}Ubah Website Dipantau{% endblock %}
+
+{% block content %}
+<div style="max-width:640px;margin:0 auto;">
+
+  <!-- Header Info -->
+  <div style="margin-bottom:24px;">
+    <a href="{{ url_for('websites') }}" style="font-size:13px;color:var(--text-muted);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:8px;">
+      ← Kembali ke Website Saya
+    </a>
+    <h2 style="font-size:22px;font-weight:700;">✏️ Ubah Website Dipantau</h2>
+    <p class="text-muted" style="font-size:13px;margin-top:4px;">
+      Setiap akun mengelola 1 website target aktif secara terisolasi. Ubah informasi di bawah untuk mengarahkan pengawasan ke website baru.
+    </p>
+  </div>
+
+  <div class="card mb-6">
+    <div class="card-header">
+      <div class="card-title">🌐 Informasi Target Website</div>
+      <span class="badge badge-low">1 Akun = 1 Website</span>
+    </div>
+
+    <form method="POST" action="{{ url_for('edit_website', website_id=site.id) }}" id="form-edit-website" novalidate>
+
+      <!-- URL Input -->
+      <div class="form-group">
+        <label class="form-label" for="url">URL Website Target <span style="color:var(--danger);">*</span></label>
+        <div style="position:relative;">
+          <span style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:14px;">🔗</span>
+          <input type="text" id="url" name="url" class="form-control"
+                 value="{{ site.target_url }}"
+                 placeholder="http://localhost:8000 atau https://website-anda.com"
+                 style="padding-left:36px;"
+                 required autofocus />
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:5px;">
+          Alamat lengkap target website (bisa lokal seperti <code>http://localhost:8000</code> atau domain publik).
+        </div>
+      </div>
+
+      <!-- Nama Tampilan -->
+      <div class="form-group">
+        <label class="form-label" for="name">Nama Tampilan Website <span style="color:var(--danger);">*</span></label>
+        <input type="text" id="name" name="name" class="form-control"
+               value="{{ site.name }}"
+               placeholder="Contoh: Rekam Medis ChaCha20" maxlength="80" required />
+        <div style="font-size:11px;color:var(--text-dim);margin-top:5px;">
+          Nama label untuk identifikasi di Dashboard SOC.
+        </div>
+      </div>
+
+      <!-- Platform -->
+      <div class="form-group">
+        <label class="form-label">Platform / Lingkungan Website</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+          <label class="platform-card" for="plat-php">
+            <input type="radio" name="platform" id="plat-php" value="php" checked hidden />
+            <div class="platform-inner" id="plat-php-box" style="border-color:var(--primary);background:rgba(108,99,255,0.1);">
+              <div style="font-size:24px;margin-bottom:6px;">🔴</div>
+              <div style="font-size:12px;font-weight:600;">Laravel / PHP</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Konektor Agen PHP</div>
+            </div>
+          </label>
+          <label class="platform-card" for="plat-wp">
+            <input type="radio" name="platform" id="plat-wp" value="wordpress" hidden />
+            <div class="platform-inner" id="plat-wp-box">
+              <div style="font-size:24px;margin-bottom:6px;">🔷</div>
+              <div style="font-size:12px;font-weight:600;">WordPress</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Plugin otomatis</div>
+            </div>
+          </label>
+          <label class="platform-card" for="plat-manual">
+            <input type="radio" name="platform" id="plat-manual" value="manual" hidden />
+            <div class="platform-inner" id="plat-manual-box">
+              <div style="font-size:24px;margin-bottom:6px;">📁</div>
+              <div style="font-size:12px;font-weight:600;">Upload Log</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Analisis CSV</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Pengaturan Rate Limiter DDoS -->
+      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+          <span>⚡ Sensitivitas Deteksi DDoS (Rate Limiter)</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">Maksimal Request per IP:</label>
+            <input type="number" name="ddos_threshold_req" class="form-control" value="{{ site.ddos_threshold_req or 100 }}" min="10" max="10000" style="padding:8px 12px;font-size:13px;" />
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:4px;">Jendela Waktu (Detik):</label>
+            <input type="number" name="ddos_window_sec" class="form-control" value="{{ site.ddos_window_sec or 10 }}" min="1" max="300" style="padding:8px 12px;font-size:13px;" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Info API Key -->
+      <div style="background:rgba(108,99,255,0.06);border:1px solid rgba(108,99,255,0.2);border-radius:8px;padding:12px 14px;margin-bottom:24px;display:flex;gap:12px;align-items:flex-start;">
+        <span style="font-size:20px;">🔑</span>
+        <div style="font-size:12px;color:var(--text-muted);">
+          <strong style="color:var(--text-primary);">API Key Website:</strong>
+          <code style="color:#a78bfa;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;display:inline-block;margin-top:3px;font-family:monospace;">{{ site.api_key }}</code>
+          <p style="margin-top:4px;margin-bottom:0;">API Key ini tetap aktif untuk website Anda. Anda tidak perlu mengubah kode konektor jika target server NIDS tetap sama.</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <a href="{{ url_for('websites') }}" class="btn btn-secondary">
+          Batal
+        </a>
+        <button type="submit" class="btn btn-primary" id="btn-save-website">
+          💾 Simpan Perubahan
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+
+<script>
+document.querySelectorAll('input[name="platform"]').forEach(radio => {
+  radio.addEventListener('change', function() {
+    document.querySelectorAll('.platform-inner').forEach(box => {
+      box.style.borderColor = 'var(--border)';
+      box.style.background = 'transparent';
+    });
+    const selectedBox = this.nextElementSibling;
+    if (selectedBox) {
+      selectedBox.style.borderColor = 'var(--primary)';
+      selectedBox.style.background = 'rgba(108,99,255,0.1)';
+    }
+  });
+});
+</script>
+{% endblock %}

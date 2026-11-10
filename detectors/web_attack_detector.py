@@ -12,15 +12,15 @@ class WebAttackDetector:
     """
     
     SQLI_PATTERNS = [
-        (r"(?i)(\%27)|(\')|(\-\-)|(\%23)|(#)", "SQL Meta-character (Quotes / Comments)"),
         (r"(?i)\b(union\s+select|union\s+all\s+select)\b", "UNION SELECT Injection"),
+        (r"(?i)(\'|\")\s*or\s*(\'|\")?[0-9a-z]+(\'|\")?\s*=\s*(\'|\")?[0-9a-z]+", "' OR '1'='1 Boolean Tautology"),
+        (r"(?i)\b(or\s+1\s*=\s*1|and\s+1\s*=\s*1|or\s+true|and\s+true)\b", "Tautology 1=1 Injection"),
         (r"(?i)\b(select\s+.+\s+from\s+.+)\b", "SELECT FROM Query Exposure"),
         (r"(?i)\b(drop\s+table|drop\s+database|truncate\s+table)\b", "Destructive DROP/TRUNCATE Statement"),
-        (r"(?i)\b(exec\s*\(|execute\s*\(|xp_cmdshell)\b", "Command Execution Shell Injection"),
-        (r"(?i)(\'|\")\s*or\s*(\'|\")?[0-9a-z]+(\'|\")?\s*=\s*(\'|\")?[0-9a-z]+", "' OR '1'='1 Boolean Tautology"),
         (r"(?i)\b(sleep\s*\([0-9]+\)|benchmark\s*\([0-9]+)\b", "Blind Time-Based Delay (SLEEP/BENCHMARK)"),
         (r"(?i)\b(information_schema|sysdatabases|sysobjects)\b", "Information Schema Metatable Probing"),
-        (r"(?i)\b(or\s+1\s*=\s*1|and\s+1\s*=\s*1|or\s+true|and\s+true)\b", "Tautology 1=1 Injection")
+        (r"(?i)\b(exec\s*\(|execute\s*\(|xp_cmdshell)\b", "Command Execution Shell Injection"),
+        (r"(?i)(\%27)|(\')|(\-\-)|(\%23)|(#)", "SQL Meta-character (Quotes / Comments)")
     ]
     
     XSS_PATTERNS = [
@@ -81,6 +81,10 @@ class WebAttackDetector:
                 confidence = self._compute_confidence(target_text, 'SQL Injection', match)
                 # Suppress false positives on normal text containing dashes or harmless words
                 if confidence >= 70.0:
+                    if len(payload) <= 3:
+                        start_idx = max(0, match.start() - 15)
+                        end_idx = min(len(target_text), match.end() + 35)
+                        payload = target_text[start_idx:end_idx].strip()
                     return True, 'SQL Injection', desc, confidence, payload
                     
         # 2. Check for XSS Signatures
@@ -90,6 +94,10 @@ class WebAttackDetector:
                 payload = match.group(0)[:120]
                 confidence = self._compute_confidence(target_text, 'Cross-Site Scripting (XSS)', match)
                 if confidence >= 70.0:
+                    if len(payload) <= 4:
+                        start_idx = max(0, match.start() - 10)
+                        end_idx = min(len(target_text), match.end() + 35)
+                        payload = target_text[start_idx:end_idx].strip()
                     return True, 'Cross-Site Scripting (XSS)', desc, confidence, payload
 
         # 3. Fallback: ML Vectorizer (XGBoost) if available
@@ -106,10 +114,33 @@ class WebAttackDetector:
                 else:
                     pred = str(raw_pred)
 
-                if pred != 'BENIGN':
+                if pred not in ('BENIGN', 'Normal'):
                     probs = self.model.predict_proba(X_vec)[0]
                     conf = float(np.max(probs) * 100)
-                    return True, pred, f"{self.algorithm} Statistical Text Classifier", conf, target_text[:100]
+                    
+                    # Structural Sanity Check to prevent train/test distribution skew & false alarms:
+                    # In a real WAF/NIDS, an ML text prediction must have structural plausibility.
+                    # 1. An XSS payload MUST have HTML/DOM/script syntax (e.g. '<', '>', 'javascript:', event handlers).
+                    #    Hyphenated slugs like 'laptop--asus' or markdown must NOT be flagged as XSS.
+                    if 'XSS' in pred:
+                        has_xss_syntax = bool(re.search(r"(?i)(<[^>]+>|<[a-z]+|javascript:|on\w+\s*=|alert\(|document\.)", target_text))
+                        if not has_xss_syntax:
+                            return False, 'BENIGN', '', 0.0, ''
+                            
+                    # 2. A SQLi payload MUST have SQL syntax structures (tautology, comments, query clauses, or unclosed quotes).
+                    #    Legitimate word-internal contractions (O'Reilly, don't) without SQL operators must NOT be flagged.
+                    elif 'SQL' in pred:
+                        # Strip harmless linguistic contractions
+                        sanitized_for_sqli = re.sub(r"\b\w+'\w+\b", "", target_text)
+                        has_sqli_syntax = bool(re.search(
+                            r"(?i)('\s*(?:or|and)\s*['0-9a-z]+|--|\#|\b(select|union|insert|update|delete|drop|sleep|benchmark)\b)",
+                            sanitized_for_sqli
+                        ))
+                        if not has_sqli_syntax:
+                            return False, 'BENIGN', '', 0.0, ''
+
+                    if conf >= 85.0:
+                        return True, pred, f"{self.algorithm} Statistical Text Classifier", conf, target_text[:100]
             except Exception:
                 pass
                 
@@ -128,11 +159,14 @@ class WebAttackDetector:
             elif 'sleep(' in matched_str.lower() or 'benchmark(' in matched_str.lower():
                 base_confidence = 96.0
             elif matched_str in ["'", "--", "#"]:
-                # Isolated quotes have lower certainty without SQL keywords
-                if not re.search(r"(?i)\b(select|insert|update|delete|where|and|or)\b", text):
-                    base_confidence = 65.0 # Likely suppressed by threshold 70.0
-                else:
+                # Isolated quotes or hyphens require genuine SQL clauses to be dangerous,
+                # not just common English conjunctions like 'and'/'or' which flag innocent words like O'Reilly.
+                if re.search(r"(?i)\b(select\s+.+\s+from|insert\s+into|update\s+.+\s+set|delete\s+from|drop\s+table|where\s+[a-z0-9_]+\s*=|union\s+select)\b", text):
+                    base_confidence = 90.0
+                elif re.search(r"(?i)('\s*(?:or|and)\s*['0-9a-z]+|--\s*$|#\s*$)", text):
                     base_confidence = 85.0
+                else:
+                    base_confidence = 45.0 # Suppressed as benign punctuation/apostrophe (e.g., O'Reilly, don't, it's)
                     
         elif attack_type == 'Cross-Site Scripting (XSS)':
             if '<script>' in matched_str.lower() or 'alert(' in matched_str.lower() or 'onerror=' in matched_str.lower():
@@ -158,3 +192,4 @@ def _load_web_detector():
     return WebAttackDetector(model_path=path)
 
 web_detector = _load_web_detector()
+web_attack_detector = web_detector

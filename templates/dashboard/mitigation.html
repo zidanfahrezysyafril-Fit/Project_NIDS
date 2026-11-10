@@ -19,7 +19,7 @@
           </span>
         </div>
         <div style="font-size:13px;color:var(--text-muted);">
-          🕐 {{ alert.created_at.strftime('%d %B %Y, %H:%M:%S') }} &nbsp;|&nbsp;
+          🕐 {{ alert.created_at|wib('%d %B %Y, %H:%M:%S') }} WIB &nbsp;|&nbsp;
           🌐 {{ site.name }} &nbsp;|&nbsp;
           📡 {{ alert.source_ip or 'IP tidak diketahui' }}
         </div>

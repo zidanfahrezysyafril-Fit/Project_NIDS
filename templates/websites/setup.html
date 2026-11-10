@@ -61,51 +61,77 @@
     </div>
 
     <!-- Tab buttons -->
-    <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0;">
-      <button class="tab-btn active" onclick="switchTab('wordpress', this)" id="tab-wordpress">
-        🔷 WordPress
+    <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0;flex-wrap:wrap;">
+      <button class="tab-btn active" onclick="switchTab('laravel', this)" id="tab-laravel">
+        🔴 Laravel / Framework
       </button>
       <button class="tab-btn" onclick="switchTab('php', this)" id="tab-php">
-        🐘 PHP Biasa
+        🐘 PHP Biasa / Native
+      </button>
+      <button class="tab-btn" onclick="switchTab('wordpress', this)" id="tab-wordpress">
+        🔷 WordPress
       </button>
       <button class="tab-btn" onclick="switchTab('manual', this)" id="tab-manual">
         📁 Upload Log
       </button>
     </div>
 
-    <!-- Tab: WordPress -->
-    <div id="content-wordpress" class="tab-content">
+    <!-- Tab: Laravel / Modern Framework -->
+    <div id="content-laravel" class="tab-content">
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div class="setup-step">
           <div class="step-num">1</div>
           <div>
-            <div class="step-title">Download Plugin WordPress NIDS</div>
-            <div class="step-desc">Download file plugin <code>nids-connector.zip</code> dan install di WordPress Anda.</div>
-            <a href="{{ url_for('static', filename='connectors/nids-connector.zip') }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-plugin">
-              ⬇️ Download Plugin
+            <div class="step-title">Download File Konektor Agen NIDS</div>
+            <div class="step-desc">File ini sudah otomatis terkonfigurasi dengan API Key website ini:</div>
+            <a href="{{ url_for('download_php_agent', website_id=site.id) }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-laravel">
+              ⬇️ Download nids_agent.php (Otomatis Terisi API Key)
             </a>
           </div>
         </div>
         <div class="setup-step">
           <div class="step-num">2</div>
           <div>
-            <div class="step-title">Aktifkan Plugin</div>
-            <div class="step-desc">Di WordPress: <code>Plugin → Upload Plugin → Aktifkan</code></div>
+            <div class="step-title">Letakkan di Folder <code>public/</code> Proyek Laravel</div>
+            <div class="step-desc">
+              Pindahkan berkas <code>nids_agent.php</code> ke dalam folder <strong><code>public/</code></strong> website Laravel Anda.<br>
+              Contoh path: <code>D:\laragon\www\htdocs\rekam-medis-chacha20\public\nids_agent.php</code>
+            </div>
           </div>
         </div>
         <div class="setup-step">
           <div class="step-num">3</div>
           <div>
-            <div class="step-title">Masukkan API Key</div>
-            <div class="step-desc">Di menu <code>Pengaturan → NIDS Monitor</code>, tempelkan API Key berikut:</div>
-            <div style="background:rgba(0,0,0,0.3);border-radius:6px;padding:10px 14px;margin-top:8px;font-family:monospace;font-size:12px;color:#a78bfa;word-break:break-all;">{{ site.api_key }}</div>
+            <div class="step-title">Sisipkan 1 Baris Kode di <code>public/index.php</code></div>
+            <div class="step-desc">Buka file <code>public/index.php</code> website Anda, tambahkan baris berikut tepat di bawah tag <code>&lt;?php</code>:</div>
+            <pre class="code-block" style="margin-top:8px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:6px;font-family:monospace;color:#40c4ff;">if (file_exists(__DIR__ . '/nids_agent.php')) {
+    require_once __DIR__ . '/nids_agent.php';
+}</pre>
           </div>
         </div>
         <div class="setup-step">
           <div class="step-num">4</div>
           <div>
-            <div class="step-title">Selesai – Mulai Pantau</div>
-            <div class="step-desc">Setelah tersimpan, status website akan berubah dari <span class="badge badge-medium" style="font-size:10px;">⏸ Menunggu</span> menjadi <span class="badge badge-low" style="font-size:10px;">🟢 Terhubung</span>.</div>
+            <div class="step-title">Jalankan Laravel dengan Bind ke Semua IP (Penting untuk Testing LAN)</div>
+            <div class="step-desc">
+              Jika ingin menguji serangan dari mesin lain (Kali Linux di LAN), jalankan Laravel dengan bind ke semua interface agar bisa diakses dari luar localhost:
+            </div>
+            <pre class="code-block" style="margin-top:8px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:6px;font-family:monospace;color:#00e676;font-size:12px;">php artisan serve --host=0.0.0.0 --port=8000</pre>
+            <div class="step-desc" style="margin-top:8px;">
+              Setelah itu akses website dari Kali Linux melalui IP host (misal: <code>http://192.168.1.12:8000</code>). IP penyerang akan tercatat secara otomatis di dashboard NIDS.
+            </div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">5</div>
+          <div>
+            <div class="step-title">Verifikasi – Cek Dashboard NIDS</div>
+            <div class="step-desc">
+              Buka browser dan akses halaman website Laravel Anda. Setiap request (normal maupun serangan SQLi/XSS/DDoS) akan otomatis terkirim dan dianalisis oleh NIDS Monitor. Cek dashboard untuk melihat hasilnya!
+            </div>
+            <a href="{{ url_for('dashboard', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="margin-top:8px;display:inline-flex;" id="btn-goto-dashboard-inline">
+              📊 Buka Dashboard Sekarang →
+            </a>
           </div>
         </div>
       </div>
@@ -117,9 +143,9 @@
         <div class="setup-step">
           <div class="step-num">1</div>
           <div>
-            <div class="step-title">Upload File Konektor</div>
-            <div class="step-desc">Upload file <code>nids_agent.php</code> ke root folder website Anda via cPanel File Manager atau FTP.</div>
-            <a href="{{ url_for('static', filename='connectors/nids_agent.php') }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-php">
+            <div class="step-title">Download File Konektor</div>
+            <div class="step-desc">Download file konektor yang sudah otomatis terisi API Key dan URL server NIDS:</div>
+            <a href="{{ url_for('download_php_agent', website_id=site.id) }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-php">
               ⬇️ Download nids_agent.php
             </a>
           </div>
@@ -127,18 +153,62 @@
         <div class="setup-step">
           <div class="step-num">2</div>
           <div>
-            <div class="step-title">Konfigurasi API Key</div>
-            <div class="step-desc">Buka <code>nids_agent.php</code> dan isi konstanta berikut:</div>
-            <pre class="code-block" style="margin-top:8px;">define('NIDS_API_KEY', '{{ site.api_key }}');
-define('NIDS_ENDPOINT', '{{ request.host_url }}api/ingest');</pre>
+            <div class="step-title">Letakkan di Root Folder Website</div>
+            <div class="step-desc">Salin file <code>nids_agent.php</code> ke folder proyek website Anda (misal: <code>C:\xampp\htdocs\nama_web\</code> atau <code>public_html/</code> di cPanel).</div>
           </div>
         </div>
         <div class="setup-step">
           <div class="step-num">3</div>
           <div>
-            <div class="step-title">Atur Cron Job</div>
-            <div class="step-desc">Di cPanel → Cron Jobs, tambahkan jadwal setiap 1 menit:</div>
-            <pre class="code-block" style="margin-top:8px;">* * * * * php /home/username/public_html/nids_agent.php</pre>
+            <div class="step-title">Panggil di File Utama (index.php)</div>
+            <div class="step-desc">Buka file <code>index.php</code> website Anda, lalu tambahkan baris ini di baris paling atas:</div>
+            <pre class="code-block" style="margin-top:8px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:6px;font-family:monospace;color:#40c4ff;">if (file_exists(__DIR__ . '/nids_agent.php')) {
+    require_once __DIR__ . '/nids_agent.php';
+}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: WordPress -->
+    <div id="content-wordpress" class="tab-content" style="display:none;">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="setup-step">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Download Plugin NIDS Agent (PHP)</div>
+            <div class="step-desc">Download file konektor PHP yang sudah otomatis terisi API Key:</div>
+            <a href="{{ url_for('download_php_agent', website_id=site.id) }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-wp">
+              ⬇️ Download nids_agent.php
+            </a>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Upload ke Root Folder WordPress</div>
+            <div class="step-desc">
+              Upload file <code>nids_agent.php</code> ke folder root WordPress Anda (sama level dengan <code>wp-config.php</code>). Bisa via FTP, cPanel File Manager, atau SSH.
+            </div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Tambahkan Kode di <code>wp-config.php</code></div>
+            <div class="step-desc">Buka file <code>wp-config.php</code>, tambahkan baris berikut di bagian paling atas (setelah <code>&lt;?php</code>):</div>
+            <pre class="code-block" style="margin-top:8px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:6px;font-family:monospace;color:#40c4ff;">if (file_exists(__DIR__ . '/nids_agent.php')) {
+    require_once __DIR__ . '/nids_agent.php';
+}</pre>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="step-num">4</div>
+          <div>
+            <div class="step-title">Verifikasi Koneksi</div>
+            <div class="step-desc">
+              Buka halaman WordPress Anda, lalu cek dashboard NIDS. Jika koneksi berhasil, status akan berubah menjadi <strong>Terhubung</strong>.
+            </div>
           </div>
         </div>
       </div>

@@ -3,7 +3,77 @@
 {% block page_title %}📊 {{ site.name }}{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js">// ── Live Sniffer Polling & Burst Controls ─────────────────────────────
+async function fetchSnifferStatus() {
+  try {
+    const res = await fetch('/api/sniffer/status');
+    const data = await res.json();
+    const el = document.getElementById('sniffer-metrics');
+    if (el) {
+      el.textContent = `${data.packets_captured} pkt / ${data.flows_analyzed} flow (${data.attacks_detected} alert)`;
+    }
+    const badge = document.getElementById('sniffer-mode-badge');
+    if (badge && data.mode) {
+      badge.textContent = `Mode: ${data.mode}`;
+    }
+    const toggleBtn = document.getElementById('sniffer-toggle-btn');
+    if (toggleBtn) {
+      const isRunning = data.status === 'Running';
+      toggleBtn.textContent = isRunning ? '⏸ Hentikan' : '▶ Jalankan';
+      toggleBtn.style.color = isRunning ? '#ff5252' : '#00e676';
+      toggleBtn.style.borderColor = isRunning ? '#ff5252' : '#00e676';
+    }
+  } catch (err) {}
+}
+setInterval(fetchSnifferStatus, 3000);
+fetchSnifferStatus();
+
+async function toggleSniffer() {
+  try {
+    const res = await fetch('/api/sniffer/toggle', { method: 'POST' });
+    const data = await res.json();
+    fetchSnifferStatus();
+  } catch (err) {
+    console.error('Toggle sniffer error:', err);
+  }
+}
+
+async function updateAlertStatus(alertId, newStatus) {
+  try {
+    const res = await fetch(`/api/alerts/${alertId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    const d = await res.json();
+    if (d.success) {
+      const badge = document.getElementById(`alert-status-badge-${alertId}`);
+      if (badge) {
+        badge.textContent = newStatus;
+        badge.style.color = newStatus === 'Ditangani' ? '#00e676' : '#ffab40';
+        badge.style.background = newStatus === 'Ditangani' ? 'rgba(0,230,118,0.15)' : 'rgba(255,171,64,0.15)';
+      }
+    }
+  } catch (err) {
+    console.error('Update alert status error:', err);
+  }
+}
+
+async function triggerSnifferBurst(atkType) {
+  try {
+    const res = await fetch('/api/sniffer/simulate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ attack_type: atkType, count: 120 })
+    });
+    const d = await res.json();
+    fetchSnifferStatus();
+    setTimeout(fetchAlerts, 1000);
+  } catch (e) {
+    console.error('Sniffer burst error:', e);
+  }
+}
+</script>
 {% endblock %}
 
 {% block content %}
@@ -56,6 +126,40 @@
 
 </div>
 
+<!-- ── LIVE SNIFFER & AI ENGINE TELEMETRY BAR ── -->
+<div class="card mb-6" style="background:linear-gradient(135deg, rgba(24,43,73,0.3) 0%, rgba(15,23,42,0.6) 100%);border:1px solid rgba(64,196,255,0.25);">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:12px;height:12px;border-radius:50%;background:#00e676;box-shadow:0 0 10px #00e676;"></div>
+      <div>
+        <div style="font-weight:700;font-size:14px;color:#fff;display:flex;align-items:center;gap:8px;">
+          📡 Live Traffic Sniffer & XGBoost Engine
+          <span class="badge" style="background:rgba(0,230,118,0.15);color:#00e676;border:1px solid rgba(0,230,118,0.3);font-size:10px;">14 Fitur Aktif</span>
+          <span class="badge" id="sniffer-mode-badge" style="background:rgba(64,196,255,0.15);color:#40c4ff;border:1px solid rgba(64,196,255,0.3);font-size:10px;">Mode: Ingestion Gateway</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+          Menyadap aliran paket & mengekstraksi 14 fitur flow ke model XGBoost secara real-time. (Tombol di kanan untuk uji beban pipeline).
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:var(--text-muted);">Paket Disadap / Flow Dianalisis</div>
+        <div style="font-size:14px;font-weight:700;color:#40c4ff;" id="sniffer-metrics">0 pkt / 0 flow</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="sniffer-toggle-btn" onclick="toggleSniffer()" style="border-color:#40c4ff;color:#40c4ff;background:rgba(64,196,255,0.1);cursor:pointer;" title="Hidupkan atau matikan thread sniffer secara manual">
+        ⏸ Hentikan
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="triggerSnifferBurst('DDoS')" style="border-color:#ff5252;color:#ff5252;background:rgba(255,82,82,0.1);cursor:pointer;" title="Injeksi burst paket sintetis untuk uji pipeline & alerting">
+        ⚡ Simulasi DDoS (Mock)
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="triggerSnifferBurst('PortScan')" style="border-color:#ffab40;color:#ffab40;background:rgba(255,171,64,0.1);cursor:pointer;" title="Injeksi burst probing port untuk uji pipeline">
+        🔍 Simulasi PortScan (Mock)
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ── GRID: Chart + Recent Alerts ── -->
 <div class="grid-2 mb-6">
 
@@ -104,6 +208,9 @@
   <div class="card-header" style="flex-wrap:wrap;gap:12px;">
     <div class="card-title">🚨 Alert Terbaru</div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <a href="{{ url_for('export_alerts_csv', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px;text-decoration:none;border-color:rgba(64,196,255,0.4);color:#40c4ff;" title="Unduh semua riwayat alert dalam format CSV">
+        📥 Unduh CSV
+      </a>
       <!-- Simulation Quick Triggers -->
       <div style="display:flex;gap:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:3px 6px;align-items:center;">
         <span style="font-size:11px;color:var(--text-dim);margin-right:2px;">🧪 Uji AI:</span>
@@ -135,6 +242,7 @@
           <th>Waktu</th>
           <th>Tipe Serangan</th>
           <th>Severity</th>
+          <th>Status</th>
           <th>IP Sumber</th>
           <th>Detail</th>
           <th>Aksi</th>
@@ -148,7 +256,7 @@
               data-id="{{ a.id }}"
               data-type="{{ a.attack_type }}"
               data-severity="{{ a.severity }}">
-            <td class="mono">{{ a.created_at.strftime('%d/%m %H:%M:%S') }}</td>
+            <td class="mono">{{ a.created_at|wib('%d/%m %H:%M:%S') }}</td>
             <td>
               <span class="badge badge-{{ 'ddos' if a.attack_type=='DDoS' else 'xss' if a.attack_type=='XSS' else 'sqli' if 'SQL' in a.attack_type else 'medium' }}">
                 {{ '💥' if a.attack_type=='DDoS' else '🕷️' if a.attack_type=='XSS' else '💉' if 'SQL' in a.attack_type else '⚠️' }}
@@ -160,21 +268,44 @@
                 {{ a.severity }}
               </span>
             </td>
-            <td class="mono">{{ a.source_ip or '–' }}</td>
-            <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-muted);">
-              {{ a.detail or '–' }}
-            </td>
             <td>
+              <span class="badge" id="alert-status-badge-{{ a.id }}" style="font-size:10px;background:{{ 'rgba(0,230,118,0.15)' if a.status=='Ditangani' else 'rgba(255,171,64,0.15)' if a.status=='False Positive' else 'rgba(255,82,82,0.15)' }};color:{{ '#00e676' if a.status=='Ditangani' else '#ffab40' if a.status=='False Positive' else '#ff5252' }};">
+                {{ a.status }}
+              </span>
+            </td>
+            <td class="mono">{{ a.source_ip or '–' }}</td>
+            <td style="max-width:280px;font-size:12px;">
+              <div style="font-family:'JetBrains Mono',monospace;color:#c084fc;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ a.target_endpoint|unquote }}">
+                {{ a.target_endpoint|unquote if a.target_endpoint and a.target_endpoint not in ('/', '') else (a.detail or '–') }}
+              </div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                {% if a.payload_sample and a.payload_sample not in ["'", "--", ""] %}
+                  <span style="color:#f472b6;font-family:monospace;">{{ a.payload_sample[:40] }}</span> &bull;
+                {% endif %}
+                {{ a.pattern_detected }}
+              </div>
+            </td>
+            <td style="white-space:nowrap;">
               <a href="{{ url_for('mitigation', alert_id=a.id) }}"
-                 class="btn btn-secondary btn-sm" id="btn-mitigate-{{ a.id }}">
+                 class="btn btn-secondary btn-sm" id="btn-mitigate-{{ a.id }}" style="font-size:11px;padding:3px 7px;">
                 🛡️ Mitigasi
               </a>
+              {% if a.status != 'Ditangani' %}
+              <button onclick="updateAlertStatus({{ a.id }}, 'Ditangani')" class="btn btn-secondary btn-sm" style="font-size:10px;padding:2px 6px;color:#00e676;border-color:rgba(0,230,118,0.3);" title="Tandai Sudah Ditangani">
+                ✓
+              </button>
+              {% endif %}
+              {% if a.status != 'False Positive' %}
+              <button onclick="updateAlertStatus({{ a.id }}, 'False Positive')" class="btn btn-secondary btn-sm" style="font-size:10px;padding:2px 6px;color:#ffab40;border-color:rgba(255,171,64,0.3);" title="Tandai sebagai False Positive">
+                FP
+              </button>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}
         {% else %}
           <tr>
-            <td colspan="6" style="text-align:center;padding:40px;color:var(--text-dim);">
+            <td colspan="7" style="text-align:center;padding:40px;color:var(--text-dim);">
               ✅ Tidak ada alert. Website aman.
             </td>
           </tr>
@@ -301,13 +432,20 @@ function appendAlerts(alerts) {
     tr.dataset.type = a.type;
     tr.dataset.severity = a.severity;
     tr.style.animation = 'slideIn 0.3s ease';
+    const statusColor = a.status === 'Ditangani' ? '#00e676' : a.status === 'False Positive' ? '#ffab40' : '#ff5252';
+    const statusBg = a.status === 'Ditangani' ? 'rgba(0,230,118,0.15)' : a.status === 'False Positive' ? 'rgba(255,171,64,0.15)' : 'rgba(255,82,82,0.15)';
     tr.innerHTML = `
       <td class="mono">${new Date(a.created_at).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'})}</td>
       <td><span class="badge badge-${typeClass}">${icon} ${a.type}</span></td>
       <td><span class="badge badge-${sevClass}">${a.severity}</span></td>
+      <td><span class="badge" id="alert-status-badge-${a.id}" style="font-size:10px;background:${statusBg};color:${statusColor};">${a.status || 'Terdeteksi'}</span></td>
       <td class="mono">${a.source_ip||'–'}</td>
       <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-muted);">${a.detail||'–'}</td>
-      <td><a href="/mitigation/${a.id}" class="btn btn-secondary btn-sm">🛡️ Mitigasi</a></td>`;
+      <td style="white-space:nowrap;">
+        <a href="/mitigation/${a.id}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 7px;">🛡️ Mitigasi</a>
+        <button onclick="updateAlertStatus(${a.id}, 'Ditangani')" class="btn btn-secondary btn-sm" style="font-size:10px;padding:2px 6px;color:#00e676;border-color:rgba(0,230,118,0.3);" title="Tandai Sudah Ditangani">✓</button>
+        <button onclick="updateAlertStatus(${a.id}, 'False Positive')" class="btn btn-secondary btn-sm" style="font-size:10px;padding:2px 6px;color:#ffab40;border-color:rgba(255,171,64,0.3);" title="Tandai sebagai False Positive">FP</button>
+      </td>`;
     tbody.prepend(tr);
     // Remove excess rows
     const rows = tbody.querySelectorAll('tr');
@@ -357,6 +495,76 @@ async function triggerSim(type) {
     setTimeout(fetchAlerts, 400);
   } catch (err) {
     console.error('Simulation error:', err);
+  }
+}
+// ── Live Sniffer Polling & Burst Controls ─────────────────────────────
+async function fetchSnifferStatus() {
+  try {
+    const res = await fetch('/api/sniffer/status');
+    const data = await res.json();
+    const el = document.getElementById('sniffer-metrics');
+    if (el) {
+      el.textContent = `${data.packets_captured} pkt / ${data.flows_analyzed} flow (${data.attacks_detected} alert)`;
+    }
+    const badge = document.getElementById('sniffer-mode-badge');
+    if (badge && data.mode) {
+      badge.textContent = `Mode: ${data.mode}`;
+    }
+    const toggleBtn = document.getElementById('sniffer-toggle-btn');
+    if (toggleBtn) {
+      const isRunning = data.status === 'Running';
+      toggleBtn.textContent = isRunning ? '⏸ Hentikan' : '▶ Jalankan';
+      toggleBtn.style.color = isRunning ? '#ff5252' : '#00e676';
+      toggleBtn.style.borderColor = isRunning ? '#ff5252' : '#00e676';
+    }
+  } catch (err) {}
+}
+setInterval(fetchSnifferStatus, 3000);
+fetchSnifferStatus();
+
+async function toggleSniffer() {
+  try {
+    const res = await fetch('/api/sniffer/toggle', { method: 'POST' });
+    const data = await res.json();
+    fetchSnifferStatus();
+  } catch (err) {
+    console.error('Toggle sniffer error:', err);
+  }
+}
+
+async function updateAlertStatus(alertId, newStatus) {
+  try {
+    const res = await fetch(`/api/alerts/${alertId}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    });
+    const d = await res.json();
+    if (d.success) {
+      const badge = document.getElementById(`alert-status-badge-${alertId}`);
+      if (badge) {
+        badge.textContent = newStatus;
+        badge.style.color = newStatus === 'Ditangani' ? '#00e676' : '#ffab40';
+        badge.style.background = newStatus === 'Ditangani' ? 'rgba(0,230,118,0.15)' : 'rgba(255,171,64,0.15)';
+      }
+    }
+  } catch (err) {
+    console.error('Update alert status error:', err);
+  }
+}
+
+async function triggerSnifferBurst(atkType) {
+  try {
+    const res = await fetch('/api/sniffer/simulate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ attack_type: atkType, count: 120 })
+    });
+    const d = await res.json();
+    fetchSnifferStatus();
+    setTimeout(fetchAlerts, 1000);
+  } catch (e) {
+    console.error('Sniffer burst error:', e);
   }
 }
 </script>

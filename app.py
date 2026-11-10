@@ -26,6 +26,7 @@ from detectors.web_attack_detector import web_attack_detector
 from services.telegram_service import TelegramService
 from services.assistant_service import answer_security_question
 from services.mitigation_guide import get_mitigation
+from services.live_sniffer import live_sniffer
 
 # ── Init App ─────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -40,6 +41,27 @@ login_manager.login_message = 'Silakan login terlebih dahulu.'
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
+
+# Inisialisasi Live Sniffer Service
+live_sniffer.app = app
+live_sniffer.start(mode='Hybrid Live Sniffing')
+
+import urllib.parse
+
+@app.template_filter('wib')
+def filter_to_wib(dt, fmt='%d/%m %H:%M:%S'):
+    """Konversi waktu UTC ke Waktu Indonesia Barat (WIB, UTC+7)."""
+    if not dt:
+        return '–'
+    dt_wib = dt + timedelta(hours=7)
+    return dt_wib.strftime(fmt)
+
+@app.template_filter('unquote')
+def filter_unquote(val):
+    """Decode string URL encoded ke teks terbaca."""
+    if not val:
+        return ''
+    return urllib.parse.unquote(str(val))
 
 
 # ── Routes: Auth ─────────────────────────────────────────────────────────────
@@ -145,11 +167,17 @@ def websites():
 @app.route('/websites/add', methods=['GET', 'POST'])
 @login_required
 def add_website():
+    # Kebijakan 1 User = 1 Website: jika sudah ada, alihkan ke ubah website
+    existing_site = Website.query.filter_by(user_id=current_user.id).first()
+    if existing_site:
+        flash('Setiap akun dibatasi memantau 1 website aktif. Anda dialihkan ke halaman ubah website.', 'info')
+        return redirect(url_for('edit_website', website_id=existing_site.id))
+
     if request.method == 'POST':
         from urllib.parse import urlparse
         url      = request.form.get('url', '').strip().rstrip('/')
         name     = request.form.get('name', '').strip()
-        platform = request.form.get('platform', 'wordpress')
+        platform = request.form.get('platform', 'php')
 
         # Validasi URL
         if not url:
@@ -162,18 +190,12 @@ def add_website():
             if not parsed.netloc:
                 raise ValueError
         except Exception:
-            flash('Format URL tidak valid. Contoh: https://website.com', 'danger')
+            flash('Format URL tidak valid. Contoh: https://website.com atau http://localhost:8000', 'danger')
             return redirect(url_for('add_website'))
 
         # Auto-generate nama dari hostname jika kosong
         if not name:
             name = parsed.netloc.replace('www.', '').split('.')[0].capitalize()
-
-        # Cek duplikat URL untuk user yang sama
-        existing = Website.query.filter_by(user_id=current_user.id, target_url=url).first()
-        if existing:
-            flash(f'Website "{url}" sudah pernah ditambahkan.', 'warning')
-            return redirect(url_for('websites'))
 
         site = Website(
             user_id    = current_user.id,
@@ -183,7 +205,6 @@ def add_website():
             status     = 'Menunggu Konektor',
         )
         db.session.add(site)
-        # Simpan website ini sebagai last selected
         current_user.last_selected_target_id = site.id
         db.session.commit()
         session['last_website_id'] = site.id
@@ -193,11 +214,86 @@ def add_website():
     return render_template('websites/add.html')
 
 
+@app.route('/websites/<int:website_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_website(website_id):
+    """Ubah konfigurasi target website (Nama, URL, Platform, DDoS Threshold)."""
+    site = Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
+
+    if request.method == 'POST':
+        from urllib.parse import urlparse
+        url      = request.form.get('url', '').strip().rstrip('/')
+        name     = request.form.get('name', '').strip()
+        ddos_req = request.form.get('ddos_threshold_req')
+        ddos_win = request.form.get('ddos_window_sec')
+
+        if not url:
+            flash('URL website wajib diisi.', 'danger')
+            return redirect(url_for('edit_website', website_id=site.id))
+
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+
+        try:
+            parsed = urlparse(url)
+            if not parsed.netloc:
+                raise ValueError
+        except Exception:
+            flash('Format URL tidak valid. Contoh: https://website.com atau http://localhost:8000', 'danger')
+            return redirect(url_for('edit_website', website_id=site.id))
+
+        if not name:
+            name = parsed.netloc.replace('www.', '').split('.')[0].capitalize()
+
+        # Update properties
+        site.name = name
+        site.target_url = url
+        if ddos_req:
+            try:
+                site.ddos_threshold_req = max(10, min(10000, int(ddos_req)))
+            except ValueError:
+                pass
+        if ddos_win:
+            try:
+                site.ddos_window_sec = max(1, min(300, int(ddos_win)))
+            except ValueError:
+                pass
+
+        db.session.commit()
+        flash(f'Website berhasil diperbarui menjadi "{site.name}" ({site.target_url}).', 'success')
+        return redirect(url_for('websites'))
+
+    return render_template('websites/edit.html', site=site)
+
+
 @app.route('/websites/<int:website_id>/setup')
 @login_required
 def website_setup(website_id):
     site = Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
     return render_template('websites/setup.html', site=site)
+
+
+@app.route('/websites/<int:website_id>/download-agent')
+@login_required
+def download_php_agent(website_id):
+    """Men-generate file nids_agent.php yang sudah langsung terisi API Key dan Server URL website ini."""
+    site = Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
+
+    template_path = os.path.join(app.root_path, 'connectors', 'nids_agent.php')
+    if not os.path.exists(template_path):
+        template_path = os.path.join(app.root_path, 'static', 'connectors', 'nids_agent.php')
+
+    with open(template_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    host_url = request.host_url.rstrip('/')
+    content = content.replace("define('NIDS_SERVER_URL', 'http://127.0.0.1:5000');", f"define('NIDS_SERVER_URL', '{host_url}');")
+    content = content.replace("define('NIDS_API_KEY', 'MASUKKAN_API_KEY_ANDA_DISINI');", f"define('NIDS_API_KEY', '{site.api_key}');")
+
+    from flask import Response
+    resp = Response(content, mimetype='application/x-httpd-php')
+    resp.headers["Content-Disposition"] = "attachment; filename=nids_agent.php"
+    return resp
 
 
 @app.route('/websites/<int:website_id>/delete', methods=['POST'])
@@ -247,6 +343,94 @@ def dashboard(website_id):
                            stat_other=stat_other)
 
 
+# ── Routes: Dedicated Detection Pages (DDoS & Serangan Web) ────────────────────
+@app.route('/detection/ddos/<int:website_id>', methods=['GET', 'POST'])
+@login_required
+def ddos_detection(website_id):
+    """Halaman khusus Analisis & Mitigasi Serangan Volumetrik / DDoS & Flow Jaringan."""
+    site = Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
+
+    if request.method == 'POST':
+        try:
+            threshold = int(request.form.get('ddos_threshold_req', 100))
+            window = int(request.form.get('ddos_window_sec', 10))
+            site.ddos_threshold_req = max(10, min(10000, threshold))
+            site.ddos_window_sec = max(1, min(300, window))
+            db.session.commit()
+            flash(f'Pengaturan Rate Limiter berhasil disimpan (Maks {site.ddos_threshold_req} req / {site.ddos_window_sec} detik).', 'success')
+        except ValueError:
+            flash('Nilai ambang batas tidak valid.', 'danger')
+        return redirect(url_for('ddos_detection', website_id=website_id))
+
+    flow_alerts = Alert.query.filter(
+        Alert.website_id == website_id,
+        (Alert.attack_type.ilike('%DDoS%')) |
+        (Alert.attack_type.ilike('%DoS%')) |
+        (Alert.attack_type.ilike('%PortScan%')) |
+        (Alert.attack_type.ilike('%Patator%'))
+    ).order_by(Alert.created_at.desc()).limit(50).all()
+
+    count_ddos = sum(1 for a in flow_alerts if 'ddos' in a.attack_type.lower())
+    count_dos_hulk = sum(1 for a in flow_alerts if 'hulk' in a.attack_type.lower())
+    count_portscan = sum(1 for a in flow_alerts if 'portscan' in a.attack_type.lower())
+    count_slowloris = sum(1 for a in flow_alerts if 'slowloris' in a.attack_type.lower())
+
+    return render_template('dashboard/ddos.html',
+                           site=site,
+                           alerts=flow_alerts,
+                           count_ddos=count_ddos,
+                           count_dos_hulk=count_dos_hulk,
+                           count_portscan=count_portscan,
+                           count_slowloris=count_slowloris)
+
+
+@app.route('/detection/web-attack/<int:website_id>')
+@login_required
+def web_attack_detection(website_id):
+    """Halaman khusus Deteksi & Inspeksi Muatan Serangan Web (Layer 7: SQLi & XSS)."""
+    site = Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
+
+    web_alerts = Alert.query.filter(
+        Alert.website_id == website_id,
+        (Alert.attack_type.ilike('%SQL%')) |
+        (Alert.attack_type.ilike('%XSS%')) |
+        (Alert.attack_type.ilike('%Brute Force%')) |
+        (Alert.attack_type.ilike('%Web Attack%'))
+    ).order_by(Alert.created_at.desc()).limit(50).all()
+
+    count_sqli = sum(1 for a in web_alerts if 'sql' in a.attack_type.lower())
+    count_xss = sum(1 for a in web_alerts if 'xss' in a.attack_type.lower())
+    count_other = max(0, len(web_alerts) - (count_sqli + count_xss))
+
+    return render_template('dashboard/web_attack.html',
+                           site=site,
+                           alerts=web_alerts,
+                           count_sqli=count_sqli,
+                           count_xss=count_xss,
+                           count_other=count_other)
+
+
+@app.route('/api/test-payload', methods=['POST'])
+@login_required
+def api_test_payload():
+    """Menguji muatan teks (URI/parameter) secara interaktif dengan web attack detector."""
+    from detectors.web_attack_detector import web_attack_detector
+    data = request.get_json(silent=True) or {}
+    payload = data.get('payload', '').strip()
+    if not payload:
+        return jsonify({'error': 'Payload tidak boleh kosong'}), 400
+
+    is_attack, label, desc, conf, sample = web_attack_detector.inspect_request(payload)
+    return jsonify({
+        'is_attack': is_attack,
+        'label': label,
+        'description': desc,
+        'confidence': round(conf, 1),
+        'sample': sample,
+        'payload_input': payload
+    })
+
+
 # ── Routes: Alert API ─────────────────────────────────────────────────────────
 @app.route('/api/alerts/<int:website_id>')
 @login_required
@@ -261,11 +445,12 @@ def api_alerts(website_id):
         query = query.filter(Alert.created_at > datetime.fromtimestamp(since))
     alerts = query.order_by(Alert.id.desc()).limit(50).all()
     return jsonify([{
-        'id':         a.id,
-        'type':       a.attack_type,
-        'severity':   a.severity,
-        'source_ip':  a.source_ip,
-        'detail':     a.detail,
+        'id': a.id,
+        'type': a.attack_type,
+        'severity': a.severity,
+        'status': a.status,
+        'source_ip': a.source_ip,
+        'detail': a.detail,
         'created_at': a.created_at.isoformat()
     } for a in alerts])
 
@@ -311,6 +496,19 @@ def api_ingest():
     status_code = int(data.get('status_code') or request.form.get('status_code') or 200)
     response_size = int(data.get('response_size') or data.get('bytes_sent') or 0)
     response_time_ms = float(data.get('response_time_ms') or 0.0)
+
+    # Ingest ke Live Traffic Sniffer & Flow Aggregator
+    pkg_len = max(len(uri) + len(post_body) + 64, 64)
+    live_sniffer.ingest_packet(
+        src_ip=ip,
+        dst_ip='127.0.0.1',
+        src_port=54321,
+        dst_port=5000,
+        protocol='TCP',
+        length=pkg_len,
+        flags='P' if method == 'POST' else 'S',
+        window=64240
+    )
 
     # ── LAYER 1: Deteksi DDoS (Rate Limiting) ────────────────────────────────
     current_rps = ddos_detector.record_request(site.id, ip)
@@ -819,6 +1017,113 @@ def analyze_csv(website_id):
         return redirect(url_for('dashboard', website_id=website_id))
 
     return render_template('dashboard/analyze.html', site=site)
+
+
+# ── Routes: Live Sniffer API ──────────────────────────────────────────────────
+@app.route('/api/sniffer/status', methods=['GET'])
+def api_sniffer_status():
+    """Mengembalikan status dan telemetri live packet sniffer & flow engine."""
+    return jsonify(live_sniffer.stats)
+
+
+@app.route('/api/sniffer/simulate', methods=['POST'])
+@login_required
+def api_sniffer_simulate():
+    """Menembakkan burst paket serangan live ke sniffer untuk pengujian/demo."""
+    data = request.get_json(silent=True) or {}
+    attack_type = data.get('attack_type', 'DDoS')
+    src_ip = data.get('src_ip', '192.168.1.185')
+    count = int(data.get('count', 150))
+    live_sniffer.simulate_attack_burst(attack_type=attack_type, src_ip=src_ip, packet_count=count)
+    return jsonify({
+        'success': True,
+        'message': f'Burst paket {attack_type} ({count} pkt) berhasil ditembakkan ke Live Sniffer & dianalisis XGBoost!'
+    })
+
+
+@app.route('/api/sniffer/toggle', methods=['POST'])
+@login_required
+def api_sniffer_toggle():
+    """Menghidupkan atau mematikan thread live packet sniffer secara dinamis dari dashboard."""
+    if live_sniffer.is_running:
+        success, msg = live_sniffer.stop()
+    else:
+        success, msg = live_sniffer.start(mode='Gateway Ingestion & Simulation')
+    return jsonify({
+        'success': success,
+        'message': msg,
+        'status': live_sniffer.stats['status'],
+        'is_running': live_sniffer.is_running
+    })
+
+
+@app.route('/api/alerts/<int:alert_id>/status', methods=['POST'])
+@login_required
+def api_update_alert_status(alert_id):
+    """Memperbarui status alert (Ditangani, False Positive, Perlu tindakan) oleh analis SOC."""
+    alert = Alert.query.get_or_404(alert_id)
+    # Verifikasi kepemilikan website
+    site = Website.query.filter_by(id=alert.website_id, user_id=current_user.id).first()
+    if not site:
+        return jsonify({'error': 'Akses ditolak'}), 403
+
+    data = request.get_json(silent=True) or {}
+    new_status = data.get('status')
+    notes = data.get('notes', '')
+    allowed = ['Ditangani', 'False Positive', 'Terdeteksi', 'Perlu tindakan']
+    if new_status in allowed:
+        alert.status = new_status
+        if notes:
+            now_str = datetime.utcnow().strftime('%Y-%m-%d %H:%M')
+            alert.notes = f"{alert.notes or ''}\n[{now_str}] {notes}".strip()
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': f'Status alert #{alert_id} berhasil diubah menjadi {new_status}',
+            'status': alert.status
+        })
+    return jsonify({'error': 'Status tidak valid'}), 400
+
+
+@app.route('/dashboard/<int:website_id>/export', methods=['GET'])
+@login_required
+def export_alerts_csv(website_id):
+    """Mengunduh riwayat insiden / alert keamanan dalam format CSV untuk audit forensik."""
+    import csv
+    from io import StringIO
+    from flask import Response
+
+    site = Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
+    alerts = Alert.query.filter_by(website_id=site.id).order_by(Alert.id.desc()).all()
+
+    si = StringIO()
+    cw = csv.writer(si)
+    cw.writerow([
+        'ID Alert', 'Waktu (WIB / UTC+7)', 'Tipe Serangan', 'Tingkat Bahaya',
+        'IP Sumber', 'Target Endpoint', 'Confidence (%)', 'Detector Source',
+        'Status', 'Detail / Payload'
+    ])
+
+    for a in alerts:
+        wib_time = (a.created_at + timedelta(hours=7)).strftime('%Y-%m-%d %H:%M:%S WIB') if a.created_at else ''
+        cw.writerow([
+            a.id,
+            wib_time,
+            a.attack_type,
+            a.severity,
+            a.source_ip,
+            urllib.parse.unquote(a.target_endpoint or ''),
+            f"{a.confidence_score:.1f}",
+            a.detector_source,
+            a.status,
+            a.detail
+        ])
+
+    clean_name = "".join(c for c in site.name if c.isalnum() or c in (' ', '_', '-')).strip().replace(' ', '_')
+    filename = f"nids_alerts_{clean_name}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+    output = Response(si.getvalue(), mimetype='text/csv')
+    output.headers["Content-Disposition"] = f"attachment; filename={filename}"
+    return output
 
 
 # ── Bootstrap DB & Run ────────────────────────────────────────────────────────

