@@ -1,266 +1,160 @@
 {% extends "base_app.html" %}
-{% block title %}Setup Konektor – {{ site.name }}{% endblock %}
-{% block page_title %}Setup Konektor{% endblock %}
+{% block title %}Setup Konektor & Gateway – {{ site.name }}{% endblock %}
+{% block page_title %}Setup Konektor & Gateway{% endblock %}
 
 {% block content %}
-<div style="max-width:680px;margin:0 auto;">
+<div style="max-width:760px;margin:0 auto;">
 
   <!-- Progress indicator -->
-  <div style="display:flex;align-items:center;gap:0;margin-bottom:32px;">
+  <div style="display:flex;align-items:center;gap:0;margin-bottom:28px;">
     <div style="display:flex;align-items:center;gap:8px;flex:1;">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--success);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0;">✓</div>
-      <span style="font-size:13px;color:var(--success);font-weight:600;">Daftarkan Website</span>
+      <div style="width:26px;height:26px;border-radius:50%;background:#10B981;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;">
+        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <span style="font-size:12.5px;color:#10B981;font-weight:600;">Daftarkan Website</span>
     </div>
-    <div style="flex:1;height:2px;background:var(--primary);margin:0 8px;"></div>
+    <div style="flex:1;height:2px;background:#06B6D4;margin:0 8px;"></div>
     <div style="display:flex;align-items:center;gap:8px;flex:1;">
-      <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;">2</div>
-      <span style="font-size:13px;font-weight:600;color:var(--text-primary);">Pasang Konektor</span>
+      <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#06B6D4,#2563EB);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#fff;flex-shrink:0;">2</div>
+      <span style="font-size:12.5px;font-weight:600;color:#FFFFFF;">Konfigurasi Gateway</span>
     </div>
-    <div style="flex:1;height:2px;background:var(--border);margin:0 8px;"></div>
+    <div style="flex:1;height:2px;background:rgba(255,255,255,0.08);margin:0 8px;"></div>
     <div style="display:flex;align-items:center;gap:8px;flex:1;">
-      <div style="width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--text-dim);flex-shrink:0;">3</div>
-      <span style="font-size:13px;color:var(--text-dim);">Dashboard Live</span>
+      <div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:#64748B;flex-shrink:0;">3</div>
+      <span style="font-size:12.5px;color:#64748B;">Monitoring SOC</span>
     </div>
   </div>
 
-  <!-- Success Banner -->
-  <div style="background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.25);border-radius:14px;padding:18px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;">
-    <div style="font-size:32px;">🎉</div>
-    <div>
-      <div style="font-size:15px;font-weight:700;color:var(--success);">Website Berhasil Didaftarkan!</div>
-      <div style="font-size:13px;color:var(--text-muted);margin-top:2px;">
-        <strong>{{ site.name }}</strong> ({{ site.target_url }}) sudah terdaftar.
-        Sekarang pasang konektor di website Anda agar pemantauan bisa dimulai.
+  <!-- Hero Success Card -->
+  <div style="background:linear-gradient(135deg,rgba(6,182,212,0.1) 0%,rgba(37,99,235,0.06) 100%);border:1px solid rgba(6,182,212,0.25);border-radius:16px;padding:20px 22px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;">
+    <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#2563EB,#06B6D4);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;box-shadow:0 0 20px rgba(6,182,212,0.35);">
+      <svg style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+      </svg>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:15px;font-weight:700;color:#FFFFFF;">Website Terdaftar: {{ site.name }}</div>
+      <div style="font-size:12.5px;color:#94A3B8;margin-top:4px;line-height:1.5;">
+        Target Origin URL: <code style="color:#38BDF8;font-family:'JetBrains Mono',monospace;">{{ site.target_url }}</code>.<br>
+        Sistem NIDS siap melindungi website ini secara real-time tanpa perlu menyisipkan kode ke dalam website.
       </div>
     </div>
   </div>
 
-  <!-- API Key -->
-  <div class="card mb-6" style="border-color:rgba(108,99,255,0.3);">
-    <div class="card-header">
-      <div class="card-title">🔑 API Key Website Anda</div>
-      <span class="badge badge-medium">Rahasia</span>
+  <!-- Gateway Proxy Card (RECOMMENDED - ZERO CODE TOUCH) -->
+  <div class="card mb-6" style="border-color:rgba(6,182,212,0.35);background:linear-gradient(135deg,rgba(18,24,36,0.95) 0%,rgba(10,14,22,0.98) 100%);">
+    <div class="card-header" style="border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:14px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;color:#06B6D4;">
+          <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <div class="card-title" style="margin:0;font-size:15px;">WAF Gateway URL (Zero-Code-Touch)</div>
+          <div style="font-size:11px;color:#10B981;font-weight:600;">Metode Rekomendasi – Nol Modifikasi Kode Website</div>
+        </div>
+      </div>
+      <span class="badge" style="background:rgba(16,185,129,0.15);color:#10B981;border:1px solid rgba(16,185,129,0.3);font-size:11px;">Aktif Real-Time</span>
     </div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">
-      API Key ini digunakan oleh konektor di website Anda untuk mengirim data log ke platform NIDS. <strong>Jangan bagikan kepada siapapun.</strong>
+
+    <p style="font-size:13px;color:#94A3B8;line-height:1.6;margin-bottom:14px;">
+      Gunakan URL Gateway di bawah ini sebagai pintu masuk lalu lintas. Semua request diperiksa oleh detektor L1 (DDoS), L2 (SQLi/XSS), dan L3 (XGBoost) sebelum diteruskan ke server asli.
     </p>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <div style="flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#a78bfa;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="api-key-display">
-        {{ site.api_key }}
-      </div>
-      <button class="btn btn-secondary" onclick="copyApiKey()" id="btn-copy-key">
-        📋 Salin
-      </button>
-    </div>
-  </div>
 
-  <!-- Tab: Pilih Platform -->
-  <div class="card mb-6">
-    <div class="card-header">
-      <div class="card-title">📦 Instruksi Pemasangan</div>
-    </div>
-
-    <!-- Tab buttons -->
-    <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0;flex-wrap:wrap;">
-      <button class="tab-btn active" onclick="switchTab('laravel', this)" id="tab-laravel">
-        🔴 Laravel / Framework
-      </button>
-      <button class="tab-btn" onclick="switchTab('php', this)" id="tab-php">
-        🐘 PHP Biasa / Native
-      </button>
-      <button class="tab-btn" onclick="switchTab('wordpress', this)" id="tab-wordpress">
-        🔷 WordPress
-      </button>
-      <button class="tab-btn" onclick="switchTab('manual', this)" id="tab-manual">
-        📁 Upload Log
-      </button>
-    </div>
-
-    <!-- Tab: Laravel / Modern Framework -->
-    <div id="content-laravel" class="tab-content">
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div class="setup-step">
-          <div class="step-num">1</div>
-          <div>
-            <div class="step-title">Download File Konektor Agen NIDS</div>
-            <div class="step-desc">File ini sudah otomatis terkonfigurasi dengan API Key website ini:</div>
-            <a href="{{ url_for('download_php_agent', website_id=site.id) }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-laravel">
-              ⬇️ Download nids_agent.php (Otomatis Terisi API Key)
-            </a>
-          </div>
+    <!-- Gateway URL Box -->
+    <div style="margin-bottom:18px;">
+      <label style="display:block;font-size:11.5px;font-weight:600;color:#CBD5E1;margin-bottom:6px;">
+        URL Gateway Lokal (Untuk Pengujian & Sidang Skripsi):
+      </label>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div style="flex:1;background:rgba(0,0,0,0.4);border:1px solid rgba(6,182,212,0.3);border-radius:10px;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#38BDF8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="gateway-url-display">
+          http://localhost:5000/gateway/{{ site.id }}/
         </div>
-        <div class="setup-step">
-          <div class="step-num">2</div>
-          <div>
-            <div class="step-title">Letakkan di Folder <code>public/</code> Proyek Laravel</div>
-            <div class="step-desc">
-              Pindahkan berkas <code>nids_agent.php</code> ke dalam folder <strong><code>public/</code></strong> website Laravel Anda.<br>
-              Contoh path: <code>D:\laragon\www\htdocs\rekam-medis-chacha20\public\nids_agent.php</code>
-            </div>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="step-num">3</div>
-          <div>
-            <div class="step-title">Sisipkan 1 Baris Kode di <code>public/index.php</code></div>
-            <div class="step-desc">Buka file <code>public/index.php</code> website Anda, tambahkan baris berikut tepat di bawah tag <code>&lt;?php</code>:</div>
-            <pre class="code-block" style="margin-top:8px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:6px;font-family:monospace;color:#40c4ff;">if (file_exists(__DIR__ . '/nids_agent.php')) {
-    require_once __DIR__ . '/nids_agent.php';
-}</pre>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="step-num">4</div>
-          <div>
-            <div class="step-title">Jalankan Laravel dengan Bind ke Semua IP (Penting untuk Testing LAN)</div>
-            <div class="step-desc">
-              Jika ingin menguji serangan dari mesin lain (Kali Linux di LAN), jalankan Laravel dengan bind ke semua interface agar bisa diakses dari luar localhost:
-            </div>
-            <pre class="code-block" style="margin-top:8px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:6px;font-family:monospace;color:#00e676;font-size:12px;">php artisan serve --host=0.0.0.0 --port=8000</pre>
-            <div class="step-desc" style="margin-top:8px;">
-              Setelah itu akses website dari Kali Linux melalui IP host (misal: <code>http://192.168.1.12:8000</code>). IP penyerang akan tercatat secara otomatis di dashboard NIDS.
-            </div>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="step-num">5</div>
-          <div>
-            <div class="step-title">Verifikasi – Cek Dashboard NIDS</div>
-            <div class="step-desc">
-              Buka browser dan akses halaman website Laravel Anda. Setiap request (normal maupun serangan SQLi/XSS/DDoS) akan otomatis terkirim dan dianalisis oleh NIDS Monitor. Cek dashboard untuk melihat hasilnya!
-            </div>
-            <a href="{{ url_for('dashboard', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="margin-top:8px;display:inline-flex;" id="btn-goto-dashboard-inline">
-              📊 Buka Dashboard Sekarang →
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tab: PHP Biasa -->
-    <div id="content-php" class="tab-content" style="display:none;">
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div class="setup-step">
-          <div class="step-num">1</div>
-          <div>
-            <div class="step-title">Download File Konektor</div>
-            <div class="step-desc">Download file konektor yang sudah otomatis terisi API Key dan URL server NIDS:</div>
-            <a href="{{ url_for('download_php_agent', website_id=site.id) }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-php">
-              ⬇️ Download nids_agent.php
-            </a>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="step-num">2</div>
-          <div>
-            <div class="step-title">Letakkan di Root Folder Website</div>
-            <div class="step-desc">Salin file <code>nids_agent.php</code> ke folder proyek website Anda (misal: <code>C:\xampp\htdocs\nama_web\</code> atau <code>public_html/</code> di cPanel).</div>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="step-num">3</div>
-          <div>
-            <div class="step-title">Panggil di File Utama (index.php)</div>
-            <div class="step-desc">Buka file <code>index.php</code> website Anda, lalu tambahkan baris ini di baris paling atas:</div>
-            <pre class="code-block" style="margin-top:8px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:6px;font-family:monospace;color:#40c4ff;">if (file_exists(__DIR__ . '/nids_agent.php')) {
-    require_once __DIR__ . '/nids_agent.php';
-}</pre>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tab: WordPress -->
-    <div id="content-wordpress" class="tab-content" style="display:none;">
-      <div style="display:flex;flex-direction:column;gap:14px;">
-        <div class="setup-step">
-          <div class="step-num">1</div>
-          <div>
-            <div class="step-title">Download Plugin NIDS Agent (PHP)</div>
-            <div class="step-desc">Download file konektor PHP yang sudah otomatis terisi API Key:</div>
-            <a href="{{ url_for('download_php_agent', website_id=site.id) }}" class="btn btn-primary btn-sm" style="margin-top:10px;display:inline-flex;" id="btn-download-wp">
-              ⬇️ Download nids_agent.php
-            </a>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="step-num">2</div>
-          <div>
-            <div class="step-title">Upload ke Root Folder WordPress</div>
-            <div class="step-desc">
-              Upload file <code>nids_agent.php</code> ke folder root WordPress Anda (sama level dengan <code>wp-config.php</code>). Bisa via FTP, cPanel File Manager, atau SSH.
-            </div>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="step-num">3</div>
-          <div>
-            <div class="step-title">Tambahkan Kode di <code>wp-config.php</code></div>
-            <div class="step-desc">Buka file <code>wp-config.php</code>, tambahkan baris berikut di bagian paling atas (setelah <code>&lt;?php</code>):</div>
-            <pre class="code-block" style="margin-top:8px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:6px;font-family:monospace;color:#40c4ff;">if (file_exists(__DIR__ . '/nids_agent.php')) {
-    require_once __DIR__ . '/nids_agent.php';
-}</pre>
-          </div>
-        </div>
-        <div class="setup-step">
-          <div class="step-num">4</div>
-          <div>
-            <div class="step-title">Verifikasi Koneksi</div>
-            <div class="step-desc">
-              Buka halaman WordPress Anda, lalu cek dashboard NIDS. Jika koneksi berhasil, status akan berubah menjadi <strong>Terhubung</strong>.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tab: Manual -->
-    <div id="content-manual" class="tab-content" style="display:none;">
-      <div style="text-align:center;padding:30px 20px;">
-        <div style="font-size:48px;margin-bottom:14px;">📁</div>
-        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Upload Log Access Secara Manual</div>
-        <p style="font-size:13px;color:var(--text-muted);max-width:380px;margin:0 auto 20px;">
-          Mode ini tidak real-time. Anda mengunduh file <code>access.log</code> dari cPanel
-          dan menguploadnya ke platform untuk dianalisis.
-        </p>
-        <a href="{{ url_for('dashboard', website_id=site.id) }}" class="btn btn-primary" id="btn-upload-log">
-          📤 Upload Log Sekarang
+        <button class="btn btn-secondary" onclick="copyGatewayUrl()" id="btn-copy-gw" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <span id="txt-copy-gw">Salin URL</span>
+        </button>
+        <a href="http://localhost:5000/gateway/{{ site.id }}/" target="_blank" class="btn btn-primary" style="display:inline-flex;align-items:center;gap:6px;">
+          <span>Buka Gateway</span>
+          <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
         </a>
       </div>
     </div>
 
+    <!-- Production DNS Instruction Accordion -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;">
+      <div style="font-size:12.5px;font-weight:700;color:#F3F4F6;display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <svg style="width:16px;height:16px;color:#06B6D4;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        Untuk Website Publik / Production (DNS Routing):
+      </div>
+      <div style="font-size:12px;color:#94A3B8;line-height:1.6;">
+        Jika website Anda sudah di-hosting online, arahkan <strong>A-Record DNS</strong> domain website Anda ke IP VPS NIDS Monitor. Seluruh traffic pengunjung akan otomatis difilter tanpa perlu menyentuh file server web Anda.
+      </div>
+    </div>
   </div>
 
-  <!-- Quick Test & Simulation Box -->
-  <div class="card mb-6" style="border-color:rgba(0,230,118,0.25);background:rgba(0,230,118,0.02);">
+  <!-- API Key Card (For Ingest API / Fallback) -->
+  <div class="card mb-6" style="border-color:rgba(255,255,255,0.08);">
     <div class="card-header">
-      <div class="card-title">🧪 Uji Coba Langsung (Simulasi AI)</div>
-      <span class="badge badge-low" id="status-live-badge">{{ site.status }}</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg style="width:16px;height:16px;color:#F97316;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+        </svg>
+        <span class="card-title" style="margin:0;font-size:14px;">API Key Website</span>
+      </div>
+      <span class="badge" style="background:rgba(249,115,22,0.15);color:#F97316;border:1px solid rgba(249,115,22,0.3);font-size:11px;">Kredensial Unik</span>
     </div>
-    <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">
-      Belum sempat memasang plugin di hosting? Uji respons platform NIDS dengan simulasi serangan virtual ke website ini:
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div style="flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#A78BFA;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="api-key-display">
+        {{ site.api_key }}
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="copyApiKey()" id="btn-copy-key" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        <span id="txt-copy-key">Salin Kunci</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Interactive Quick Test & Attack Simulation -->
+  <div class="card mb-6" style="border-color:rgba(16,185,129,0.25);background:linear-gradient(135deg,rgba(16,185,129,0.03) 0%,rgba(10,14,22,0.95) 100%);">
+    <div class="card-header">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg style="width:16px;height:16px;color:#10B981;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        </svg>
+        <span class="card-title" style="margin:0;font-size:14px;">Uji Coba Langsung (Simulasi AI & Gateway)</span>
+      </div>
+      <span class="badge" style="background:rgba(16,185,129,0.15);color:#10B981;border:1px solid rgba(16,185,129,0.3);font-size:11px;" id="status-live-badge">{{ site.status }}</span>
+    </div>
+    <p style="font-size:12.5px;color:#94A3B8;margin-bottom:14px;">
+      Uji responsivitas deteksi NIDS secara instan. Hasil simulasi akan langsung muncul pada Dashboard SOC:
     </p>
     <div style="display:flex;flex-wrap:wrap;gap:8px;">
-      <button class="btn btn-secondary btn-sm" onclick="runSim('ping')" id="btn-sim-ping">
-        🟢 Ping Bersih (Normal)
+      <button class="btn btn-secondary btn-sm" onclick="runSim('ping')" id="btn-sim-ping" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg style="width:13px;height:13px;color:#10B981;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        <span>Trafik Normal (Ping)</span>
       </button>
-      <button class="btn btn-secondary btn-sm" onclick="runSim('sqli')" id="btn-sim-sqli" style="border-color:rgba(167,139,250,0.5);">
-        💉 Simulasi SQLi
+      <button class="btn btn-secondary btn-sm" onclick="runSim('sqli')" id="btn-sim-sqli" style="border-color:rgba(167,139,250,0.5);display:inline-flex;align-items:center;gap:6px;">
+        <svg style="width:13px;height:13px;color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        <span>Simulasi SQL Injection</span>
       </button>
-      <button class="btn btn-secondary btn-sm" onclick="runSim('xss')" id="btn-sim-xss" style="border-color:rgba(255,171,64,0.5);">
-        🕷️ Simulasi XSS
+      <button class="btn btn-secondary btn-sm" onclick="runSim('xss')" id="btn-sim-xss" style="border-color:rgba(249,115,22,0.5);display:inline-flex;align-items:center;gap:6px;">
+        <svg style="width:13px;height:13px;color:#F97316;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <span>Simulasi XSS Attack</span>
       </button>
-      <button class="btn btn-secondary btn-sm" onclick="runSim('ddos')" id="btn-sim-ddos" style="border-color:rgba(255,82,82,0.5);">
-        💥 Simulasi DDoS
+      <button class="btn btn-secondary btn-sm" onclick="runSim('ddos')" id="btn-sim-ddos" style="border-color:rgba(239,68,68,0.5);display:inline-flex;align-items:center;gap:6px;">
+        <svg style="width:13px;height:13px;color:#EF4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span>Simulasi DDoS Flood</span>
       </button>
     </div>
-    <div id="sim-feedback" style="display:none;margin-top:12px;padding:10px 14px;border-radius:8px;font-size:12px;"></div>
+    <div id="sim-feedback" style="display:none;margin-top:14px;padding:12px 14px;border-radius:8px;font-size:12px;font-family:'JetBrains Mono',monospace;"></div>
   </div>
 
-  <!-- Action Buttons -->
-  <div style="display:flex;gap:12px;justify-content:space-between;align-items:center;">
+  <!-- Bottom Action Buttons -->
+  <div style="display:flex;gap:12px;justify-content:space-between;align-items:center;padding-top:10px;">
     <div style="font-size:12px;color:var(--text-dim);">
-      Bisa diakses kembali kapan saja melalui menu <strong>Setup Konektor</strong>
+      Konfigurasi dapat diubah kapan saja melalui menu <strong>Ubah Website</strong>.
     </div>
     <div style="display:flex;gap:10px;">
       <a href="{{ url_for('websites') }}" class="btn btn-secondary" id="btn-later">
@@ -274,75 +168,40 @@
 
 </div>
 
-<style>
-.tab-btn {
-  padding: 8px 16px;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
-  margin-bottom: -1px;
-  transition: all 0.2s;
-}
-.tab-btn:hover { color: var(--text-primary); }
-.tab-btn.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-
-.setup-step {
-  display: flex;
-  gap: 14px;
-  padding: 14px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-}
-.step-num {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; color: #fff;
-  flex-shrink: 0;
-}
-.step-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-.step-desc  { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
-</style>
-
 <script>
-function copyApiKey() {
-  const key = document.getElementById('api-key-display').textContent.trim();
-  navigator.clipboard.writeText(key).then(() => {
-    const btn = document.getElementById('btn-copy-key');
-    btn.textContent = '✅ Tersalin!';
-    btn.style.color = 'var(--success)';
+function copyGatewayUrl() {
+  const url = document.getElementById('gateway-url-display').textContent.trim();
+  navigator.clipboard.writeText(url).then(() => {
+    const txt = document.getElementById('txt-copy-gw');
+    txt.textContent = 'Tersalin!';
+    txt.style.color = '#10B981';
     setTimeout(() => {
-      btn.textContent = '📋 Salin';
-      btn.style.color = '';
+      txt.textContent = 'Salin URL';
+      txt.style.color = '';
     }, 2500);
   });
 }
 
-function switchTab(name, btn) {
-  // Hide all tabs
-  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  // Show selected
-  document.getElementById('content-' + name).style.display = 'block';
-  btn.classList.add('active');
+function copyApiKey() {
+  const key = document.getElementById('api-key-display').textContent.trim();
+  navigator.clipboard.writeText(key).then(() => {
+    const txt = document.getElementById('txt-copy-key');
+    txt.textContent = 'Tersalin!';
+    txt.style.color = '#10B981';
+    setTimeout(() => {
+      txt.textContent = 'Salin Kunci';
+      txt.style.color = '';
+    }, 2500);
+  });
 }
 
 async function runSim(type) {
   const fb = document.getElementById('sim-feedback');
   fb.style.display = 'block';
-  fb.style.background = 'rgba(255,255,255,0.05)';
-  fb.style.color = 'var(--text-muted)';
-  fb.textContent = '⏳ Mengirim simulasi ke engine AI NIDS...';
+  fb.style.background = 'rgba(255,255,255,0.04)';
+  fb.style.border = '1px solid rgba(255,255,255,0.1)';
+  fb.style.color = '#94A3B8';
+  fb.textContent = 'Mengirim paket simulasi ke NIDS AI Engine...';
 
   try {
     const res = await fetch("{{ url_for('simulate_attack', website_id=site.id) }}", {
@@ -352,23 +211,25 @@ async function runSim(type) {
     });
     const data = await res.json();
     if (res.ok) {
-      fb.style.background = 'rgba(0,230,118,0.12)';
-      fb.style.color = 'var(--success)';
-      fb.innerHTML = `✅ <strong>Sukses!</strong> ${data.message} Status konektor diperbarui. <a href="{{ url_for('dashboard', website_id=site.id) }}" style="color:var(--primary);text-decoration:underline;margin-left:8px;">Lihat di Dashboard →</a>`;
+      fb.style.background = 'rgba(16,185,129,0.1)';
+      fb.style.border = '1px solid rgba(16,185,129,0.3)';
+      fb.style.color = '#10B981';
+      fb.innerHTML = `<strong>SUKSES:</strong> ${data.message} Status konektor diperbarui. <a href="{{ url_for('dashboard', website_id=site.id) }}" style="color:#06B6D4;text-decoration:underline;margin-left:8px;font-weight:700;">Lihat di Dashboard SOC →</a>`;
       const badge = document.getElementById('status-live-badge');
       if (badge) {
         badge.textContent = 'Terhubung';
-        badge.className = 'badge badge-low';
       }
     } else {
-      fb.style.background = 'rgba(255,82,82,0.12)';
-      fb.style.color = 'var(--danger)';
-      fb.textContent = '❌ Gagal: ' + (data.error || 'Terjadi kesalahan');
+      fb.style.background = 'rgba(239,68,68,0.1)';
+      fb.style.border = '1px solid rgba(239,68,68,0.3)';
+      fb.style.color = '#EF4444';
+      fb.textContent = 'GAGAL: ' + (data.error || 'Terjadi kesalahan');
     }
   } catch (err) {
-    fb.style.background = 'rgba(255,82,82,0.12)';
-    fb.style.color = 'var(--danger)';
-    fb.textContent = '❌ Koneksi error: ' + err.message;
+    fb.style.background = 'rgba(239,68,68,0.1)';
+    fb.style.border = '1px solid rgba(239,68,68,0.3)';
+    fb.style.color = '#EF4444';
+    fb.textContent = 'KONEKSI ERROR: ' + err.message;
   }
 }
 </script>

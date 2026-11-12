@@ -14,9 +14,11 @@ if BASE_DIR not in sys.path:
 
 import time
 import secrets
+import re
+import requests
 from datetime import datetime, timedelta
 
-from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, session
+from flask import Flask, render_template, redirect, url_for, request, flash, jsonify, session, Response, stream_with_context
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 from config import Config
@@ -853,6 +855,213 @@ def simulate_attack(website_id):
             resp = client.post('/api/ingest', json=payload)
             res_data = resp.get_json()
         return jsonify({'message': 'Ping trafik normal berhasil dikirim.', 'result': res_data})
+
+
+# ── Routes: Reverse Proxy WAF Gateway (Zero-Code-Touch) ──────────────────────
+HOP_BY_HOP_HEADERS = {
+    'connection', 'keep-alive', 'proxy-authenticate', 
+    'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade'
+}
+
+@app.route('/gateway/<int:website_id>', defaults={'subpath': ''}, methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+@app.route('/gateway/<int:website_id>/', defaults={'subpath': ''}, methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+@app.route('/gateway/<int:website_id>/<path:subpath>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
+def proxy_gateway(website_id, subpath):
+    site = Website.query.get_or_404(website_id)
+    origin_base = (site.target_url or 'http://localhost:8000').rstrip('/')
+    
+    # Rekonstruksi URL target asli
+    target_url = f"{origin_base}/{subpath}"
+    raw_qs = request.query_string.decode('utf-8', errors='ignore') if request.query_string else ''
+    if raw_qs:
+        target_url += f"?{raw_qs}"
+        
+    client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or '127.0.0.1').split(',')[0].strip()
+    method = request.method.upper()
+    full_uri = f"/{subpath}" + (f"?{raw_qs}" if raw_qs else "")
+    user_agent = request.headers.get('User-Agent', '')
+    
+    # ── Optimasi Latensi: Bypass Aset Statis ──────────────────────────────────
+    is_static = bool(re.search(r'\.(css|js|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot)$', subpath, re.IGNORECASE))
+    
+    post_body = ''
+    if not is_static and method in ['POST', 'PUT', 'PATCH']:
+        post_body = request.get_data(as_text=True)[:2000]
+        
+    # ── Pipeline Inspeksi Keamanan ───────────────────────────────────────────
+    if not is_static:
+        now = datetime.utcnow()
+        site.last_ping_at = now
+        if site.status == 'Menunggu Konektor':
+            site.status = 'Terhubung'
+        site.total_requests_received = (site.total_requests_received or 0) + 1
+
+        # Ingest ke Live Traffic Sniffer & Flow Aggregator
+        pkg_len = max(len(full_uri) + len(post_body) + 64, 64)
+        live_sniffer.ingest_packet(
+            src_ip=client_ip,
+            dst_ip='127.0.0.1',
+            src_port=54321,
+            dst_port=5000,
+            protocol='TCP',
+            length=pkg_len,
+            flags='P' if method == 'POST' else 'S',
+            window=64240
+        )
+
+        # 1. Layer 1: Deteksi DDoS (Rate Limiter)
+        current_rps = ddos_detector.record_request(site.id, client_ip)
+        is_ddos, ddos_rate, ddos_conf = ddos_detector.evaluate_ip_rate(
+            site.id, client_ip, threshold_req=site.ddos_threshold_req, window_sec=site.ddos_window_sec
+        )
+        if is_ddos:
+            cutoff_ddos = datetime.utcnow() - timedelta(seconds=30)
+            recent_ddos = Alert.query.filter(
+                Alert.website_id == site.id,
+                Alert.attack_type == 'DDoS',
+                Alert.source_ip == client_ip,
+                Alert.created_at >= cutoff_ddos
+            ).first()
+            if not recent_ddos:
+                alert_obj = Alert(
+                    website_id=site.id,
+                    attack_type='DDoS',
+                    severity='Kritis',
+                    status='Diblokir',
+                    source_ip=client_ip,
+                    target_endpoint=full_uri[:250],
+                    payload_sample=f"Gateway HTTP Flood: {ddos_rate} reqs dalam {site.ddos_window_sec}s (RPS: {current_rps:.1f})",
+                    pattern_detected=f"HTTP Flood Rate Limit Exceeded ({ddos_rate} reqs)",
+                    confidence_score=ddos_conf,
+                    detector_source='Gateway L1 – Rate Limiter',
+                    notes='Request diblokir secara otomatis oleh NIDS Gateway sebelum mencapai backend.'
+                )
+                db.session.add(alert_obj)
+                site.status = 'Serangan Aktif'
+                site.total_alerts_count = (site.total_alerts_count or 0) + 1
+                db.session.commit()
+                try:
+                    TelegramService.send_alert_notification(site.owner, site, alert_obj)
+                except Exception:
+                    pass
+            return render_template('gateway_blocked.html', reason="DDoS Traffic Flood Exceeded", ip=client_ip, uri=full_uri, payload=None), 429
+
+        # 2. Layer 2: Deteksi Web Attack (SQLi & XSS via Regex + Text Model)
+        is_attack, attack_type, pattern_desc, conf_score, payload_sample = web_attack_detector.inspect_request(
+            uri=full_uri, method=method, post_body=post_body
+        )
+        if is_attack:
+            norm_type = 'XSS' if 'XSS' in attack_type else ('SQL Injection' if 'SQL' in attack_type else attack_type)
+            alert_obj = Alert(
+                website_id=site.id,
+                attack_type=norm_type,
+                severity='Kritis' if 'SQL' in norm_type else 'Peringatan',
+                status='Diblokir',
+                source_ip=client_ip,
+                target_endpoint=full_uri[:250],
+                payload_sample=payload_sample[:250],
+                pattern_detected=pattern_desc[:200],
+                confidence_score=conf_score,
+                detector_source='Gateway L2 – Web Attack WAF',
+                notes=f'Upaya serangan {norm_type} berhasil diblokir oleh NIDS Gateway.'
+            )
+            db.session.add(alert_obj)
+            site.status = 'Serangan Aktif'
+            site.total_alerts_count = (site.total_alerts_count or 0) + 1
+            
+            # Catat log entry
+            log_entry = LogEntry(
+                website_id=site.id,
+                alert_id=alert_obj.id,
+                ip_address=client_ip,
+                http_method=method,
+                request_uri=full_uri,
+                status_code=403,
+                user_agent=user_agent[:250],
+                is_suspicious=True,
+                attack_label=norm_type,
+                confidence=conf_score
+            )
+            db.session.add(log_entry)
+            db.session.commit()
+            try:
+                TelegramService.send_alert_notification(site.owner, site, alert_obj)
+            except Exception:
+                pass
+            return render_template('gateway_blocked.html', reason=f"Ancaman {norm_type} Terdeteksi", ip=client_ip, uri=full_uri, payload=payload_sample), 403
+
+    # ── Forwarding Request ke Origin Server (Clean Traffic) ──────────────────
+    forward_headers = {k: v for k, v in request.headers if k.lower() not in HOP_BY_HOP_HEADERS and k.lower() != 'host'}
+    forward_headers['X-Forwarded-For'] = client_ip
+    forward_headers['X-Forwarded-Proto'] = request.scheme
+    forward_headers['X-Forwarded-Host'] = request.host
+    forward_headers['X-NIDS-Proxy'] = 'Active-Gateway-v2'
+
+    try:
+        req_data = request.get_data() if method in ['POST', 'PUT', 'PATCH'] else None
+        backend_resp = requests.request(
+            method=method,
+            url=target_url,
+            headers=forward_headers,
+            data=req_data,
+            params=None,
+            cookies=request.cookies,
+            allow_redirects=False,
+            timeout=10.0,
+            stream=True
+        )
+
+        # Catat log normal
+        if not is_static:
+            log_entry = LogEntry(
+                website_id=site.id,
+                ip_address=client_ip,
+                http_method=method,
+                request_uri=full_uri,
+                status_code=backend_resp.status_code,
+                user_agent=user_agent[:250],
+                is_suspicious=False,
+                attack_label='BENIGN',
+                confidence=0.0
+            )
+            metric = TrafficMetric(
+                website_id=site.id,
+                timestamp=datetime.utcnow(),
+                request_count=1,
+                suspicious_count=0,
+                unique_ips=1,
+                current_rps=current_rps if 'current_rps' in locals() else 1.0
+            )
+            db.session.add(log_entry)
+            db.session.add(metric)
+            db.session.commit()
+
+        excluded_headers = HOP_BY_HOP_HEADERS | {'content-encoding', 'content-length'}
+        resp_headers = [(k, v) for k, v in backend_resp.headers.items() if k.lower() not in excluded_headers]
+
+        # Handle Location header on redirects to keep visitor in gateway
+        new_resp_headers = []
+        for k, v in resp_headers:
+            if k.lower() == 'location':
+                if v.startswith(origin_base):
+                    v = v.replace(origin_base, f"/gateway/{website_id}", 1)
+                elif v.startswith('/'):
+                    v = f"/gateway/{website_id}{v}"
+            new_resp_headers.append((k, v))
+
+        response = Response(
+            stream_with_context(backend_resp.iter_content(chunk_size=4096)),
+            status=backend_resp.status_code,
+            headers=new_resp_headers
+        )
+        return response
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            'error': 'Bad Gateway',
+            'message': f"Origin Server ({origin_base}) tidak dapat dijangkau oleh NIDS Gateway.",
+            'details': str(e)
+        }), 502
 
 
 # ── Routes: AI Assistant ──────────────────────────────────────────────────────
