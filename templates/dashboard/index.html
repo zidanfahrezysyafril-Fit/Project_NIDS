@@ -30,6 +30,30 @@
      data-other="{{ stat_other }}"
      style="display:none;"></div>
 
+<!-- ── WAF GATEWAY QUICK ACCESS BAR ── -->
+<div style="background:linear-gradient(135deg,rgba(6,182,212,0.08) 0%,rgba(10,14,22,0.92) 100%);border:1px solid rgba(6,182,212,0.25);border-radius:14px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#10B981;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);padding:4px 10px;border-radius:6px;">
+      <span style="width:6px;height:6px;border-radius:50%;background:#10B981;box-shadow:0 0 8px #10B981;"></span>
+      WAF Gateway Aktif
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12.5px;color:#94A3B8;">Akses Terproteksi:</span>
+      <code style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#38BDF8;background:rgba(0,0,0,0.4);border:1px solid rgba(6,182,212,0.2);padding:4px 10px;border-radius:8px;" id="gw-url-display">http://localhost:5000/gateway/{{ site.id }}/</code>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button onclick="navigator.clipboard.writeText('http://localhost:5000/gateway/{{ site.id }}/');const b=this.querySelector('span');b.textContent='Tersalin!';setTimeout(()=>b.textContent='Salin URL',2500);" class="btn btn-secondary btn-sm" style="font-size:12px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px;">
+      <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+      <span>Salin URL</span>
+    </button>
+    <a href="http://localhost:5000/gateway/{{ site.id }}/" target="_blank" class="btn btn-primary btn-sm" style="font-size:12px;padding:6px 14px;display:inline-flex;align-items:center;gap:6px;">
+      <span>Buka Web Target</span>
+      <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </a>
+  </div>
+</div>
+
 <!-- ── STAT CARDS (4 LEGA & CLEAN) ── -->
 <div class="stats-grid">
 

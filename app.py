@@ -218,8 +218,9 @@ def add_website():
         db.session.commit()
         session['last_website_id'] = site.id
 
-        # Redirect ke halaman setup (tampilkan API key & instruksi)
-        return redirect(url_for('website_setup', website_id=site.id))
+        # Redirect langsung ke dashboard live
+        flash(f'Website {site.name} berhasil didaftarkan! Gateway WAF aktif di /gateway/{site.id}/', 'success')
+        return redirect(url_for('dashboard', website_id=site.id))
     return render_template('websites/add.html')
 
 
