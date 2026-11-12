@@ -1,14 +1,23 @@
 {% extends "base_app.html" %}
 {% block title %}Serangan Web (SQLi & XSS) – {{ site.name }}{% endblock %}
-{% block page_title %}🕷️ Deteksi Serangan Web (Layer 7){% endblock %}
+{% block page_title %}
+<div style="display:flex;align-items:center;gap:10px;">
+  <div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);display:flex;align-items:center;justify-content:center;color:#A78BFA;">
+    <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+  </div>
+  <span style="font-weight:700;color:#fff;">Deteksi Serangan Web (Layer 7)</span>
+</div>
+{% endblock %}
 
 {% block content %}
 
 <!-- Info Banner -->
 <div style="background:linear-gradient(135deg,rgba(167,139,250,0.12),rgba(64,196,255,0.06));border:1px solid rgba(167,139,250,0.25);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;">
-  <div style="font-size:32px;line-height:1;">🕷️</div>
+  <div style="width:48px;height:48px;border-radius:12px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);display:flex;align-items:center;justify-content:center;color:#A78BFA;flex-shrink:0;">
+    <svg style="width:26px;height:26px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+  </div>
   <div>
-    <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:#fff;">Inspeksi Muatan Teks HTTP & Pengendalian False Positive</div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:#fff;">Inspeksi Muatan Teks HTTP &amp; Pengendalian False Positive</div>
     <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">
       Halaman ini menginspeksi muatan URI, query string, dan request body pada lapisan aplikasi (L7) menggunakan <strong>Tier 2 XGBoost + TF-IDF Character N-Gram</strong> yang diperkuat mekanisme <strong>Structural Sanity Check</strong> untuk menangkap eksploitasi SQL Injection dan XSS tanpa memicu alarm palsu pada teks dan tanda baca yang sah.
     </div>
@@ -16,41 +25,56 @@
 </div>
 
 <!-- Stat Cards -->
-<div class="grid-4 mb-6">
-  <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(167,139,250,0.15);color:#a78bfa;">💉</div>
-    <div class="stat-body">
-      <div class="stat-value" style="color:#a78bfa;">{{ count_sqli }}</div>
-      <div class="stat-label">SQL Injection</div>
+<div class="stats-grid" style="margin-bottom:28px;">
+  <div class="stat-card" style="--accent:#A78BFA;--accent-bg:rgba(167,139,250,0.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="stat-icon" style="color:#A78BFA;">
+        <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:#A78BFA;background:rgba(167,139,250,0.1);padding:3px 8px;border-radius:6px;">L2 Database</span>
     </div>
+    <div class="stat-value" style="color:#A78BFA;">{{ count_sqli }}</div>
+    <div class="stat-label">SQL Injection</div>
   </div>
-  <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(255,171,64,0.15);color:#ffab40;">🕷️</div>
-    <div class="stat-body">
-      <div class="stat-value" style="color:#ffab40;">{{ count_xss }}</div>
-      <div class="stat-label">Cross-Site Scripting</div>
+  <div class="stat-card" style="--accent:#F59E0B;--accent-bg:rgba(245,158,11,0.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="stat-icon" style="color:#F59E0B;">
+        <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:#F59E0B;background:rgba(245,158,11,0.1);padding:3px 8px;border-radius:6px;">L2 Scripting</span>
     </div>
+    <div class="stat-value" style="color:#F59E0B;">{{ count_xss }}</div>
+    <div class="stat-label">Cross-Site Scripting</div>
   </div>
-  <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff;">🛡️</div>
-    <div class="stat-body">
-      <div class="stat-value" style="color:#40c4ff;">{{ count_sqli + count_xss + count_other }}</div>
-      <div class="stat-label">Total Serangan Web</div>
+  <div class="stat-card" style="--accent:#06B6D4;--accent-bg:rgba(6,182,212,0.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="stat-icon" style="color:#06B6D4;">
+        <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:#06B6D4;background:rgba(6,182,212,0.1);padding:3px 8px;border-radius:6px;">Total L7</span>
     </div>
+    <div class="stat-value" style="color:#06B6D4;">{{ count_sqli + count_xss + count_other }}</div>
+    <div class="stat-label">Total Serangan Web</div>
   </div>
-  <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(0,230,118,0.15);color:#00e676;">✅</div>
-    <div class="stat-body">
-      <div class="stat-value" style="color:#00e676;font-size:16px;">Aktif (0% FP)</div>
-      <div class="stat-label">Sanity Check Gating</div>
+  <div class="stat-card" style="--accent:#10B981;--accent-bg:rgba(16,185,129,0.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="stat-icon" style="color:#10B981;">
+        <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:#10B981;background:rgba(16,185,129,0.1);padding:3px 8px;border-radius:6px;">WAF Gate</span>
     </div>
+    <div class="stat-value" style="color:#10B981;font-size:16px;">Aktif (0% FP)</div>
+    <div class="stat-label">Sanity Check Gating</div>
   </div>
 </div>
 
 <!-- Interactive Live Payload Tester -->
-<div class="card mb-6">
+<div class="card" style="margin-bottom:28px;">
   <div class="card-header">
-    <div class="card-title">🔬 Penguji Muatan Interaktif (Live Payload Tester)</div>
+    <div class="card-title">
+      <svg style="width:17px;height:17px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Penguji Muatan Interaktif (Live Payload Tester)
+    </div>
     <span class="badge" style="background:rgba(167,139,250,0.15);color:#a78bfa;">Uji Nyata L7</span>
   </div>
   <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">
@@ -59,8 +83,9 @@
 
   <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
     <input type="text" id="payload-input" class="form-control" placeholder="Contoh: /search?author=O'Reilly atau ?id=1' OR '1'='1" style="flex:1;min-width:300px;padding:10px 14px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:13px;">
-    <button class="btn btn-primary" onclick="testPayloadNow()" id="btn-test-payload" style="padding:10px 20px;">
-      🔍 Uji Muatan
+    <button class="btn btn-primary" onclick="testPayloadNow()" id="btn-test-payload" style="padding:10px 20px;display:inline-flex;align-items:center;gap:7px;">
+      <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Uji Muatan
     </button>
   </div>
 
@@ -77,7 +102,7 @@
   <div id="test-result-box" style="display:none;border-radius:10px;padding:16px;border:1px solid var(--border);background:rgba(0,0,0,0.3);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
       <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;" id="res-badge-title">
-        <span id="res-icon">✅</span>
+        <span id="res-icon"></span>
         <span id="res-status-text">Hasil Analisis</span>
       </div>
       <div style="font-size:12px;font-weight:700;" id="res-confidence-text">Confidence: 0.0%</div>
@@ -92,9 +117,13 @@
 <!-- Web Attack Alerts Table -->
 <div class="card">
   <div class="card-header" style="flex-wrap:wrap;gap:12px;">
-    <div class="card-title">🚨 Riwayat Insiden Serangan Web (SQLi & XSS)</div>
-    <a href="{{ url_for('export_alerts_csv', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px;text-decoration:none;">
-      📥 Unduh Laporan CSV
+    <div class="card-title">
+      <svg style="width:18px;height:18px;color:#EF4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      Riwayat Insiden Serangan Web (SQLi &amp; XSS)
+    </div>
+    <a href="{{ url_for('export_alerts_csv', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+      <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      Unduh Laporan CSV
     </a>
   </div>
 
@@ -117,8 +146,14 @@
           <tr class="alert-row">
             <td class="mono" style="font-size:12px;">{{ a.created_at|wib('%d/%m %H:%M:%S') }}</td>
             <td>
-              <span class="badge badge-{{ 'sqli' if 'SQL' in a.attack_type else 'xss' if 'XSS' in a.attack_type else 'medium' }}">
-                {{ '💉' if 'SQL' in a.attack_type else '🕷️' if 'XSS' in a.attack_type else '⚠️' }}
+              <span class="badge badge-{{ 'sqli' if 'SQL' in a.attack_type else 'xss' if 'XSS' in a.attack_type else 'medium' }}" style="display:inline-flex;align-items:center;gap:5px;">
+                {% if 'SQL' in a.attack_type %}
+                  <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                {% elif 'XSS' in a.attack_type %}
+                  <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+                {% else %}
+                  <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                {% endif %}
                 {{ a.attack_type }}
               </span>
             </td>
@@ -145,8 +180,9 @@
               </div>
             </td>
             <td>
-              <a href="{{ url_for('mitigation', alert_id=a.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 7px;">
-                🛡️ Mitigasi
+              <a href="{{ url_for('mitigation', alert_id=a.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 7px;display:inline-flex;align-items:center;gap:4px;">
+                <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Mitigasi
               </a>
             </td>
           </tr>
@@ -154,7 +190,10 @@
         {% else %}
           <tr>
             <td colspan="7" style="text-align:center;padding:40px;color:var(--text-dim);">
-              ✅ Tidak ada insiden serangan web SQLi atau XSS yang terdeteksi.
+              <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+                <svg style="width:28px;height:28px;color:#10B981;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                Tidak ada insiden serangan web SQLi atau XSS yang terdeteksi.
+              </div>
             </td>
           </tr>
         {% endif %}
@@ -171,6 +210,9 @@ function setSample(text) {
   document.getElementById('payload-input').value = text;
   testPayloadNow();
 }
+
+const ICON_ATTACK = `<svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="#EF4444" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+const ICON_SAFE   = `<svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="#10B981" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
 
 async function testPayloadNow() {
   const input = document.getElementById('payload-input').value.trim();
@@ -199,7 +241,7 @@ async function testPayloadNow() {
     if (d.is_attack) {
       box.style.borderColor = 'rgba(255,82,82,0.5)';
       box.style.background = 'rgba(255,82,82,0.08)';
-      resIcon.textContent = '🚨';
+      resIcon.innerHTML = ICON_ATTACK;
       resTitle.textContent = `TERDETEKSI SEBAGAI SERANGAN: ${d.label}`;
       resTitle.style.color = '#ff5252';
       resConf.textContent = `Confidence: ${d.confidence}%`;
@@ -209,8 +251,8 @@ async function testPayloadNow() {
     } else {
       box.style.borderColor = 'rgba(0,230,118,0.5)';
       box.style.background = 'rgba(0,230,118,0.08)';
-      resIcon.textContent = '✅';
-      resTitle.textContent = 'STATUS: NORMAL (BENIGN) - AMAN';
+      resIcon.innerHTML = ICON_SAFE;
+      resTitle.textContent = 'STATUS: NORMAL (BENIGN) – AMAN';
       resTitle.style.color = '#00e676';
       resConf.textContent = `Confidence: ${d.confidence}%`;
       resConf.style.color = '#00e676';
@@ -221,9 +263,8 @@ async function testPayloadNow() {
     console.error('Payload test error:', err);
   } finally {
     btn.disabled = false;
-    btn.textContent = '🔍 Uji Muatan';
+    btn.innerHTML = '<svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Uji Muatan';
   }
 }
 </script>
 {% endblock %}
-

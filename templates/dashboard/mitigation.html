@@ -1,6 +1,13 @@
 {% extends "base_app.html" %}
 {% block title %}Mitigasi {{ alert.attack_type }} – NIDS Monitor{% endblock %}
-{% block page_title %}🛡️ Panduan Mitigasi{% endblock %}
+{% block page_title %}
+<div style="display:flex;align-items:center;gap:10px;">
+  <div style="width:28px;height:28px;border-radius:8px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;color:#06B6D4;">
+    <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+  </div>
+  <span style="font-weight:700;color:#fff;">Panduan Mitigasi</span>
+</div>
+{% endblock %}
 
 {% block content %}
 <div style="max-width:720px;margin:0 auto;">
@@ -8,8 +15,18 @@
   <!-- Alert Info -->
   <div class="card mb-6" style="border-color:{% if alert.severity=='Kritis' %}rgba(255,82,82,0.4){% elif alert.severity=='Tinggi' %}rgba(255,171,64,0.4){% else %}rgba(64,196,255,0.4){% endif %};">
     <div style="display:flex;align-items:center;gap:16px;">
-      <div style="font-size:40px;">
-        {% if alert.attack_type=='DDoS' %}💥{% elif alert.attack_type=='XSS' %}🕷️{% elif 'SQL' in alert.attack_type %}💉{% else %}⚠️{% endif %}
+      <div style="width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+        background:{% if alert.attack_type=='DDoS' %}rgba(239,68,68,0.15){% elif alert.attack_type=='XSS' %}rgba(245,158,11,0.15){% elif 'SQL' in alert.attack_type %}rgba(167,139,250,0.15){% else %}rgba(249,115,22,0.15){% endif %};
+        color:{% if alert.attack_type=='DDoS' %}#EF4444{% elif alert.attack_type=='XSS' %}#F59E0B{% elif 'SQL' in alert.attack_type %}#A78BFA{% else %}#F97316{% endif %};">
+        {% if alert.attack_type=='DDoS' %}
+          <svg style="width:28px;height:28px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        {% elif alert.attack_type=='XSS' %}
+          <svg style="width:28px;height:28px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        {% elif 'SQL' in alert.attack_type %}
+          <svg style="width:28px;height:28px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        {% else %}
+          <svg style="width:28px;height:28px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        {% endif %}
       </div>
       <div style="flex:1;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
@@ -18,10 +35,19 @@
             {{ alert.severity }}
           </span>
         </div>
-        <div style="font-size:13px;color:var(--text-muted);">
-          🕐 {{ alert.created_at|wib('%d %B %Y, %H:%M:%S') }} WIB &nbsp;|&nbsp;
-          🌐 {{ site.name }} &nbsp;|&nbsp;
-          📡 {{ alert.source_ip or 'IP tidak diketahui' }}
+        <div style="font-size:13px;color:var(--text-muted);display:flex;flex-wrap:wrap;gap:12px;">
+          <span style="display:inline-flex;align-items:center;gap:5px;">
+            <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            {{ alert.created_at|wib('%d %B %Y, %H:%M:%S') }} WIB
+          </span>
+          <span style="display:inline-flex;align-items:center;gap:5px;">
+            <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            {{ site.name }}
+          </span>
+          <span style="display:inline-flex;align-items:center;gap:5px;">
+            <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
+            {{ alert.source_ip or 'IP tidak diketahui' }}
+          </span>
         </div>
         {% if alert.detail %}
         <div style="margin-top:8px;font-size:12px;background:rgba(0,0,0,0.2);border-radius:6px;padding:8px 12px;font-family:monospace;color:#a8d8a8;">
@@ -38,7 +64,10 @@
   <!-- Steps -->
   <div class="card mb-6">
     <div class="card-header">
-      <div class="card-title">📋 Langkah Mitigasi</div>
+      <div class="card-title">
+        <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Langkah Mitigasi
+      </div>
       <span class="badge badge-medium">{{ guide.steps|length }} langkah</span>
     </div>
     <div style="display:flex;flex-direction:column;gap:14px;">
@@ -60,12 +89,19 @@
   {% if guide.htaccess %}
   <div class="card mb-6">
     <div class="card-header">
-      <div class="card-title">📄 Aturan .htaccess</div>
-      <button class="btn btn-secondary btn-sm" id="btn-copy-htaccess" onclick="copyHtaccess()">📋 Salin</button>
+      <div class="card-title">
+        <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Aturan .htaccess
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-copy-htaccess" onclick="copyHtaccess()" style="display:inline-flex;align-items:center;gap:5px;">
+        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        Salin
+      </button>
     </div>
     <pre class="code-block" id="htaccess-code">{{ guide.htaccess }}</pre>
-    <div style="font-size:12px;color:var(--text-muted);margin-top:10px;">
-      ⚠️ Backup file .htaccess Anda sebelum menerapkan aturan baru.
+    <div style="font-size:12px;color:var(--text-muted);margin-top:10px;display:flex;align-items:flex-start;gap:6px;">
+      <svg style="width:14px;height:14px;color:#F59E0B;flex-shrink:0;margin-top:1px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      Backup file .htaccess Anda sebelum menerapkan aturan baru.
       Tambahkan kode di atas ke dalam file <code style="color:var(--primary);">.htaccess</code> di root website.
     </div>
   </div>
@@ -75,13 +111,17 @@
   {% if guide.references %}
   <div class="card">
     <div class="card-header">
-      <div class="card-title">🔗 Referensi</div>
+      <div class="card-title">
+        <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+        Referensi
+      </div>
     </div>
     <ul style="list-style:none;display:flex;flex-direction:column;gap:8px;">
       {% for ref in guide.references %}
       <li style="font-size:13px;">
         <a href="{{ ref.url }}" target="_blank" style="display:flex;align-items:center;gap:6px;">
-          🔗 {{ ref.title }}
+          <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          {{ ref.title }}
         </a>
       </li>
       {% endfor %}
@@ -91,14 +131,17 @@
 
   {% else %}
   <div class="card" style="text-align:center;padding:40px;">
-    <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+    <div style="display:flex;justify-content:center;margin-bottom:16px;">
+      <svg style="width:48px;height:48px;color:#64748B;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
     <p class="text-muted">Panduan mitigasi untuk serangan ini belum tersedia.</p>
   </div>
   {% endif %}
 
   <div style="margin-top:20px;">
-    <a href="{{ url_for('dashboard', website_id=site.id) }}" class="btn btn-secondary" id="btn-back-dashboard">
-      ← Kembali ke Dashboard
+    <a href="{{ url_for('dashboard', website_id=site.id) }}" class="btn btn-secondary" id="btn-back-dashboard" style="display:inline-flex;align-items:center;gap:6px;">
+      <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+      Kembali ke Dashboard
     </a>
   </div>
 
@@ -111,8 +154,12 @@ function copyHtaccess() {
   const code = document.getElementById('htaccess-code').textContent;
   navigator.clipboard.writeText(code).then(() => {
     const btn = document.getElementById('btn-copy-htaccess');
-    btn.textContent = '✅ Tersalin!';
-    setTimeout(() => { btn.textContent = '📋 Salin'; }, 2000);
+    btn.innerHTML = '<svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg> Tersalin!';
+    btn.style.color = '#10B981';
+    setTimeout(() => {
+      btn.innerHTML = '<svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> Salin';
+      btn.style.color = '';
+    }, 2000);
   });
 }
 </script>

@@ -1226,7 +1226,7 @@ def analyze_csv(website_id):
         top_labels = sorted(label_counts.items(), key=lambda x: x[1], reverse=True)[:5]
         summary = ', '.join([f'{k}: {v}' for k, v in top_labels])
         flash(
-            f'✅ Analisis selesai! {total} baris diproses. '
+            f'Analisis selesai! {total} baris diproses. '
             f'{attack_count} serangan terdeteksi ({alerts_created} alert dibuat). '
             f'Distribusi: {summary}',
             'success'

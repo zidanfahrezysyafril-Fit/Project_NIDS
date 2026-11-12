@@ -1,6 +1,13 @@
 {% extends "base_app.html" %}
 {% block title %}AI Assistant – {{ site.name }}{% endblock %}
-{% block page_title %}🤖 AI Security Assistant{% endblock %}
+{% block page_title %}
+<div style="display:flex;align-items:center;gap:10px;">
+  <div style="width:28px;height:28px;border-radius:8px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;color:#06B6D4;">
+    <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+  </div>
+  <span style="font-weight:700;color:#fff;">AI Security Assistant</span>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="grid-2" style="align-items:start;">
@@ -8,7 +15,10 @@
   <!-- Chat Panel -->
   <div class="card" style="grid-column:1/3;">
     <div class="card-header">
-      <div class="card-title">🤖 Tanya Jawab Keamanan</div>
+      <div class="card-title">
+        <svg style="width:17px;height:17px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+        Tanya Jawab Keamanan
+      </div>
       <div style="font-size:12px;color:var(--text-muted);">IP dianonim otomatis untuk privasi</div>
     </div>
 
@@ -16,7 +26,9 @@
     <div class="chat-box" id="chat-box">
       <!-- Welcome message -->
       <div class="chat-msg assistant">
-        <div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">🤖</div>
+        <div class="avatar" style="width:32px;height:32px;flex-shrink:0;background:linear-gradient(135deg,#2563EB,#06B6D4);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+        </div>
         <div class="chat-bubble">
           Halo! Saya adalah <strong>NIDS AI Assistant</strong>. Tanyakan apa saja seputar keamanan website Anda, analisis serangan, atau langkah mitigasi. Data IP akan dianonim secara otomatis untuk menjaga privasi.
         </div>
@@ -25,9 +37,11 @@
       {% for msg in history %}
       <div class="chat-msg {{ msg.role }}">
         {% if msg.role == 'assistant' %}
-        <div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">🤖</div>
+        <div class="avatar" style="width:32px;height:32px;flex-shrink:0;background:linear-gradient(135deg,#2563EB,#06B6D4);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+        </div>
         {% else %}
-        <div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">{{ current_user.full_name[0]|upper if current_user.full_name else '?' }}</div>
+        <div class="avatar" style="width:32px;height:32px;flex-shrink:0;">{{ current_user.full_name[0]|upper if current_user.full_name else '?' }}</div>
         {% endif %}
         <div class="chat-bubble">{{ msg.content }}</div>
       </div>
@@ -36,17 +50,21 @@
 
     <!-- Quick Questions -->
     <div style="margin:12px 0 8px;display:flex;flex-wrap:wrap;gap:8px;">
-      <button class="btn btn-secondary btn-sm quick-q" data-q="Apa serangan yang paling sering terjadi di website saya?">
-        📊 Serangan terbanyak?
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Apa serangan yang paling sering terjadi di website saya?" style="display:inline-flex;align-items:center;gap:5px;">
+        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Serangan terbanyak?
       </button>
-      <button class="btn btn-secondary btn-sm quick-q" data-q="Bagaimana cara mencegah serangan DDoS di shared hosting?">
-        💥 Cara cegah DDoS?
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Bagaimana cara mencegah serangan DDoS di shared hosting?" style="display:inline-flex;align-items:center;gap:5px;">
+        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        Cara cegah DDoS?
       </button>
-      <button class="btn btn-secondary btn-sm quick-q" data-q="Berikan contoh payload XSS yang berbahaya dan cara membloknya">
-        🕷️ Contoh payload XSS?
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Berikan contoh payload XSS yang berbahaya dan cara membloknya" style="display:inline-flex;align-items:center;gap:5px;">
+        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        Contoh payload XSS?
       </button>
-      <button class="btn btn-secondary btn-sm quick-q" data-q="Buatkan aturan .htaccess untuk memblokir SQL Injection">
-        📝 Generate .htaccess?
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Buatkan aturan .htaccess untuk memblokir SQL Injection" style="display:inline-flex;align-items:center;gap:5px;">
+        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Generate .htaccess?
       </button>
     </div>
 
@@ -55,8 +73,9 @@
       <input type="text" id="chat-input" class="form-control"
              placeholder="Ketik pertanyaan seputar keamanan..."
              autocomplete="off" />
-      <button class="btn btn-primary" id="btn-send-chat">
-        ➤ Kirim
+      <button class="btn btn-primary" id="btn-send-chat" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Kirim
       </button>
     </div>
 
@@ -76,6 +95,9 @@ const chatInput = document.getElementById('chat-input');
 const btnSend   = document.getElementById('btn-send-chat');
 const WEBSITE_ID = {{ site.id }};
 
+const AI_SVG = `<div class="avatar" style="width:32px;height:32px;flex-shrink:0;background:linear-gradient(135deg,#2563EB,#06B6D4);border-radius:8px;display:flex;align-items:center;justify-content:center;"><svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>`;
+const USER_INITIAL = '{{ current_user.full_name[0]|upper if current_user.full_name else "?" }}';
+
 function scrollBottom() {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
@@ -84,10 +106,10 @@ scrollBottom();
 function addMsg(role, text) {
   const div = document.createElement('div');
   div.className = `chat-msg ${role}`;
-  const icon = role === 'assistant' ? '🤖' : '{{ current_user.full_name[0]|upper if current_user.full_name else "?" }}';
-  div.innerHTML = `
-    <div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">${icon}</div>
-    <div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  const avatarHtml = role === 'assistant'
+    ? AI_SVG
+    : `<div class="avatar" style="width:32px;height:32px;flex-shrink:0;">${USER_INITIAL}</div>`;
+  div.innerHTML = `${avatarHtml}<div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
   chatBox.appendChild(div);
   scrollBottom();
 }
@@ -97,14 +119,13 @@ async function sendQuestion(q) {
   addMsg('user', q);
   chatInput.value = '';
   btnSend.disabled = true;
-  btnSend.textContent = '⏳ ...';
+  btnSend.innerHTML = '<svg style="width:14px;height:14px;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Memproses...';
 
   // Typing indicator
   const typing = document.createElement('div');
   typing.className = 'chat-msg assistant';
   typing.id = 'typing-indicator';
-  typing.innerHTML = `<div class="avatar" style="width:32px;height:32px;font-size:14px;flex-shrink:0;">🤖</div>
-    <div class="chat-bubble" style="color:var(--text-muted);">⏳ Menganalisis...</div>`;
+  typing.innerHTML = `${AI_SVG}<div class="chat-bubble" style="color:var(--text-muted);">Menganalisis pertanyaan...</div>`;
   chatBox.appendChild(typing);
   scrollBottom();
 
@@ -119,10 +140,10 @@ async function sendQuestion(q) {
     addMsg('assistant', data.answer || 'Maaf, tidak dapat memproses pertanyaan.');
   } catch(e) {
     document.getElementById('typing-indicator')?.remove();
-    addMsg('assistant', '❌ Terjadi kesalahan koneksi. Coba lagi.');
+    addMsg('assistant', 'Terjadi kesalahan koneksi. Coba lagi.');
   } finally {
     btnSend.disabled = false;
-    btnSend.textContent = '➤ Kirim';
+    btnSend.innerHTML = '<svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Kirim';
   }
 }
 
@@ -134,4 +155,7 @@ document.querySelectorAll('.quick-q').forEach(btn => {
   btn.addEventListener('click', () => sendQuestion(btn.dataset.q));
 });
 </script>
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
 {% endblock %}

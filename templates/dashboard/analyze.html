@@ -1,12 +1,21 @@
 {% extends "base_app.html" %}
 {% block title %}Analisis CSV CICIDS2017 – {{ site.name }}{% endblock %}
-{% block page_title %}📂 Analisis Dataset CSV{% endblock %}
+{% block page_title %}
+<div style="display:flex;align-items:center;gap:10px;">
+  <div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);display:flex;align-items:center;justify-content:center;color:#A78BFA;">
+    <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+  </div>
+  <span style="font-weight:700;color:#fff;">Analisis Dataset CSV</span>
+</div>
+{% endblock %}
 
 {% block content %}
 
 <!-- Info Banner -->
 <div style="background:linear-gradient(135deg,rgba(108,99,255,0.15),rgba(0,212,255,0.08));border:1px solid rgba(108,99,255,0.3);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;">
-  <div style="font-size:32px;line-height:1;">📊</div>
+  <div style="width:48px;height:48px;border-radius:12px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);display:flex;align-items:center;justify-content:center;color:#A78BFA;flex-shrink:0;">
+    <svg style="width:26px;height:26px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+  </div>
   <div>
     <div style="font-size:15px;font-weight:700;margin-bottom:4px;">Upload Dataset CICIDS2017</div>
     <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">
@@ -21,7 +30,10 @@
   <!-- Upload Form -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title">📤 Upload File CSV</div>
+      <div class="card-title">
+        <svg style="width:17px;height:17px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        Upload File CSV
+      </div>
     </div>
     <form method="POST" enctype="multipart/form-data" id="upload-form">
       <div id="drop-zone"
@@ -30,7 +42,9 @@
            ondragover="handleDragOver(event)"
            ondragleave="handleDragLeave(event)"
            ondrop="handleDrop(event)">
-        <div id="drop-icon" style="font-size:48px;margin-bottom:12px;">📁</div>
+        <div id="drop-icon" style="display:flex;justify-content:center;margin-bottom:12px;">
+          <svg style="width:48px;height:48px;color:#A78BFA;opacity:0.6;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
         <div style="font-size:14px;font-weight:600;margin-bottom:6px;" id="drop-text">Drag and Drop file CSV di sini</div>
         <div style="font-size:12px;color:var(--text-muted);">atau klik untuk memilih file</div>
         <div style="margin-top:12px;font-size:11px;color:var(--text-dim);">CSV CICIDS2017 &bull; Maks 200 MB &bull; 5.000 baris diproses</div>
@@ -46,14 +60,22 @@
           <div id="progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#6c63ff,#00d4ff);border-radius:99px;transition:width 0.4s ease;"></div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;" id="btn-analyze">🔍 Mulai Analisis</button>
+      <button type="submit" class="btn btn-primary" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:7px;" id="btn-analyze">
+        <svg style="width:15px;height:15px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Mulai Analisis
+      </button>
     </form>
   </div>
 
   <!-- Info Panel -->
   <div style="display:flex;flex-direction:column;gap:16px;">
     <div class="card">
-      <div class="card-header"><div class="card-title">📋 Format CSV CICIDS2017</div></div>
+      <div class="card-header">
+        <div class="card-title">
+          <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          Format CSV CICIDS2017
+        </div>
+      </div>
       <div style="font-size:12px;color:var(--text-muted);line-height:1.8;">
         <div style="margin-bottom:8px;font-weight:600;color:var(--text-primary);">File yang bisa diupload:</div>
         <ul style="padding-left:16px;display:flex;flex-direction:column;gap:3px;">
@@ -64,14 +86,20 @@
           <li><code style="color:var(--secondary);">Friday-WorkingHours.pcap_ISCX.csv</code></li>
           <li><em>CSV export dari Google Colab</em></li>
         </ul>
-        <div style="margin-top:10px;color:var(--info);">
-          ℹ️ Maks <strong>5.000 baris</strong> per upload. File besar bisa dibagi menjadi beberapa batch.
+        <div style="margin-top:10px;color:var(--info);display:flex;align-items:center;gap:6px;">
+          <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Maks <strong>5.000 baris</strong> per upload. File besar bisa dibagi menjadi beberapa batch.
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-header"><div class="card-title">🔗 Export Model dari Colab</div></div>
+      <div class="card-header">
+        <div class="card-title">
+          <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          Export Model dari Colab
+        </div>
+      </div>
       <div style="font-size:12px;color:var(--text-muted);line-height:1.8;margin-bottom:12px;">
         Jalankan kode ini di akhir notebook Colab kamu:
       </div>
@@ -89,9 +117,10 @@
         <span style="color:#a78bfa;">from</span> google.colab <span style="color:#a78bfa;">import</span> files<br>
         files.download(<span style="color:#40c4ff;">'/content/cicids_flow_model.pkl'</span>)
       </div>
-      <div style="margin-top:12px;background:rgba(0,230,118,0.06);border:1px solid rgba(0,230,118,0.2);border-radius:8px;padding:12px;font-size:12px;">
-        ✅ Letakkan <code style="color:var(--success);">cicids_flow_model.pkl</code> langsung di folder project:<br>
-        <code style="color:var(--secondary);font-size:11px;">d:\Semester 5\AI KSI\Project NIDS\cicids_flow_model.pkl</code>
+      <div style="margin-top:12px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:12px;font-size:12px;display:flex;align-items:flex-start;gap:8px;">
+        <svg style="width:14px;height:14px;color:#10B981;flex-shrink:0;margin-top:1px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        <span>Letakkan <code style="color:var(--success);">cicids_flow_model.pkl</code> langsung di folder project:<br>
+        <code style="color:var(--secondary);font-size:11px;">d:\Semester 5\AI KSI\Project NIDS\cicids_flow_model.pkl</code></span>
       </div>
     </div>
   </div>
@@ -117,7 +146,8 @@ function showFileInfo(file) {
   document.getElementById('file-name').textContent = file.name;
   const sizeMB = (file.size / 1024 / 1024).toFixed(2);
   document.getElementById('file-size').textContent = '(' + sizeMB + ' MB)';
-  document.getElementById('drop-icon').textContent = '✅';
+  // Ganti icon jadi centang SVG
+  document.getElementById('drop-icon').innerHTML = '<svg style="width:48px;height:48px;color:#10B981;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
   document.getElementById('drop-text').textContent = file.name;
 }
 function handleDragOver(e) {
