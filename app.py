@@ -864,15 +864,24 @@ HOP_BY_HOP_HEADERS = {
     'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade'
 }
 
+# HTTP Client Session dengan Connection Pooling untuk WAF Gateway
+gateway_session = requests.Session()
+adapter = requests.adapters.HTTPAdapter(pool_connections=25, pool_maxsize=25, max_retries=1)
+gateway_session.mount('http://', adapter)
+gateway_session.mount('https://', adapter)
+
 @app.route('/gateway/<int:website_id>', defaults={'subpath': ''}, methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 @app.route('/gateway/<int:website_id>/', defaults={'subpath': ''}, methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 @app.route('/gateway/<int:website_id>/<path:subpath>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def proxy_gateway(website_id, subpath):
     site = Website.query.get_or_404(website_id)
-    origin_base = (site.target_url or 'http://localhost:8000').rstrip('/')
+    origin_base = (site.target_url or 'http://127.0.0.1:8000').rstrip('/')
+    
+    # Normalisasi host localhost -> 127.0.0.1 untuk mencegah IPv6 ::1 lookup delay/timeout di Windows
+    backend_origin = re.sub(r'://localhost(?=[:/]|$)', '://127.0.0.1', origin_base, flags=re.IGNORECASE)
     
     # Rekonstruksi URL target asli
-    target_url = f"{origin_base}/{subpath}"
+    target_url = f"{backend_origin}/{subpath}"
     raw_qs = request.query_string.decode('utf-8', errors='ignore') if request.query_string else ''
     if raw_qs:
         target_url += f"?{raw_qs}"
@@ -1000,7 +1009,7 @@ def proxy_gateway(website_id, subpath):
 
     try:
         req_data = request.get_data() if method in ['POST', 'PUT', 'PATCH'] else None
-        backend_resp = requests.request(
+        backend_resp = gateway_session.request(
             method=method,
             url=target_url,
             headers=forward_headers,
@@ -1008,7 +1017,7 @@ def proxy_gateway(website_id, subpath):
             params=None,
             cookies=request.cookies,
             allow_redirects=False,
-            timeout=10.0,
+            timeout=(5.0, 30.0),
             stream=True
         )
 
@@ -1046,9 +1055,28 @@ def proxy_gateway(website_id, subpath):
             if k.lower() == 'location':
                 if v.startswith(origin_base):
                     v = v.replace(origin_base, f"/gateway/{website_id}", 1)
+                elif v.startswith(backend_origin):
+                    v = v.replace(backend_origin, f"/gateway/{website_id}", 1)
                 elif v.startswith('/'):
                     v = f"/gateway/{website_id}{v}"
             new_resp_headers.append((k, v))
+
+        content_type = backend_resp.headers.get('content-type', '').lower()
+        if 'text/html' in content_type:
+            # HTML Link Rewriting: Pastikan link internal, asset, dan form action tetap di route gateway
+            raw_html = backend_resp.content.decode('utf-8', errors='ignore')
+            # Ganti URL origin absolut ke path gateway
+            rewritten_html = raw_html.replace(origin_base, f"/gateway/{website_id}")
+            if backend_origin != origin_base:
+                rewritten_html = rewritten_html.replace(backend_origin, f"/gateway/{website_id}")
+            
+            # Ganti path root-relative pada atribut HTML umum ke /gateway/{website_id}/
+            rewritten_html = re.sub(
+                r'(href|action|src)=(["\'])/(?!gateway/|https?://|//)',
+                rf'\1=\2/gateway/{website_id}/',
+                rewritten_html
+            )
+            return Response(rewritten_html, status=backend_resp.status_code, headers=new_resp_headers)
 
         response = Response(
             stream_with_context(backend_resp.iter_content(chunk_size=4096)),
