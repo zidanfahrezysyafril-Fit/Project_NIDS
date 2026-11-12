@@ -1,12 +1,14 @@
 {% extends "base_app.html" %}
 {% block title %}Deteksi & Mitigasi DDoS – {{ site.name }}{% endblock %}
-{% block page_title %}💥 Deteksi & Mitigasi DDoS (Layer 3 & 4){% endblock %}
+{% block page_title %}Deteksi & Mitigasi DDoS (Layer 3 & 4){% endblock %}
 
 {% block content %}
 
 <!-- Info Banner -->
 <div style="background:linear-gradient(135deg,rgba(255,82,82,0.12),rgba(255,171,64,0.06));border:1px solid rgba(255,82,82,0.25);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;">
-  <div style="font-size:32px;line-height:1;">💥</div>
+  <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,82,82,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#ff5252;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+  </div>
   <div>
     <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:#fff;">Inspeksi Anomali Aliran & Serangan Volumetrik</div>
     <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">
@@ -18,28 +20,36 @@
 <!-- Stat Cards -->
 <div class="grid-4 mb-6">
   <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(255,82,82,0.15);color:#ff5252;">💥</div>
+    <div class="stat-icon" style="background:rgba(255,82,82,0.15);color:#ff5252;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    </div>
     <div class="stat-body">
       <div class="stat-value" style="color:#ff5252;">{{ count_ddos }}</div>
       <div class="stat-label">Insiden DDoS</div>
     </div>
   </div>
   <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(255,171,64,0.15);color:#ffab40;">🌊</div>
+    <div class="stat-icon" style="background:rgba(255,171,64,0.15);color:#ffab40;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+    </div>
     <div class="stat-body">
       <div class="stat-value" style="color:#ffab40;">{{ count_dos_hulk }}</div>
       <div class="stat-label">DoS Hulk Flooding</div>
     </div>
   </div>
   <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff;">🔍</div>
+    <div class="stat-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
     <div class="stat-body">
       <div class="stat-value" style="color:#40c4ff;">{{ count_portscan }}</div>
       <div class="stat-label">Port Scanning</div>
     </div>
   </div>
   <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(167,139,250,0.15);color:#a78bfa;">⏳</div>
+    <div class="stat-icon" style="background:rgba(167,139,250,0.15);color:#a78bfa;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </div>
     <div class="stat-body">
       <div class="stat-value" style="color:#a78bfa;">{{ count_slowloris }}</div>
       <div class="stat-label">Slowloris Attack</div>
@@ -53,7 +63,10 @@
   <!-- Form Konfigurasi Rate Limiter -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title">⚙️ Konfigurasi Tier 1 Rate Limiter</div>
+      <div class="card-title" style="display:flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Konfigurasi Tier 1 Rate Limiter
+      </div>
       <span class="badge" style="background:rgba(0,230,118,0.15);color:#00e676;">Aktif</span>
     </div>
     <form method="POST">
@@ -72,14 +85,20 @@
           <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Default: 10 detik</div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">💾 Simpan Ambang Batas Rate Limiter</button>
+      <button type="submit" class="btn btn-primary" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Simpan Ambang Batas Rate Limiter
+      </button>
     </form>
   </div>
 
   <!-- Info Fitur Alur XGBoost -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title">🧠 Tier 3 Flow Engine (XGBoost 14 Fitur)</div>
+      <div class="card-title" style="display:flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V17a1 1 0 0 1-2 0v-.07A7.003 7.003 0 0 1 5.07 11H5a1 1 0 0 1 0-2h.07A7.003 7.003 0 0 1 11 5.07V5a1 1 0 0 1 2 0v.07A7.003 7.003 0 0 1 18.93 11H19a1 1 0 0 1 0 2h-.07A7.003 7.003 0 0 1 13 16.93z"/></svg>
+        Tier 3 Flow Engine (XGBoost 14 Fitur)
+      </div>
       <span class="badge" style="background:rgba(64,196,255,0.15);color:#40c4ff;">Model .pkl Ready</span>
     </div>
     <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">
@@ -105,9 +124,13 @@
 <!-- Recent DDoS Alerts Table -->
 <div class="card">
   <div class="card-header" style="flex-wrap:wrap;gap:12px;">
-    <div class="card-title">🚨 Riwayat Insiden DDoS & Aliran Jaringan (L3/L4)</div>
-    <a href="{{ url_for('export_alerts_csv', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px;text-decoration:none;">
-      📥 Unduh Laporan CSV
+    <div class="card-title" style="display:flex;align-items:center;gap:6px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Riwayat Insiden DDoS & Aliran Jaringan (L3/L4)
+    </div>
+    <a href="{{ url_for('export_alerts_csv', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Unduh Laporan CSV
     </a>
   </div>
 
@@ -130,8 +153,9 @@
           <tr class="alert-row">
             <td class="mono" style="font-size:12px;">{{ a.created_at|wib('%d/%m %H:%M:%S') }}</td>
             <td>
-              <span class="badge badge-ddos">
-                💥 {{ a.attack_type }}
+              <span class="badge badge-ddos" style="display:inline-flex;align-items:center;gap:4px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                {{ a.attack_type }}
               </span>
             </td>
             <td>
@@ -149,8 +173,9 @@
               {{ a.detail or 'Flow Telemetry' }}
             </td>
             <td>
-              <a href="{{ url_for('mitigation', alert_id=a.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 7px;">
-                🛡️ Mitigasi
+              <a href="{{ url_for('mitigation', alert_id=a.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 7px;display:inline-flex;align-items:center;gap:4px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Mitigasi
               </a>
             </td>
           </tr>
@@ -158,7 +183,10 @@
         {% else %}
           <tr>
             <td colspan="7" style="text-align:center;padding:40px;color:var(--text-dim);">
-              ✅ Tidak ada insiden DDoS atau anomali alur jaringan yang terdeteksi.
+              <span style="display:inline-flex;align-items:center;gap:6px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Tidak ada insiden DDoS atau anomali alur jaringan yang terdeteksi.
+              </span>
             </td>
           </tr>
         {% endif %}
@@ -168,4 +196,3 @@
 </div>
 
 {% endblock %}
-

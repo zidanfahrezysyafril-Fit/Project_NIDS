@@ -32,19 +32,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create hamburger if on mobile
     if (window.innerWidth <= 768) {
       const burger = document.createElement('button');
-      burger.innerHTML = '☰';
+      const svgMenu = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+      const svgClose = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      burger.innerHTML = svgMenu;
       burger.style.cssText = `
         position:fixed;top:14px;left:14px;z-index:200;
         background:rgba(108,99,255,0.9);color:#fff;
         border:none;border-radius:8px;padding:8px 12px;
-        font-size:18px;cursor:pointer;backdrop-filter:blur(10px);`;
+        font-size:18px;cursor:pointer;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;`;
       burger.id = 'sidebar-toggle';
       document.body.appendChild(burger);
 
       burger.addEventListener('click', () => {
         const open = sidebar.style.transform === 'translateX(0px)';
         sidebar.style.transform = open ? 'translateX(-100%)' : 'translateX(0px)';
-        burger.innerHTML = open ? '☰' : '✕';
+        burger.innerHTML = open ? svgMenu : svgClose;
       });
     }
   }

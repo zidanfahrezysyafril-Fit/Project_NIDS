@@ -334,8 +334,8 @@
                   <span>Mitigasi</span>
                 </a>
                 {% if a.status != 'Ditangani' %}
-                <button onclick="updateAlertStatus({{ a.id }}, 'Ditangani')" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 7px;color:#10B981;border-color:rgba(16,185,129,0.3);" title="Tandai Sudah Ditangani">
-                  ✓
+                <button onclick="updateAlertStatus({{ a.id }}, 'Ditangani')" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 7px;color:#10B981;border-color:rgba(16,185,129,0.3);display:inline-flex;align-items:center;" title="Tandai Sudah Ditangani">
+                  <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 </button>
                 {% endif %}
                 {% if a.status != 'False Positive' %}
@@ -505,7 +505,7 @@ function appendAlerts(alerts) {
             <svg style="width:12px;height:12px;color:#06B6D4;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             <span>Mitigasi</span>
           </a>
-          <button onclick="updateAlertStatus(${a.id}, 'Ditangani')" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 7px;color:#10B981;border-color:rgba(16,185,129,0.3);" title="Tandai Sudah Ditangani">✓</button>
+          <button onclick="updateAlertStatus(${a.id}, 'Ditangani')" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 7px;color:#10B981;border-color:rgba(16,185,129,0.3);display:inline-flex;align-items:center;" title="Tandai Sudah Ditangani"><svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></button>
           <button onclick="updateAlertStatus(${a.id}, 'False Positive')" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 7px;color:#F59E0B;border-color:rgba(245,158,11,0.3);" title="Tandai sebagai False Positive">FP</button>
         </div>
       </td>`;

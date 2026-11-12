@@ -1,14 +1,14 @@
 {% extends "base_app.html" %}
 {% block title %}Database Explorer – {{ db_info.database }}{% endblock %}
-{% block page_title %}🗄️ Database Explorer (PostgreSQL){% endblock %}
+{% block page_title %}Database Explorer (PostgreSQL){% endblock %}
 
 {% block content %}
 <!-- Info Bar Database -->
 <div class="card mb-6" style="background:linear-gradient(135deg, rgba(30,41,59,0.7), rgba(15,23,42,0.8));border:1px solid rgba(148,163,184,0.15);">
   <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;">
     <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:42px;height:42px;border-radius:10px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid rgba(59,130,246,0.3);">
-        🐘
+      <div style="width:42px;height:42px;border-radius:10px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;border:1px solid rgba(59,130,246,0.3);color:#60a5fa;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
       </div>
       <div>
         <div style="font-size:16px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;">
@@ -21,8 +21,9 @@
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table=table_name) }}" class="btn btn-secondary btn-sm" title="Refresh">
-        🔄 Refresh
+      <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table=table_name) }}" class="btn btn-secondary btn-sm" title="Refresh" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Refresh
       </a>
       <span style="font-size:12px;color:var(--text-muted);background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);">
         Total: <strong style="color:var(--text);">{{ pagination.total if pagination else 0 }}</strong> data
@@ -36,42 +37,48 @@
   <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='alerts') }}"
      class="btn btn-sm {% if table_name == 'alerts' %}btn-primary{% else %}btn-secondary{% endif %}"
      style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
-    <span>🔔 Alerts</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span>Alerts</span>
     <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.alerts }}</span>
   </a>
 
   <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='log_entries') }}"
      class="btn btn-sm {% if table_name == 'log_entries' %}btn-primary{% else %}btn-secondary{% endif %}"
      style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
-    <span>📜 Log Entries</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <span>Log Entries</span>
     <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.log_entries }}</span>
   </a>
 
   <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='websites') }}"
      class="btn btn-sm {% if table_name == 'websites' %}btn-primary{% else %}btn-secondary{% endif %}"
      style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
-    <span>🌐 Websites</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    <span>Websites</span>
     <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.websites }}</span>
   </a>
 
   <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='traffic_metrics') }}"
      class="btn btn-sm {% if table_name == 'traffic_metrics' %}btn-primary{% else %}btn-secondary{% endif %}"
      style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
-    <span>📈 Traffic Metrics</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span>Traffic Metrics</span>
     <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.traffic_metrics }}</span>
   </a>
 
   <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='users') }}"
      class="btn btn-sm {% if table_name == 'users' %}btn-primary{% else %}btn-secondary{% endif %}"
      style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
-    <span>👤 Users</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Users</span>
     <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.users }}</span>
   </a>
 
   <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table='chat_messages') }}"
      class="btn btn-sm {% if table_name == 'chat_messages' %}btn-primary{% else %}btn-secondary{% endif %}"
      style="display:flex;align-items:center;gap:6px;white-space:nowrap;">
-    <span>💬 Chat Messages</span>
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span>Chat Messages</span>
     <span style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:10px;font-size:11px;">{{ counts.chat_messages }}</span>
   </a>
 </div>
@@ -89,9 +96,14 @@
       <input type="hidden" name="table" value="{{ table_name }}">
       <input type="text" name="q" value="{{ search }}" placeholder="Cari di tabel {{ table_name }}..."
              class="form-control" style="width:240px;padding:6px 12px;font-size:13px;">
-      <button type="submit" class="btn btn-secondary btn-sm">🔍 Cari</button>
+      <button type="submit" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Cari
+      </button>
       {% if search %}
-      <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table=table_name) }}" class="btn btn-secondary btn-sm">✕</a>
+      <a href="{{ url_for('database_viewer', website_id=site.id if site else 1, table=table_name) }}" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </a>
       {% endif %}
     </form>
   </div>
@@ -118,11 +130,20 @@
               {% elif 'Tinggi' in v|string or 'Peringatan' in v|string %}
                 <span class="badge badge-warning">{{ v }}</span>
               {% elif 'DDoS' in v|string %}
-                <span class="badge badge-ddos">💥 {{ v }}</span>
+                <span class="badge badge-ddos" style="display:inline-flex;align-items:center;gap:4px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  {{ v }}
+                </span>
               {% elif 'SQL' in v|string %}
-                <span class="badge badge-sqli">💉 {{ v }}</span>
+                <span class="badge badge-sqli" style="display:inline-flex;align-items:center;gap:4px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+                  {{ v }}
+                </span>
               {% elif 'XSS' in v|string %}
-                <span class="badge badge-xss">🕷️ {{ v }}</span>
+                <span class="badge badge-xss" style="display:inline-flex;align-items:center;gap:4px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                  {{ v }}
+                </span>
               {% elif 'Terdeteksi' in v|string or 'Aktif' in v|string %}
                 <span class="badge badge-success">{{ v }}</span>
               {% else %}
@@ -132,8 +153,9 @@
             {% endfor %}
             <td style="padding:10px 12px;text-align:right;white-space:nowrap;">
               {% if r.detail %}
-              <button class="btn btn-secondary btn-sm" onclick="showDetail('{{ r.id }}', '{{ r.detail|e|replace('\n', ' ')|replace('\'', '\\\'') }}')" style="font-size:11px;padding:3px 8px;">
-                👁️ Detail
+              <button class="btn btn-secondary btn-sm" onclick="showDetail('{{ r.id }}', '{{ r.detail|e|replace('\n', ' ')|replace('\'', '\\\'') }}')" style="font-size:11px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Detail
               </button>
               {% else %}
               <span style="color:var(--text-muted);font-size:11px;">–</span>
@@ -191,8 +213,13 @@
 <div id="detailModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;">
   <div class="card" style="width:90%;max-width:550px;box-shadow:0 20px 40px rgba(0,0,0,0.5);">
     <div class="card-header">
-      <div class="card-title">🔍 Detail Baris #<span id="modalRowId"></span></div>
-      <button class="btn btn-secondary btn-sm" onclick="closeDetail()">✕</button>
+      <div class="card-title" style="display:flex;align-items:center;gap:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Detail Baris #<span id="modalRowId"></span>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="closeDetail()" style="display:inline-flex;align-items:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
     <div style="margin:16px 0;">
       <pre id="modalContent" style="background:rgba(15,23,42,0.9);padding:14px;border-radius:8px;font-size:12px;color:#a5f3fc;overflow-x:auto;white-space:pre-wrap;word-break:break-all;border:1px solid rgba(148,163,184,0.1);max-height:300px;"></pre>
