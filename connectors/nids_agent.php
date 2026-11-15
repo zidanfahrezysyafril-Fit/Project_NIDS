@@ -20,17 +20,18 @@ if (!defined('NIDS_API_KEY')) {
     define('NIDS_API_KEY', 'MASUKKAN_API_KEY_ANDA_DISINI'); // Ganti dengan API Key website Anda
 }
 
-// ── Logika Pemantauan ────────────────────────────────────────────────────────
+// ── Logika Pemantauan (Prinsip Fail-Open) ────────────────────────────────────
 (function() {
-    // Abaikan jika dipanggil dari command line (CLI)
-    if (php_sapi_name() === 'cli') return;
+    try {
+        // Abaikan jika dipanggil dari command line (CLI)
+        if (php_sapi_name() === 'cli') return;
 
-    $server_url = rtrim(NIDS_SERVER_URL, '/');
-    $api_key    = trim(NIDS_API_KEY);
+        $server_url = rtrim(NIDS_SERVER_URL, '/');
+        $api_key    = trim(NIDS_API_KEY);
 
-    if (empty($api_key) || $api_key === 'MASUKKAN_API_KEY_ANDA_DISINI') {
-        return;
-    }
+        if (empty($api_key) || $api_key === 'MASUKKAN_API_KEY_ANDA_DISINI') {
+            return;
+        }
 
     // Tangkap IP pengunjung (support Reverse Proxy, Cloudflare, VPN, & Testbed)
     $client_ip = '127.0.0.1';
@@ -117,5 +118,8 @@ if (!defined('NIDS_API_KEY')) {
         ];
         $context = stream_context_create($opts);
         @file_get_contents($endpoint, false, $context);
+    }
+    } catch (\Throwable $e) {
+        // FAIL-OPEN: Senyapkan semua error agar website induk tidak pernah terdampak
     }
 })();
