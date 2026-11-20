@@ -394,6 +394,18 @@ def ddos_detection(website_id):
                            count_slowloris=count_slowloris)
 
 
+@app.route('/api/ddos/reset-rate/<int:website_id>', methods=['POST'])
+@login_required
+def api_ddos_reset_rate(website_id):
+    """Mereset cache memori sliding-window IP rate limiter untuk website ini."""
+    site = Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
+    ddos_detector.reset_website_history(site.id)
+    return jsonify({
+        'success': True,
+        'message': f'Riwayat rate limit untuk target "{site.name}" berhasil direset bersih.'
+    })
+
+
 @app.route('/detection/web-attack/<int:website_id>')
 @login_required
 def web_attack_detection(website_id):
@@ -517,7 +529,8 @@ def api_ingest():
         protocol='TCP',
         length=pkg_len,
         flags='P' if method == 'POST' else 'S',
-        window=64240
+        window=64240,
+        website_id=site.id
     )
 
     # ── LAYER 1: Deteksi DDoS (Rate Limiting) ────────────────────────────────
@@ -916,7 +929,8 @@ def proxy_gateway(website_id, subpath):
             protocol='TCP',
             length=pkg_len,
             flags='P' if method == 'POST' else 'S',
-            window=64240
+            window=64240,
+            website_id=site.id
         )
 
         # 1. Layer 1: Deteksi DDoS (Rate Limiter)
@@ -1279,10 +1293,15 @@ def api_sniffer_simulate():
     attack_type = data.get('attack_type', 'DDoS')
     src_ip = data.get('src_ip', '192.168.1.185')
     count = int(data.get('count', 150))
-    live_sniffer.simulate_attack_burst(attack_type=attack_type, src_ip=src_ip, packet_count=count)
+    website_id = data.get('website_id')
+    if not website_id:
+        active_site = Website.query.filter_by(user_id=current_user.id).order_by(Website.id.desc()).first()
+        website_id = active_site.id if active_site else None
+    live_sniffer.simulate_attack_burst(attack_type=attack_type, src_ip=src_ip, packet_count=count, website_id=website_id)
     return jsonify({
         'success': True,
-        'message': f'Burst paket {attack_type} ({count} pkt) berhasil ditembakkan ke Live Sniffer & dianalisis XGBoost!'
+        'message': f'Burst paket {attack_type} ({count} pkt) berhasil ditembakkan ke Live Sniffer target #{website_id} & dianalisis XGBoost!',
+        'website_id': website_id
     })
 
 

@@ -10,12 +10,13 @@ from datetime import datetime
 
 class FlowSession:
     """Represents a bidirectional flow between two endpoints."""
-    def __init__(self, src_ip, dst_ip, src_port, dst_port, protocol):
+    def __init__(self, src_ip, dst_ip, src_port, dst_port, protocol, website_id=None):
         self.src_ip = src_ip
         self.dst_ip = dst_ip
         self.src_port = src_port
         self.dst_port = dst_port
         self.protocol = protocol
+        self.website_id = website_id
         
         self.start_time = time.time()
         self.last_time = self.start_time
@@ -127,7 +128,7 @@ class LiveTrafficSniffer:
         print("[LiveSniffer] Stopped live packet sniffing service.")
         return True, "Live sniffer stopped."
 
-    def ingest_packet(self, src_ip, dst_ip, src_port, dst_port, protocol, length, flags=None, window=None):
+    def ingest_packet(self, src_ip, dst_ip, src_port, dst_port, protocol, length, flags=None, window=None, website_id=None):
         """Ingests a packet from any gateway, reverse proxy, or raw listener."""
         flow_key = (src_ip, dst_ip, src_port, dst_port, protocol)
         rev_key = (dst_ip, src_ip, dst_port, src_port, protocol)
@@ -136,10 +137,14 @@ class LiveTrafficSniffer:
             self.stats['packets_captured'] += 1
             if flow_key in self.active_flows:
                 self.active_flows[flow_key].add_packet('fwd', length, flags, window)
+                if website_id and not getattr(self.active_flows[flow_key], 'website_id', None):
+                    self.active_flows[flow_key].website_id = website_id
             elif rev_key in self.active_flows:
                 self.active_flows[rev_key].add_packet('bwd', length, flags, window)
+                if website_id and not getattr(self.active_flows[rev_key], 'website_id', None):
+                    self.active_flows[rev_key].website_id = website_id
             else:
-                session = FlowSession(src_ip, dst_ip, src_port, dst_port, protocol)
+                session = FlowSession(src_ip, dst_ip, src_port, dst_port, protocol, website_id=website_id)
                 session.add_packet('fwd', length, flags, window)
                 self.active_flows[flow_key] = session
 
@@ -157,14 +162,14 @@ class LiveTrafficSniffer:
                 for key, session in self.active_flows.items():
                     # Evaluate if flow has been inactive for flow_timeout OR has reached burst threshold
                     if (now - session.last_time >= self.flow_timeout) or (session.fwd_packets >= 50):
-                        to_evaluate.append((key, session.to_14_features()))
+                        to_evaluate.append((key, session.to_14_features(), getattr(session, 'website_id', None)))
                         expired_keys.append(key)
                         
                 for k in expired_keys:
                     del self.active_flows[k]
                     
             # Evaluate extracted features with XGBoost
-            for key, features in to_evaluate:
+            for key, features, web_id in to_evaluate:
                 self.stats['flows_analyzed'] += 1
                 pred = flow_detector.predict_flow(features)
                 
@@ -179,20 +184,24 @@ class LiveTrafficSniffer:
                         'confidence': conf,
                         'timestamp': datetime.utcnow().strftime('%H:%M:%S')
                     }
-                    self._record_attack_alert(key[0], key[1], label, conf, features)
+                    self._record_attack_alert(key[0], key[1], label, conf, features, website_id=web_id)
                     
             self.stats['last_update'] = datetime.utcnow().strftime('%H:%M:%S')
 
-    def _record_attack_alert(self, src_ip, dst_ip, attack_type, confidence, features):
-        """Records the detected flow attack into PostgreSQL via Flask app context."""
-        print(f"[ALERT LIVE SNIFFER] {attack_type} detected from {src_ip} -> {dst_ip} (Conf: {confidence}%)")
+    def _record_attack_alert(self, src_ip, dst_ip, attack_type, confidence, features, website_id=None):
+        """Records the detected flow attack into DB via Flask app context."""
+        print(f"[ALERT LIVE SNIFFER] {attack_type} detected from {src_ip} -> {dst_ip} (Conf: {confidence}%, Site: {website_id})")
         if not self.app:
             return
             
         try:
             with self.app.app_context():
                 from models import db, Website, Alert
-                site = Website.query.first() # Attach to active website or default
+                site = None
+                if website_id:
+                    site = db.session.get(Website, website_id) if hasattr(db.session, 'get') else Website.query.get(website_id)
+                if not site:
+                    site = Website.query.order_by(Website.id.desc()).first()
                 if site:
                     is_sim = src_ip == '192.168.1.185'
                     source_tag = "[Simulasi Pipeline] " if is_sim else "[Live Gateway] "
@@ -207,12 +216,12 @@ class LiveTrafficSniffer:
                     )
                     db.session.add(alert)
                     site.status = 'Serangan Aktif'
-                    site.total_alerts_count += 1
+                    site.total_alerts_count = (site.total_alerts_count or 0) + 1
                     db.session.commit()
         except Exception as e:
             print(f"[LiveSniffer Alert Error] {e}")
 
-    def simulate_attack_burst(self, attack_type='DDoS', src_ip='192.168.1.185', target_ip='127.0.0.1', count=150, packet_count=None):
+    def simulate_attack_burst(self, attack_type='DDoS', src_ip='192.168.1.185', target_ip='127.0.0.1', count=150, packet_count=None, website_id=None):
         """
         Simulates an in-memory packet burst for testing the pipeline end-to-end:
         verifies multi-threading, flow session aggregation, ML evaluation, and DB alerting.
@@ -222,13 +231,13 @@ class LiveTrafficSniffer:
             count = packet_count
         if attack_type == 'DDoS':
             for _ in range(count):
-                self.ingest_packet(src_ip, target_ip, np.random.randint(1024, 65535), 80, 'TCP', length=64, flags='S', window=256)
+                self.ingest_packet(src_ip, target_ip, np.random.randint(1024, 65535), 80, 'TCP', length=64, flags='S', window=256, website_id=website_id)
         elif attack_type == 'PortScan':
             for port in range(20, 20 + count):
-                self.ingest_packet(src_ip, target_ip, np.random.randint(1024, 65535), port, 'TCP', length=40, flags='S', window=1024)
+                self.ingest_packet(src_ip, target_ip, np.random.randint(1024, 65535), port, 'TCP', length=40, flags='S', window=1024, website_id=website_id)
         elif attack_type == 'DoS slowloris':
             for _ in range(min(count, 50)):
-                self.ingest_packet(src_ip, target_ip, np.random.randint(1024, 65535), 80, 'TCP', length=12, flags='P', window=64240)
+                self.ingest_packet(src_ip, target_ip, np.random.randint(1024, 65535), 80, 'TCP', length=12, flags='P', window=64240, website_id=website_id)
         return True
 
 live_sniffer = LiveTrafficSniffer()

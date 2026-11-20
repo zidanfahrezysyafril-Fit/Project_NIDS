@@ -1,160 +1,345 @@
 {% extends "base_app.html" %}
 {% block title %}Deteksi & Mitigasi DDoS – {{ site.name }}{% endblock %}
-{% block page_title %}Deteksi & Mitigasi DDoS (Layer 3 & 4){% endblock %}
+
+{% block page_title %}
+<div style="display:flex;align-items:center;gap:10px;">
+  <div style="width:28px;height:28px;border-radius:8px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);display:flex;align-items:center;justify-content:center;color:#EF4444;">
+    <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+  </div>
+  <span style="font-weight:700;color:#fff;">Deteksi &amp; Mitigasi DDoS (Layer 3 &amp; 4)</span>
+</div>
+{% endblock %}
 
 {% block content %}
 
-<!-- Info Banner -->
-<div style="background:linear-gradient(135deg,rgba(255,82,82,0.12),rgba(255,171,64,0.06));border:1px solid rgba(255,82,82,0.25);border-radius:14px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;">
-  <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,82,82,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#ff5252;">
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+<!-- ── WAF GATEWAY QUICK ACCESS BAR ── -->
+<div style="background:linear-gradient(135deg,rgba(239,68,68,0.08) 0%,rgba(10,14,22,0.92) 100%);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:14px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#10B981;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);padding:4px 10px;border-radius:6px;">
+      <span style="width:6px;height:6px;border-radius:50%;background:#10B981;box-shadow:0 0 8px #10B981;"></span>
+      WAF Gateway Aktif
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12.5px;color:#94A3B8;">Akses Terproteksi:</span>
+      <code style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#38BDF8;background:rgba(0,0,0,0.4);border:1px solid rgba(6,182,212,0.2);padding:4px 10px;border-radius:8px;" id="gw-url-display">http://localhost:5000/gateway/{{ site.id }}/</code>
+    </div>
   </div>
-  <div>
-    <div style="font-size:15px;font-weight:700;margin-bottom:4px;color:#fff;">Inspeksi Anomali Aliran & Serangan Volumetrik</div>
-    <div style="font-size:13px;color:var(--text-muted);line-height:1.6;">
-      Halaman ini memantau lalu lintas jaringan pada lapisan transport (L3/L4) menggunakan <strong>Tier 1 Sliding-Window Rate Limiter</strong> untuk menangkis lonjakan permintaan dan <strong>Tier 3 XGBoost Flow Classifier</strong> berbasis 14 fitur vital CICIDS2017 untuk mendeteksi SYN Flood, DoS Hulk, PortScan, dan Slowloris secara real-time.
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button onclick="navigator.clipboard.writeText('http://localhost:5000/gateway/{{ site.id }}/');const b=this.querySelector('span');b.textContent='Tersalin!';setTimeout(()=>b.textContent='Salin URL',2500);" class="btn btn-secondary btn-sm" style="font-size:12px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px;">
+      <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+      <span>Salin URL</span>
+    </button>
+    <a href="http://localhost:5000/gateway/{{ site.id }}/" target="_blank" class="btn btn-primary btn-sm" style="font-size:12px;padding:6px 14px;display:inline-flex;align-items:center;gap:6px;">
+      <span>Buka Web Target</span>
+      <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+    </a>
+  </div>
+</div>
+
+<!-- ── INFO & TELEMETRY BANNER ── -->
+<div style="background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(245,158,11,0.06));border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:18px 22px;margin-bottom:24px;display:flex;align-items:flex-start;gap:16px;">
+  <div style="width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#EF4444;">
+    <svg style="width:24px;height:24px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+  </div>
+  <div style="flex:1;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+      <div style="font-size:15px;font-weight:700;color:#fff;">Inspeksi Anomali Aliran &amp; Serangan Volumetrik (L3/L4)</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="badge" style="background:rgba(16,185,129,0.15);color:#10B981;font-size:10.5px;">Tier 1 Rate Limiter Aktif</span>
+        <span class="badge" style="background:rgba(6,182,212,0.15);color:#06B6D4;font-size:10.5px;">Tier 3 XGBoost Flow Ready</span>
+      </div>
+    </div>
+    <div style="font-size:12.5px;color:var(--text-muted);line-height:1.6;">
+      Sistem pertahanan lapis ganda aktif: <strong>Tier 1 Sliding-Window Rate Limiter</strong> menangkis lonjakan permintaan HTTP flood pada ambang batas sensitivitas, sementara <strong>Tier 3 Flow Engine</strong> menganalisis 14 fitur alur CICIDS2017 untuk mendeteksi SYN Flood, DoS Hulk, PortScan, dan Slowloris secara real-time.
     </div>
   </div>
 </div>
 
-<!-- Stat Cards -->
-<div class="grid-4 mb-6">
-  <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(255,82,82,0.15);color:#ff5252;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+<!-- ── STAT CARDS (RESPONSIVE GRID) ── -->
+<div class="stats-grid">
+
+  <!-- Card 1: Insiden DDoS -->
+  <div class="stat-card" style="--accent:#EF4444;--accent-bg:rgba(239,68,68,0.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="stat-icon" style="color:#EF4444;">
+        <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:#EF4444;background:rgba(239,68,68,0.1);padding:3px 8px;border-radius:6px;">L1 Defense</span>
     </div>
-    <div class="stat-body">
-      <div class="stat-value" style="color:#ff5252;">{{ count_ddos }}</div>
-      <div class="stat-label">Insiden DDoS</div>
+    <div class="stat-value" style="color:#EF4444;" id="stat-ddos">{{ count_ddos }}</div>
+    <div class="stat-label">Insiden DDoS (Rate Limited)</div>
+  </div>
+
+  <!-- Card 2: DoS Hulk Flooding -->
+  <div class="stat-card" style="--accent:#F59E0B;--accent-bg:rgba(245,158,11,0.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="stat-icon" style="color:#F59E0B;">
+        <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:#F59E0B;background:rgba(245,158,11,0.1);padding:3px 8px;border-radius:6px;">L3 Volumetric</span>
+    </div>
+    <div class="stat-value" style="color:#F59E0B;" id="stat-hulk">{{ count_dos_hulk }}</div>
+    <div class="stat-label">DoS Hulk Flooding</div>
+  </div>
+
+  <!-- Card 3: Port Scanning -->
+  <div class="stat-card" style="--accent:#06B6D4;--accent-bg:rgba(6,182,212,0.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="stat-icon" style="color:#06B6D4;">
+        <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:#06B6D4;background:rgba(6,182,212,0.1);padding:3px 8px;border-radius:6px;">L4 Recon</span>
+    </div>
+    <div class="stat-value" style="color:#06B6D4;" id="stat-portscan">{{ count_portscan }}</div>
+    <div class="stat-label">Port Scanning</div>
+  </div>
+
+  <!-- Card 4: Slowloris Attack -->
+  <div class="stat-card" style="--accent:#A78BFA;--accent-bg:rgba(167,139,250,0.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="stat-icon" style="color:#A78BFA;">
+        <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <span style="font-size:11px;font-weight:600;color:#A78BFA;background:rgba(167,139,250,0.1);padding:3px 8px;border-radius:6px;">L4 Low &amp; Slow</span>
+    </div>
+    <div class="stat-value" style="color:#A78BFA;" id="stat-slowloris">{{ count_slowloris }}</div>
+    <div class="stat-label">Slowloris Attack</div>
+  </div>
+
+</div>
+
+<!-- ── INTERACTIVE TESTING & ATTACK SANDBOX ── -->
+<div class="card" style="margin-bottom:28px;">
+  <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+    <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+      <svg style="width:18px;height:18px;color:#EF4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+      Pusat Uji Serangan &amp; Verifikasi Pertahanan DDoS
+    </div>
+    <span class="badge" style="background:rgba(239,68,68,0.15);color:#EF4444;">Live Testbed</span>
+  </div>
+
+  <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:18px;line-height:1.6;">
+    Anda dapat menguji respons pertahanan sistem dengan dua cara: <strong>Simulasi Langsung 1-Klik</strong> (menembakkan paket terstruktur ke sniffer dan model XGBoost) atau <strong>Uji Nyata melalui Terminal/Kali Linux</strong> dengan request konkurensi tinggi.
+  </div>
+
+  <!-- 1-Click Simulator Actions -->
+  <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+    <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:#06B6D4;"></span>
+      Opsi 1: Uji Cepat Langsung dari Dashboard (1-Click Pipeline Simulator)
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button onclick="triggerSimulate('DDoS', 150)" class="btn btn-secondary btn-sm" id="btn-sim-ddos" style="display:inline-flex;align-items:center;gap:6px;border-color:rgba(239,68,68,0.4);color:#EF4444;">
+        <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        <span>Uji DDoS HTTP Flood (150 Pkt)</span>
+      </button>
+
+      <button onclick="triggerSimulate('DoS Hulk', 150)" class="btn btn-secondary btn-sm" id="btn-sim-hulk" style="display:inline-flex;align-items:center;gap:6px;border-color:rgba(245,158,11,0.4);color:#F59E0B;">
+        <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+        <span>Uji DoS Hulk Flooding (150 Pkt)</span>
+      </button>
+
+      <button onclick="triggerSimulate('PortScan', 80)" class="btn btn-secondary btn-sm" id="btn-sim-scan" style="display:inline-flex;align-items:center;gap:6px;border-color:rgba(6,182,212,0.4);color:#06B6D4;">
+        <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Uji Port Scanning (80 Port)</span>
+      </button>
+
+      <button onclick="triggerSimulate('DoS slowloris', 50)" class="btn btn-secondary btn-sm" id="btn-sim-slow" style="display:inline-flex;align-items:center;gap:6px;border-color:rgba(167,139,250,0.4);color:#A78BFA;">
+        <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Uji Slowloris (50 Pkt)</span>
+      </button>
+    </div>
+
+    <!-- Simulator Feedback Toast Box -->
+    <div id="sim-feedback-box" style="display:none;margin-top:14px;padding:10px 14px;border-radius:8px;font-size:12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10B981;">
+      <span id="sim-feedback-msg">Hasil pengujian simulasi</span>
     </div>
   </div>
-  <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(255,171,64,0.15);color:#ffab40;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+
+  <!-- Kali Linux Real Test Command Guide -->
+  <div style="background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:12px;padding:16px 20px;">
+    <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:#EF4444;"></span>
+      Opsi 2: Uji Nyata dari Kali Linux / Terminal (Wajib Konkurensi / Multi-Request)
     </div>
-    <div class="stat-body">
-      <div class="stat-value" style="color:#ffab40;">{{ count_dos_hulk }}</div>
-      <div class="stat-label">DoS Hulk Flooding</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;line-height:1.6;">
+      <strong>Penyebab Pengujian Sekuensial Gagal:</strong> Web server backend lokal (PHP) memproses 1 request dalam ~0.5–1.0 detik. Jika Anda menjalankan <code>curl</code> berurutan satu demi satu, hanya ~10–15 request yang selesai dalam jendela 10 detik, sehingga ambang batas tidak pernah terlampaui. <em>Gunakan perintah konkurensi di bawah agar request dikirim serentak</em>:
     </div>
-  </div>
-  <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(64,196,255,0.15);color:#40c4ff;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    </div>
-    <div class="stat-body">
-      <div class="stat-value" style="color:#40c4ff;">{{ count_portscan }}</div>
-      <div class="stat-label">Port Scanning</div>
-    </div>
-  </div>
-  <div class="card stat-card">
-    <div class="stat-icon" style="background:rgba(167,139,250,0.15);color:#a78bfa;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-    </div>
-    <div class="stat-body">
-      <div class="stat-value" style="color:#a78bfa;">{{ count_slowloris }}</div>
-      <div class="stat-label">Slowloris Attack</div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:14px;">
+      <!-- Concurrent Curl Command -->
+      <div style="background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+        <div style="font-size:11.5px;font-weight:600;color:#38BDF8;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+          <span>Metode A: Concurrent cURL Loop (Bash)</span>
+          <button onclick="navigator.clipboard.writeText('for i in {1..35}; do curl -s -o /dev/null -w &quot;%{http_code}\n&quot; http://10.0.2.2:5000/gateway/{{ site.id }}/ &amp; done; wait');this.textContent='Disalin!';" class="btn btn-secondary btn-sm" style="font-size:10px;padding:2px 8px;">Salin</button>
+        </div>
+        <pre style="margin:0;font-family:'JetBrains Mono',monospace;font-size:11px;color:#E2E8F0;white-space:pre-wrap;word-break:break-all;">for i in {1..35}; do curl -s -o /dev/null -w "%{http_code}\n" http://10.0.2.2:5000/gateway/{{ site.id }}/ &amp; done; wait</pre>
+        <div style="font-size:10.5px;color:var(--text-dim);margin-top:6px;">Mengirim 35 request serentak di latar belakang. Respons akan langsung berubah menjadi <span style="color:#EF4444;font-weight:700;">429 (Too Many Requests)</span>.</div>
+      </div>
+
+      <!-- Apache Benchmark Command -->
+      <div style="background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+        <div style="font-size:11.5px;font-weight:600;color:#38BDF8;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+          <span>Metode B: Apache Benchmark (ab)</span>
+          <button onclick="navigator.clipboard.writeText('ab -n 40 -c 10 http://10.0.2.2:5000/gateway/{{ site.id }}/');this.textContent='Disalin!';" class="btn btn-secondary btn-sm" style="font-size:10px;padding:2px 8px;">Salin</button>
+        </div>
+        <pre style="margin:0;font-family:'JetBrains Mono',monospace;font-size:11px;color:#E2E8F0;white-space:pre-wrap;word-break:break-all;">ab -n 40 -c 10 http://10.0.2.2:5000/gateway/{{ site.id }}/</pre>
+        <div style="font-size:10.5px;color:var(--text-dim);margin-top:6px;">Mengirim total 40 request dengan konkurensi 10. Non-2xx responses menandakan blokir NIDS aktif.</div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Grid 2: Configuration & Flow Engine Info -->
+<!-- ── GRID 2: KONFIGURASI RATE LIMITER & FLOW ENGINE TELEMETRY ── -->
 <div class="grid-2 mb-6" style="align-items:start;">
 
   <!-- Form Konfigurasi Rate Limiter -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title" style="display:flex;align-items:center;gap:6px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Konfigurasi Tier 1 Rate Limiter
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+        <svg style="width:16px;height:16px;color:#06B6D4;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        Ambang Batas Tier 1 Rate Limiter
       </div>
-      <span class="badge" style="background:rgba(0,230,118,0.15);color:#00e676;">Aktif</span>
+      <span class="badge" style="background:rgba(16,185,129,0.15);color:#10B981;">Aktif</span>
     </div>
+
+    <!-- Quick Presets -->
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Pilih Preset Cepat:</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="setPreset(20, 10)" style="font-size:11px;padding:4px 10px;border-color:rgba(16,185,129,0.4);color:#10B981;">
+        Demo / Testing (20 req / 10s)
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="setPreset(60, 15)" style="font-size:11px;padding:4px 10px;border-color:rgba(6,182,212,0.4);color:#06B6D4;">
+        Standar (60 req / 15s)
+      </button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="setPreset(120, 15)" style="font-size:11px;padding:4px 10px;">
+        Produksi (120 req / 15s)
+      </button>
+    </div>
+
     <form method="POST">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">
-        Sesuaikan ambang batas frekuensi request per unit waktu. Permintaan yang melampaui batas ini akan otomatis ditandai sebagai anomali DDoS sebelum membebani server backend.
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
         <div>
           <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Batas Maksimal Permintaan (Req)</label>
-          <input type="number" name="ddos_threshold_req" class="form-control" value="{{ site.ddos_threshold_req or 100 }}" min="10" max="10000" required style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:#fff;">
-          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Default: 100 requests</div>
+          <input type="number" id="input_ddos_req" name="ddos_threshold_req" class="form-control" value="{{ site.ddos_threshold_req or 20 }}" min="10" max="10000" required style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;color:#fff;font-family:'JetBrains Mono',monospace;">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Minimal 10 requests</div>
         </div>
         <div>
           <label class="form-label" style="font-size:12px;font-weight:600;display:block;margin-bottom:6px;">Jendela Waktu Sliding (Detik)</label>
-          <input type="number" name="ddos_window_sec" class="form-control" value="{{ site.ddos_window_sec or 10 }}" min="1" max="300" required style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.25);border:1px solid var(--border);border-radius:8px;color:#fff;">
-          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Default: 10 detik</div>
+          <input type="number" id="input_ddos_win" name="ddos_window_sec" class="form-control" value="{{ site.ddos_window_sec or 10 }}" min="1" max="300" required style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;color:#fff;font-family:'JetBrains Mono',monospace;">
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Rekomendasi 10–15 detik</div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        Simpan Ambang Batas Rate Limiter
-      </button>
+
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;">
+          <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          Simpan Ambang Batas
+        </button>
+
+        <button type="button" onclick="resetRateLimiterCache()" class="btn btn-secondary" id="btn-reset-cache" title="Bersihkan riwayat hitungan request per IP saat ini" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;font-size:12px;">
+          <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Reset Cache IP
+        </button>
+      </div>
     </form>
   </div>
 
-  <!-- Info Fitur Alur XGBoost -->
+  <!-- Telemetri Flow Engine XGBoost -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title" style="display:flex;align-items:center;gap:6px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V17a1 1 0 0 1-2 0v-.07A7.003 7.003 0 0 1 5.07 11H5a1 1 0 0 1 0-2h.07A7.003 7.003 0 0 1 11 5.07V5a1 1 0 0 1 2 0v.07A7.003 7.003 0 0 1 18.93 11H19a1 1 0 0 1 0 2h-.07A7.003 7.003 0 0 1 13 16.93z"/></svg>
-        Tier 3 Flow Engine (XGBoost 14 Fitur)
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+        <svg style="width:16px;height:16px;color:#A78BFA;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+        Tier 3 Flow Engine &amp; Sniffer Telemetry
       </div>
-      <span class="badge" style="background:rgba(64,196,255,0.15);color:#40c4ff;">Model .pkl Ready</span>
+      <span class="badge" style="background:rgba(167,139,250,0.15);color:#A78BFA;" id="sniffer-status-badge">Live Sniffing</span>
     </div>
-    <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">
-      <div style="margin-bottom:8px;color:var(--text-primary);font-weight:600;">Karakteristik Alur yang Dianalisis:</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;">
-        <div>• Flow Packets/s</div>
-        <div>• Flow Bytes/s</div>
-        <div>• Packet Length Mean</div>
-        <div>• Packet Length Std</div>
-        <div>• Flow Duration</div>
-        <div>• Flow IAT Mean</div>
-        <div>• SYN / ACK Flag Count</div>
-        <div>• Init_Win_bytes_fwd</div>
+
+    <!-- Live Sniffer Stats Grid -->
+    <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;margin-bottom:14px;text-align:center;">
+      <div style="background:rgba(0,0,0,0.3);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:18px;font-weight:700;color:#06B6D4;" id="sniff-pkts">0</div>
+        <div style="font-size:11px;color:var(--text-dim);">Paket Dianalisis</div>
       </div>
-      <div style="margin-top:12px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:11px;border:1px solid var(--border);">
-        <strong>Jendela Deteksi Waktu Nyata:</strong> Alur dievaluasi saat mencapai batas tidak aktif <em>5.0 detik</em> atau saat menerima lonjakan <em>&ge; 50 paket</em> tanpa menunggu koneksi ditutup secara formal.
+      <div style="background:rgba(0,0,0,0.3);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:18px;font-weight:700;color:#A78BFA;" id="sniff-flows">0</div>
+        <div style="font-size:11px;color:var(--text-dim);">Sesi Alur (5-Tuple)</div>
+      </div>
+      <div style="background:rgba(0,0,0,0.3);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:18px;font-weight:700;color:#EF4444;" id="sniff-attacks">0</div>
+        <div style="font-size:11px;color:var(--text-dim);">Serangan Terdeteksi</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">
+      <div style="margin-bottom:6px;color:var(--text-primary);font-weight:600;">14 Fitur Vital CICIDS2017 yang Dianalisis:</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:10.5px;">
+        <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">Flow Packets/s</span>
+        <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">Flow Bytes/s</span>
+        <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">Packet Length Mean</span>
+        <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">Packet Length Std</span>
+        <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">Flow Duration</span>
+        <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">SYN Flag Count</span>
+        <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">ACK Flag Count</span>
+        <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">Init_Win_bytes_fwd</span>
       </div>
     </div>
   </div>
 
 </div>
 
-<!-- Recent DDoS Alerts Table -->
+<!-- ── RECENT DDOS & FLOW ALERTS TABLE ── -->
 <div class="card">
   <div class="card-header" style="flex-wrap:wrap;gap:12px;">
-    <div class="card-title" style="display:flex;align-items:center;gap:6px;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      Riwayat Insiden DDoS & Aliran Jaringan (L3/L4)
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+        <svg style="width:18px;height:18px;color:#EF4444;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        Riwayat Insiden DDoS &amp; Aliran Jaringan (L3/L4)
+      </div>
+
+      <!-- Quick Filter Pills -->
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <button class="filter-pill active" onclick="filterTable('all', this)">Semua</button>
+        <button class="filter-pill" onclick="filterTable('DDoS', this)">DDoS Flood</button>
+        <button class="filter-pill" onclick="filterTable('Hulk', this)">DoS Hulk</button>
+        <button class="filter-pill" onclick="filterTable('PortScan', this)">PortScan</button>
+        <button class="filter-pill" onclick="filterTable('Slowloris', this)">Slowloris</button>
+      </div>
     </div>
-    <a href="{{ url_for('export_alerts_csv', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:4px 10px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Unduh Laporan CSV
-    </a>
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:4px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#10B981;animation:pulse 2s infinite;"></span>
+        Auto-Refresh
+      </span>
+      <a href="{{ url_for('export_alerts_csv', website_id=site.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:5px 12px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Unduh CSV
+      </a>
+    </div>
   </div>
 
   <div class="table-wrapper">
-    <table>
+    <table id="ddos-alerts-table">
       <thead>
         <tr>
-          <th>Waktu</th>
+          <th>Waktu (WIB)</th>
           <th>Tipe Serangan</th>
           <th>Severity</th>
-          <th>Status</th>
+          <th>Status Pertahanan</th>
           <th>IP Sumber</th>
-          <th>Telemetri Alur</th>
+          <th>Telemetri &amp; Log Alur</th>
           <th>Aksi</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="ddos-table-body">
         {% if alerts %}
           {% for a in alerts %}
-          <tr class="alert-row">
-            <td class="mono" style="font-size:12px;">{{ a.created_at|wib('%d/%m %H:%M:%S') }}</td>
+          <tr class="alert-row" data-type="{{ a.attack_type }}">
+            <td class="mono" style="font-size:12px;color:#94A3B8;">{{ a.created_at|wib('%d/%m %H:%M:%S') }}</td>
             <td>
-              <span class="badge badge-ddos" style="display:inline-flex;align-items:center;gap:4px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span class="badge" style="display:inline-flex;align-items:center;gap:5px;background:{{ 'rgba(239,68,68,0.15)' if 'ddos' in a.attack_type.lower() else 'rgba(245,158,11,0.15)' if 'hulk' in a.attack_type.lower() else 'rgba(6,182,212,0.15)' if 'portscan' in a.attack_type.lower() else 'rgba(167,139,250,0.15)' }};color:{{ '#EF4444' if 'ddos' in a.attack_type.lower() else '#F59E0B' if 'hulk' in a.attack_type.lower() else '#06B6D4' if 'portscan' in a.attack_type.lower() else '#A78BFA' }};font-weight:700;">
+                <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 {{ a.attack_type }}
               </span>
             </td>
@@ -164,28 +349,28 @@
               </span>
             </td>
             <td>
-              <span class="badge" style="font-size:10px;background:{{ 'rgba(0,230,118,0.15)' if a.status=='Ditangani' else 'rgba(255,171,64,0.15)' if a.status=='False Positive' else 'rgba(255,82,82,0.15)' }};color:{{ '#00e676' if a.status=='Ditangani' else '#ffab40' if a.status=='False Positive' else '#ff5252' }};">
-                {{ a.status }}
+              <span class="badge" style="font-size:10.5px;font-weight:700;background:{{ 'rgba(239,68,68,0.15)' if a.status=='Diblokir' else 'rgba(16,185,129,0.15)' if a.status=='Ditangani' else 'rgba(245,158,11,0.15)' }};color:{{ '#EF4444' if a.status=='Diblokir' else '#10B981' if a.status=='Ditangani' else '#F59E0B' }};">
+                {{ a.status or 'Diblokir' }}
               </span>
             </td>
-            <td class="mono">{{ a.source_ip }}</td>
-            <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-muted);">
-              {{ a.detail or 'Flow Telemetry' }}
+            <td class="mono" style="color:#38BDF8;font-weight:600;">{{ a.source_ip }}</td>
+            <td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-muted);" title="{{ a.payload_sample or a.detail or 'Flow Telemetry' }}">
+              {{ a.payload_sample or a.detail or 'Flow Telemetry' }}
             </td>
             <td>
-              <a href="{{ url_for('mitigation', alert_id=a.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 7px;display:inline-flex;align-items:center;gap:4px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <a href="{{ url_for('mitigation', alert_id=a.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;">
+                <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 Mitigasi
               </a>
             </td>
           </tr>
           {% endfor %}
         {% else %}
-          <tr>
+          <tr id="empty-row">
             <td colspan="7" style="text-align:center;padding:40px;color:var(--text-dim);">
-              <span style="display:inline-flex;align-items:center;gap:6px;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Tidak ada insiden DDoS atau anomali alur jaringan yang terdeteksi.
+              <span style="display:inline-flex;align-items:center;gap:8px;">
+                <svg style="width:18px;height:18px;color:#10B981;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Belum ada insiden DDoS atau anomali alur jaringan yang terdeteksi untuk target ini.
               </span>
             </td>
           </tr>
@@ -194,5 +379,134 @@
     </table>
   </div>
 </div>
+
+<style>
+.filter-pill {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-pill:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+.filter-pill.active {
+  background: rgba(6,182,212,0.18);
+  border-color: #06B6D4;
+  color: #38BDF8;
+  font-weight: 700;
+}
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+</style>
+
+<script>
+const CURRENT_SITE_ID = {{ site.id }};
+
+function setPreset(req, sec) {
+  document.getElementById('input_ddos_req').value = req;
+  document.getElementById('input_ddos_win').value = sec;
+}
+
+function resetRateLimiterCache() {
+  const btn = document.getElementById('btn-reset-cache');
+  const origHtml = btn.innerHTML;
+  btn.innerHTML = 'Mereset...';
+  btn.disabled = true;
+
+  fetch(`/api/ddos/reset-rate/${CURRENT_SITE_ID}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(res => res.json())
+  .then(data => {
+    btn.innerHTML = 'Tereset!';
+    setTimeout(() => {
+      btn.innerHTML = origHtml;
+      btn.disabled = false;
+    }, 2000);
+  })
+  .catch(err => {
+    btn.innerHTML = 'Gagal';
+    setTimeout(() => {
+      btn.innerHTML = origHtml;
+      btn.disabled = false;
+    }, 2000);
+  });
+}
+
+function triggerSimulate(attackType, count) {
+  const fbBox = document.getElementById('sim-feedback-box');
+  const fbMsg = document.getElementById('sim-feedback-msg');
+  fbBox.style.display = 'block';
+  fbBox.style.background = 'rgba(6,182,212,0.1)';
+  fbBox.style.borderColor = 'rgba(6,182,212,0.3)';
+  fbBox.style.color = '#38BDF8';
+  fbMsg.textContent = `Menembakkan simulasi burst paket ${attackType} (${count} paket)...`;
+
+  fetch('/api/sniffer/simulate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      attack_type: attackType,
+      count: count,
+      website_id: CURRENT_SITE_ID
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    fbBox.style.background = 'rgba(16,185,129,0.12)';
+    fbBox.style.borderColor = 'rgba(16,185,129,0.35)';
+    fbBox.style.color = '#10B981';
+    fbMsg.textContent = `Berhasil! ${data.message} Flow engine akan memproses dan mencatat alert dalam 2–4 detik.`;
+    // Update live counters immediately
+    setTimeout(pollSnifferStats, 2500);
+  })
+  .catch(err => {
+    fbBox.style.background = 'rgba(239,68,68,0.12)';
+    fbBox.style.borderColor = 'rgba(239,68,68,0.35)';
+    fbBox.style.color = '#EF4444';
+    fbMsg.textContent = 'Gagal mengirim paket simulasi.';
+  });
+}
+
+function filterTable(type, pill) {
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+
+  const rows = document.querySelectorAll('#ddos-table-body tr.alert-row');
+  rows.forEach(r => {
+    const rowType = (r.getAttribute('data-type') || '').toLowerCase();
+    if (type === 'all' || rowType.includes(type.toLowerCase())) {
+      r.style.display = '';
+    } else {
+      r.style.display = 'none';
+    }
+  });
+}
+
+function pollSnifferStats() {
+  fetch('/api/sniffer/status')
+    .then(r => r.json())
+    .then(data => {
+      if (document.getElementById('sniff-pkts')) document.getElementById('sniff-pkts').textContent = data.packets_captured || 0;
+      if (document.getElementById('sniff-flows')) document.getElementById('sniff-flows').textContent = data.flows_analyzed || 0;
+      if (document.getElementById('sniff-attacks')) document.getElementById('sniff-attacks').textContent = data.attacks_detected || 0;
+    })
+    .catch(() => {});
+}
+
+// Polling auto-refresh telemetri setiap 4 detik
+setInterval(pollSnifferStats, 4000);
+pollSnifferStats();
+</script>
 
 {% endblock %}
