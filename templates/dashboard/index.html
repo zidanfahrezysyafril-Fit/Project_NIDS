@@ -524,9 +524,12 @@ function appendAlerts(alerts) {
 }
 
 function updateStatsCount(newAlerts) {
-  const ddos = newAlerts.filter(a=>a.type==='DDoS').length;
-  const xss  = newAlerts.filter(a=>a.type==='XSS').length;
-  const sqli = newAlerts.filter(a=>a.type==='SQL Injection').length;
+  const ddos = newAlerts.filter(a => {
+    const t = (a.type || '').toLowerCase();
+    return t.includes('ddos') || t.includes('dos') || t.includes('hulk') || t.includes('portscan') || t.includes('slowloris');
+  }).length;
+  const xss  = newAlerts.filter(a => (a.type || '').toUpperCase().includes('XSS')).length;
+  const sqli = newAlerts.filter(a => (a.type || '').toUpperCase().includes('SQL')).length;
   const upd  = (id, delta) => {
     const el = document.getElementById(id);
     if (el) el.textContent = parseInt(el.textContent||0) + delta;
@@ -602,13 +605,16 @@ async function toggleSniffer() {
 
 async function triggerSnifferBurst(atkType) {
   try {
-    await fetch('/api/sniffer/simulate', {
+    const res = await fetch('/api/sniffer/simulate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ attack_type: atkType, count: 120 })
+      body: JSON.stringify({ attack_type: atkType, count: 120, website_id: WEBSITE_ID })
     });
+    const d = await res.json();
     fetchSnifferStatus();
-    setTimeout(fetchAlerts, 1000);
+    setTimeout(fetchAlerts, 500);
+    setTimeout(fetchAlerts, 1500);
+    setTimeout(fetchSnifferStatus, 2000);
   } catch (e) {
     console.error('Sniffer burst error:', e);
   }

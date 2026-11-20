@@ -336,7 +336,7 @@ def dashboard(website_id):
     # Precalculate stats to pass to template cleanly (avoids complex Jinja in HTML/JS)
     last_ts = int(recent_alerts[0].created_at.timestamp()) if recent_alerts else 0
     last_alert_id = recent_alerts[0].id if recent_alerts else 0
-    stat_ddos = sum(1 for a in recent_alerts if a.attack_type == 'DDoS')
+    stat_ddos = sum(1 for a in recent_alerts if any(k in a.attack_type.lower() for k in ['ddos', 'dos', 'hulk', 'portscan', 'slowloris']))
     stat_xss = sum(1 for a in recent_alerts if 'XSS' in a.attack_type)
     stat_sqli = sum(1 for a in recent_alerts if 'SQL' in a.attack_type)
     stat_other = max(0, len(recent_alerts) - (stat_ddos + stat_xss + stat_sqli))
