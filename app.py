@@ -472,6 +472,9 @@ def api_alerts(website_id):
         'severity': a.severity,
         'status': a.status,
         'source_ip': a.source_ip,
+        'target_endpoint': a.target_endpoint,
+        'payload_sample': a.payload_sample,
+        'pattern_detected': a.pattern_detected,
         'detail': a.detail,
         'created_at': a.created_at.isoformat()
     } for a in alerts])

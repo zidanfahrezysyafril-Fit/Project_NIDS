@@ -354,8 +354,20 @@
               </span>
             </td>
             <td class="mono" style="color:#38BDF8;font-weight:600;">{{ a.source_ip }}</td>
-            <td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--text-muted);" title="{{ a.payload_sample or a.detail or 'Flow Telemetry' }}">
-              {{ a.payload_sample or a.detail or 'Flow Telemetry' }}
+            <td style="min-width:280px;max-width:550px;font-size:12px;color:#CBD5E1;word-break:break-word;line-height:1.45;vertical-align:top;">
+              {% if a.target_endpoint and a.target_endpoint not in ('/', '') %}
+                <div style="font-family:'JetBrains Mono',monospace;color:#38BDF8;font-weight:600;font-size:12px;word-break:break-all;margin-bottom:3px;">
+                  {{ a.target_endpoint|unquote }}
+                </div>
+              {% endif %}
+              {% if a.payload_sample %}
+                <span style="color:#F43F5E;font-family:'JetBrains Mono',monospace;font-weight:600;background:rgba(244,63,94,0.08);padding:1px 6px;border-radius:4px;border:1px solid rgba(244,63,94,0.2);display:inline-block;margin-bottom:2px;">{{ a.payload_sample }}</span>
+              {% endif %}
+              {% if a.pattern_detected %}
+                <span style="color:#94A3B8;margin-left:4px;font-size:11px;">&bull; {{ a.pattern_detected }}</span>
+              {% elif not a.payload_sample %}
+                <span style="color:#94A3B8;">{{ a.detail or 'Flow Telemetry' }}</span>
+              {% endif %}
             </td>
             <td>
               <a href="{{ url_for('mitigation', alert_id=a.id) }}" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 8px;display:inline-flex;align-items:center;gap:4px;">

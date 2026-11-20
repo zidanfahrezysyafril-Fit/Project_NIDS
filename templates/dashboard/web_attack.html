@@ -168,15 +168,17 @@
               </span>
             </td>
             <td class="mono">{{ a.source_ip }}</td>
-            <td style="max-width:320px;font-size:12px;">
-              <div style="font-family:'JetBrains Mono',monospace;color:#c084fc;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="{{ a.target_endpoint|unquote }}">
+            <td style="min-width:280px;max-width:550px;font-size:12.5px;line-height:1.45;word-break:break-word;vertical-align:top;">
+              <div style="font-family:'JetBrains Mono',monospace;color:#c084fc;font-weight:600;font-size:12px;word-break:break-all;line-height:1.4;" title="{{ a.target_endpoint|unquote }}">
                 {{ a.target_endpoint|unquote if a.target_endpoint and a.target_endpoint not in ('/', '') else (a.detail or '–') }}
               </div>
-              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4;word-break:break-word;">
                 {% if a.payload_sample and a.payload_sample not in ["'", "--", ""] %}
-                  <span style="color:#f472b6;font-family:monospace;">{{ a.payload_sample[:40] }}</span> &bull;
+                  <span style="color:#f472b6;font-family:'JetBrains Mono',monospace;font-weight:600;background:rgba(244,114,182,0.08);padding:1px 6px;border-radius:4px;border:1px solid rgba(244,114,182,0.2);display:inline-block;margin-bottom:2px;">{{ a.payload_sample }}</span>
                 {% endif %}
-                {{ a.pattern_detected }}
+                {% if a.pattern_detected %}
+                  <span style="color:#CBD5E1;margin-left:4px;">&bull; {{ a.pattern_detected }}</span>
+                {% endif %}
               </div>
             </td>
             <td>
