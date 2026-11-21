@@ -15,237 +15,433 @@
 {% endblock %}
 
 {% block content %}
-<div style="display:flex;flex-direction:column;gap:18px;">
+<style>
+/* Lock body scroll so ONLY chat box is scrollable */
+.page-content {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
 
-  <!-- ── COPILOT CONTROLS & TELEMETRY GLASS BAR ── -->
-  <div class="card" style="margin-bottom:0;padding:14px 20px;background:linear-gradient(135deg,rgba(167,139,250,0.06) 0%,rgba(10,14,22,0.92) 100%);border:1px solid rgba(167,139,250,0.22);border-radius:14px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
-      
-      <!-- Left: Engine & Model Switcher -->
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:#A78BFA;background:rgba(167,139,250,0.12);border:1px solid rgba(167,139,250,0.3);padding:4px 10px;border-radius:8px;">
-          <span style="width:6px;height:6px;border-radius:50%;background:#A78BFA;box-shadow:0 0 8px #A78BFA;"></span>
-          SOC Copilot v2.0
-        </div>
+/* ── Chat Messages Layout & Avatars ── */
+.chat-row {
+  display: flex;
+  gap: 12px;
+  max-width: 90%;
+  animation: fadeInMsg 0.3s ease;
+}
+.chat-row.user {
+  margin-left: auto;
+  flex-direction: row-reverse;
+}
+.chat-row.assistant {
+  margin-right: auto;
+}
 
-        <!-- Model Switcher Dropdown -->
-        <div style="display:flex;align-items:center;gap:7px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:4px 10px;">
-          <svg style="width:13px;height:13px;color:#38BDF8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-          <span style="font-size:11px;color:#94A3B8;font-weight:600;">Model:</span>
-          <select id="model-select" style="background:transparent;border:none;color:#38BDF8;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;outline:none;cursor:pointer;">
-            <option value="gemini-2.0-flash" selected style="background:#0F172A;color:#E2E8F0;">gemini-2.0-flash (Default • Cepat &amp; Kuota Longgar)</option>
-            <option value="gemini-1.5-flash" style="background:#0F172A;color:#E2E8F0;">gemini-1.5-flash (Stabil)</option>
-            <option value="gemini-2.5-flash" style="background:#0F172A;color:#E2E8F0;">gemini-2.5-flash (Deep Reasoning)</option>
-          </select>
-        </div>
+.msg-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 13px;
+}
+.msg-avatar.assistant {
+  background: linear-gradient(135deg, #7C3AED, #06B6D4);
+  box-shadow: 0 0 12px rgba(124,58,237,0.35);
+  color: #fff;
+}
+.msg-avatar.user {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #38BDF8;
+}
 
-        <div style="font-size:11.5px;color:#64748B;display:flex;align-items:center;gap:6px;">
-          <span style="width:5px;height:5px;border-radius:50%;background:#10B981;"></span>
-          <span>Sanitasi Delimiter <code>&lt;attack_log&gt;</code> Aktif</span>
-        </div>
-      </div>
+.msg-body {
+  border-radius: 14px;
+  padding: 12px 18px;
+  line-height: 1.6;
+  font-size: 13.5px;
+}
+.msg-body.assistant {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(167,139,250,0.18);
+  border-bottom-left-radius: 4px;
+  color: #E2E8F0;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+}
+.msg-body.user {
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  border-bottom-right-radius: 4px;
+  color: #FFFFFF;
+  box-shadow: 0 4px 15px rgba(37,99,235,0.3);
+}
 
-      <!-- Right: BYOK Key Status & Token Counter -->
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        
-        <!-- Live Key Pill -->
-        <div id="byok-status-pill" onclick="openByokModal()" style="font-size:11.5px;padding:5px 12px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.2s ease;">
-          <span style="width:7px;height:7px;border-radius:50%;" id="byok-dot"></span>
-          <span id="byok-label">Server Key</span>
-        </div>
+.msg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding-bottom: 6px;
+}
 
-        <!-- BYOK Modal Trigger -->
-        <button onclick="openByokModal()" class="btn btn-secondary btn-sm" style="font-size:11.5px;padding:6px 12px;display:inline-flex;align-items:center;gap:5px;border-color:rgba(167,139,250,0.3);color:#A78BFA;">
-          <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
-          </svg>
-          <span>API Key (BYOK)</span>
-        </button>
+/* ── Interactive Chips ── */
+.chip-btn {
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.09);
+  color: #94A3B8;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.chip-btn:hover {
+  background: rgba(167,139,250,0.15);
+  border-color: rgba(167,139,250,0.4);
+  color: #E2E8F0;
+  transform: translateY(-1px);
+}
 
-        <!-- Usage Token Button -->
-        <button onclick="openUsageModal()" class="btn btn-secondary btn-sm" style="font-size:11.5px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px;border-color:rgba(6,182,212,0.3);color:#38BDF8;" title="Lihat akumulasi pemakaian token">
-          <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-          </svg>
-          <span>Token: <strong id="token-total-badge" style="font-family:'JetBrains Mono',monospace;">0</strong></span>
-        </button>
+.feature-tile:hover {
+  background: rgba(167,139,250,0.08) !important;
+  border-color: rgba(167,139,250,0.3) !important;
+  transform: translateY(-2px);
+}
 
-      </div>
-    </div>
-  </div>
+/* ── Model Picker Dropup ── */
+.model-item-active {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(167,139,250,0.14);
+  border: 1px solid rgba(167,139,250,0.35);
+  color: #E2E8F0;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.model-item-active:hover {
+  background: rgba(167,139,250,0.22);
+}
 
-  <!-- ── CONTEXTUAL ALERT BANNER (If loaded with ?alert_id=...) ── -->
-  {% if target_alert %}
-  <div id="target-alert-card" style="background:linear-gradient(135deg,rgba(239,68,68,0.12) 0%,rgba(15,23,42,0.95) 100%);border:1px solid rgba(239,68,68,0.35);border-radius:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;box-shadow:0 10px 25px -5px rgba(239,68,68,0.15);">
-    <div style="display:flex;align-items:flex-start;gap:14px;">
-      <div style="width:38px;height:38px;border-radius:10px;background:rgba(239,68,68,0.18);border:1px solid rgba(239,68,68,0.4);display:flex;align-items:center;justify-content:center;color:#EF4444;flex-shrink:0;margin-top:2px;">
-        <svg style="width:20px;height:20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+.model-item-disabled {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #64748B;
+  opacity: 0.38;
+  cursor: not-allowed !important;
+  user-select: none;
+  font-size: 12px;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.model-item-disabled:hover {
+  opacity: 0.55;
+  background: rgba(239,68,68,0.05);
+  border-color: rgba(239,68,68,0.2);
+}
+
+.code-container {
+  margin: 10px 0;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.code-header {
+  background: rgba(255,255,255,0.06);
+  padding: 5px 12px;
+  font-size: 11px;
+  color: #94A3B8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+@keyframes fadeInMsg {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #A78BFA;
+  display: inline-block;
+  animation: bounce 1.2s infinite ease-in-out;
+}
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
+</style>
+
+<!-- ── SINGLE MAIN CHAT CARD (NON-SCROLL CONTAINER) ── -->
+<div class="card" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:calc(100vh - 150px);min-height:560px;background:linear-gradient(135deg,rgba(18,24,38,0.95) 0%,rgba(10,14,22,0.98) 100%);border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.4);border-radius:18px;">
+  
+  <!-- ── 1. CARD INTEGRATED HEADER (Filled from left to right) ── -->
+  <div style="padding:14px 22px;border-bottom:1px solid rgba(255,255,255,0.08);background:linear-gradient(135deg,rgba(167,139,250,0.06) 0%,rgba(15,23,42,0.95) 100%);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    
+    <!-- Left: Copilot Identity & Telemetry Tag -->
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 14px rgba(124,58,237,0.4);">
+        <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
         </svg>
       </div>
       <div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="font-weight:700;color:#FFFFFF;font-size:14.5px;">Inspeksi Insiden #{{ target_alert.id }}: {{ target_alert.attack_type }}</span>
-          <span class="badge badge-{{ 'critical' if target_alert.severity=='Kritis' else 'high' }}">{{ target_alert.severity }}</span>
-          <span style="font-size:11px;color:#94A3B8;font-family:'JetBrains Mono',monospace;">IP: {{ target_alert.source_ip or '-' }}</span>
+        <div style="font-weight:700;font-size:14.5px;color:#FFFFFF;display:flex;align-items:center;gap:8px;">
+          <span>AI Security Copilot</span>
+          <span style="font-size:10px;font-weight:700;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);color:#A78BFA;padding:1px 6px;border-radius:4px;">SOC v2.0</span>
+          <span style="font-size:11px;color:#64748B;">&bull; {{ site.name }}</span>
         </div>
-        <div style="font-size:12px;color:#CBD5E1;margin-top:4px;word-break:break-all;line-height:1.5;">
-          Endpoint: <code style="color:#38BDF8;font-family:'JetBrains Mono',monospace;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;">{{ target_alert.target_endpoint or '/' }}</code>
-          {% if target_alert.payload_sample %}
-            &bull; Payload: <span style="color:#F43F5E;font-family:'JetBrains Mono',monospace;font-weight:600;background:rgba(244,63,94,0.1);padding:2px 6px;border-radius:4px;">{{ target_alert.payload_sample }}</span>
-          {% endif %}
+        <div style="font-size:11px;color:#94A3B8;display:flex;align-items:center;gap:6px;margin-top:2px;">
+          <span style="width:5px;height:5px;border-radius:50%;background:#10B981;box-shadow:0 0 6px #10B981;"></span>
+          <span>Inspeksi Terisolasi Delimiter <code>&lt;attack_log&gt;</code></span>
         </div>
       </div>
     </div>
-    <button onclick="analyzeTargetAlertNow()" class="btn btn-primary btn-sm" id="btn-analyze-target" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;box-shadow:0 0 15px rgba(6,182,212,0.35);">
-      <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-      </svg>
-      <span>Mulai Analisis Mitigasi AI</span>
+
+    <!-- Right: BYOK Key Status & Token Badges (Fills the right area cleanly) -->
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      
+      <!-- Key Status Pill -->
+      <div id="byok-status-pill" onclick="openByokModal()" style="font-size:11px;padding:5px 12px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.2s ease;">
+        <span style="width:6px;height:6px;border-radius:50%;" id="byok-dot"></span>
+        <span id="byok-label">Server Key</span>
+      </div>
+
+      <!-- BYOK Settings Button -->
+      <button onclick="openByokModal()" class="btn btn-secondary btn-sm" style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;border-color:rgba(167,139,250,0.3);color:#A78BFA;">
+        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+        </svg>
+        <span>API Key (BYOK)</span>
+      </button>
+
+      <!-- Usage Token Button -->
+      <button onclick="openUsageModal()" class="btn btn-secondary btn-sm" style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:6px;border-color:rgba(6,182,212,0.3);color:#38BDF8;" title="Lihat akumulasi pemakaian token">
+        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <span>Token: <strong id="token-total-badge" style="font-family:'JetBrains Mono',monospace;">0</strong></span>
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- ── 2. CONTEXTUAL ALERT STRIP (If loaded with ?alert_id=...) ── -->
+  {% if target_alert %}
+  <div id="target-alert-card" style="padding:10px 22px;background:rgba(239,68,68,0.08);border-bottom:1px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div style="display:flex;align-items:center;gap:10px;font-size:12px;">
+      <span style="color:#EF4444;font-weight:700;">[Inspeksi Insiden #{{ target_alert.id }}]</span>
+      <span class="badge badge-{{ 'critical' if target_alert.severity=='Kritis' else 'high' }}">{{ target_alert.severity }}</span>
+      <span style="font-weight:600;color:#FFFFFF;">{{ target_alert.attack_type }}</span>
+      <span style="color:#64748B;">&bull; Endpoint: <code style="color:#38BDF8;">{{ target_alert.target_endpoint or '/' }}</code></span>
+    </div>
+    <button onclick="analyzeTargetAlertNow()" class="btn btn-primary btn-sm" id="btn-analyze-target" style="padding:4px 12px;font-size:11px;display:inline-flex;align-items:center;gap:5px;">
+      <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      <span>Mulai Analisis Mitigasi</span>
     </button>
   </div>
   {% endif %}
 
-  <!-- ── MAIN CHAT CARD (GLASS CONTAINER) ── -->
-  <div class="card" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:calc(100vh - 270px);min-height:580px;background:linear-gradient(135deg,rgba(18,24,38,0.95) 0%,rgba(10,14,22,0.98) 100%);border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.4);">
+  <!-- ── 3. CHAT SCROLL AREA (Only this area scrolls) ── -->
+  <div id="chat-box" style="flex:1;min-height:0;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:18px;scroll-behavior:smooth;">
     
-    <!-- Messages Scroll Area -->
-    <div id="chat-box" style="flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;scroll-behavior:smooth;">
-      
-      <!-- Welcome Hero Card inside Chat -->
-      <div style="background:linear-gradient(135deg,rgba(167,139,250,0.08) 0%,rgba(6,182,212,0.04) 50%,rgba(15,23,42,0.6) 100%);border:1px solid rgba(167,139,250,0.2);border-radius:16px;padding:22px;margin-bottom:8px;position:relative;overflow:hidden;">
+    <!-- Hero Welcome Tile -->
+    <div style="background:linear-gradient(135deg,rgba(167,139,250,0.07) 0%,rgba(6,182,212,0.03) 50%,rgba(15,23,42,0.6) 100%);border:1px solid rgba(167,139,250,0.18);border-radius:14px;padding:20px;position:relative;">
+      <h3 style="margin:0 0 4px;font-size:15px;font-weight:700;color:#FFFFFF;display:flex;align-items:center;gap:8px;">
+        <span>Asisten Keamanan Terintegrasi</span>
+        <span style="font-size:10.5px;color:#38BDF8;background:rgba(56,189,248,0.12);padding:1px 6px;border-radius:4px;border:1px solid rgba(56,189,248,0.25);">Dual-Mode Active</span>
+      </h3>
+      <p style="font-size:12.5px;color:#94A3B8;line-height:1.5;margin:0 0 14px;">
+        Halo <strong>{{ current_user.full_name or current_user.username }}</strong>! Anda dapat menanyakan analisis teknis dari insiden serangan yang terdeteksi, langkah perbaikan celah kode, aturan firewall, maupun diskusi umum seputar keamanan siber.
+      </p>
+
+      <!-- 3 Quick Capability Cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:10px;">
         
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-          <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 16px rgba(124,58,237,0.4);">
-            <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
-            </svg>
+        <div class="feature-tile" onclick="sendQuestion('Jelaskan mekanisme serangan SQL Injection yang umum menyerang endpoint PHP dan berikan contoh konkret perbaikan prepared statement PDO.')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.25s ease;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:14px;">🛡️</span>
+            <span style="font-size:11.5px;font-weight:700;color:#E2E8F0;">Analisis Celah &amp; SQLi</span>
           </div>
-          <div>
-            <h3 style="margin:0;font-size:16px;font-weight:700;color:#FFFFFF;display:flex;align-items:center;gap:8px;">
-              <span>AI Security Copilot</span>
-              <span style="font-size:11px;font-weight:600;color:#38BDF8;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.3);padding:2px 8px;border-radius:6px;">Target: {{ site.name }}</span>
-            </h3>
-            <p style="margin:2px 0 0;font-size:12px;color:#94A3B8;">
-              Asisten Keamanan Siber Khusus NIDS &bull; Dual-Mode (Analisis Serangan &amp; Konsultasi Bebas)
-            </p>
+          <div style="font-size:10.5px;color:#94A3B8;line-height:1.4;">
+            Membedah payload injection &amp; contoh kode PDO prepared statement.
           </div>
         </div>
 
-        <p style="font-size:13px;color:#CBD5E1;line-height:1.6;margin:0 0 16px;">
-          Halo <strong>{{ current_user.full_name or current_user.username }}</strong>! Anda dapat menanyakan analisis insiden serangan yang terdeteksi, panduan mitigasi kode teknis, aturan firewall, atau berdiskusi umum seputar arsitektur keamanan siber.
-        </p>
-
-        <!-- 3 Interactive Feature Tiles -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:12px;">
-          
-          <div class="feature-tile" onclick="sendQuestion('Jelaskan mekanisme serangan SQL Injection yang umum menyerang endpoint PHP dan berikan contoh konkret perbaikan prepared statement PDO.')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all 0.25s ease;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-              <span style="color:#A78BFA;font-size:16px;">🛡️</span>
-              <span style="font-size:12px;font-weight:700;color:#E2E8F0;">Analisis Celah &amp; SQLi</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;line-height:1.4;">
-              Membedah payload injection &amp; memberikan contoh kode PDO prepared statement.
-            </div>
+        <div class="feature-tile" onclick="sendQuestion('Bagaimana cara paling efektif memitigasi serangan DDoS HTTP Flood dan Slowloris pada server web dengan rate limiting?')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.25s ease;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:14px;">⚡</span>
+            <span style="font-size:11.5px;font-weight:700;color:#E2E8F0;">Mitigasi DDoS &amp; Flooding</span>
           </div>
-
-          <div class="feature-tile" onclick="sendQuestion('Bagaimana cara paling efektif memitigasi serangan DDoS HTTP Flood dan Slowloris pada server web dengan rate limiting?')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all 0.25s ease;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-              <span style="color:#EF4444;font-size:16px;">⚡</span>
-              <span style="font-size:12px;font-weight:700;color:#E2E8F0;">Mitigasi DDoS &amp; Flooding</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;line-height:1.4;">
-              Langkah mitigasi L3/L4 volumetrik, Nginx limit_req, dan proteksi reverse proxy.
-            </div>
+          <div style="font-size:10.5px;color:#94A3B8;line-height:1.4;">
+            Langkah mitigasi L3/L4 volumetrik, Nginx limit_req, &amp; reverse proxy.
           </div>
+        </div>
 
-          <div class="feature-tile" onclick="sendQuestion('Buatkan konfigurasi keamanan lengkap untuk file .htaccess guna mencegah XSS, directory listing, dan akses file konfigurasi .env.')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all 0.25s ease;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-              <span style="color:#06B6D4;font-size:16px;">🔒</span>
-              <span style="font-size:12px;font-weight:700;color:#E2E8F0;">Hardening .htaccess &amp; Server</span>
-            </div>
-            <div style="font-size:11px;color:#94A3B8;line-height:1.4;">
-              Generate aturan blokir IP, proteksi file sensitif, dan header Content Security Policy.
-            </div>
+        <div class="feature-tile" onclick="sendQuestion('Buatkan konfigurasi keamanan lengkap untuk file .htaccess guna mencegah XSS, directory listing, dan akses file konfigurasi .env.')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.25s ease;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:14px;">🔒</span>
+            <span style="font-size:11.5px;font-weight:700;color:#E2E8F0;">Hardening .htaccess &amp; Server</span>
           </div>
-
+          <div style="font-size:10.5px;color:#94A3B8;line-height:1.4;">
+            Generate aturan blokir IP, proteksi file sensitif, &amp; header CSP.
+          </div>
         </div>
 
       </div>
-
-      <!-- History Messages Rendered from DB -->
-      {% for msg in history %}
-      <div class="chat-row {{ msg.role }}">
-        {% if msg.role == 'assistant' %}
-        <div class="msg-avatar assistant">
-          <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
-          </svg>
-        </div>
-        <div class="msg-body assistant">
-          <div class="msg-header">
-            <span style="font-weight:700;color:#A78BFA;font-size:12px;">AI Copilot</span>
-            <span style="font-size:10.5px;color:#64748B;">{{ msg.created_at|wib('%d/%m %H:%M') if msg.created_at else '' }}</span>
-          </div>
-          <div class="msg-text formatted-content">{{ msg.content|safe }}</div>
-        </div>
-        {% else %}
-        <div class="msg-avatar user">
-          {{ current_user.full_name[0]|upper if current_user.full_name else 'U' }}
-        </div>
-        <div class="msg-body user">
-          <div class="msg-text">{{ msg.content }}</div>
-        </div>
-        {% endif %}
-      </div>
-      {% endfor %}
-
     </div>
 
-    <!-- ── QUICK PROMPTS CHIPS BAR ── -->
-    <div style="padding:10px 20px;background:rgba(15,23,42,0.9);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span style="font-size:11px;color:#64748B;font-weight:600;display:flex;align-items:center;gap:4px;">
-        <svg style="width:12px;height:12px;color:#06B6D4;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <!-- History Messages from DB -->
+    {% for msg in history %}
+    <div class="chat-row {{ msg.role }}">
+      {% if msg.role == 'assistant' %}
+      <div class="msg-avatar assistant">
+        <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
+        </svg>
+      </div>
+      <div class="msg-body assistant">
+        <div class="msg-header">
+          <span style="font-weight:700;color:#A78BFA;font-size:12px;">AI Copilot</span>
+          <span style="font-size:10px;color:#64748B;">{{ msg.created_at|wib('%d/%m %H:%M') if msg.created_at else '' }}</span>
+        </div>
+        <div class="msg-text formatted-content">{{ msg.content|safe }}</div>
+      </div>
+      {% else %}
+      <div class="msg-avatar user">
+        {{ current_user.full_name[0]|upper if current_user.full_name else 'U' }}
+      </div>
+      <div class="msg-body user">
+        <div class="msg-text">{{ msg.content }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <!-- ── 4. QUICK PROMPTS CHIPS BAR ── -->
+  <div style="padding:8px 20px;background:rgba(15,23,42,0.85);border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span style="font-size:10.5px;color:#64748B;font-weight:600;display:flex;align-items:center;gap:4px;">
+      <svg style="width:11px;height:11px;color:#06B6D4;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+      Saran Cepat:
+    </span>
+    <button class="chip-btn quick-q" data-q="Analisis insiden serangan terakhir yang terdeteksi di website saya dan berikan langkah mitigasi konkritnya.">
+      Analisis Insiden Terakhir
+    </button>
+    <button class="chip-btn quick-q" data-q="Buatkan konfigurasi .htaccess dan Nginx untuk memblokir SQL Injection dan parameter mencurigakan.">
+      Rule .htaccess &amp; Nginx
+    </button>
+    <button class="chip-btn quick-q" data-q="Bagaimana cara terbaik memproteksi form login dari serangan SQLi dan Brute Force secara bersamaan?">
+      Proteksi Form Login
+    </button>
+    <button class="chip-btn quick-q" data-q="Jelaskan perbedaan mendasar antara DoS Hulk dan SYN Flood pada layer transport.">
+      DoS Hulk vs SYN Flood
+    </button>
+    <button class="chip-btn quick-q" data-q="Bagaimana mekanisme kerja ChaCha20-Poly1305 dalam mengamankan data rekam medis?">
+      ChaCha20 Security
+    </button>
+  </div>
+
+  <!-- ── 5. INPUT FOOTER WITH MODEL PICKER BESIDE CHAT ── -->
+  <div style="padding:14px 20px;background:rgba(10,14,22,0.98);border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:10px;align-items:center;position:relative;">
+    
+    <!-- Model Picker Beside Chat Input (Left side of textarea) -->
+    <div style="position:relative;" id="model-picker-container">
+      
+      <!-- Trigger Button -->
+      <button type="button" id="btn-model-trigger" onclick="toggleModelDropdown()" style="height:44px;padding:0 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:10px;display:flex;align-items:center;gap:7px;color:#38BDF8;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;" title="Pilih Model AI">
+        <svg style="width:13px;height:13px;color:#38BDF8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
         </svg>
-        Saran Cepat:
-      </span>
-      <button class="chip-btn quick-q" data-q="Analisis insiden serangan terakhir yang terdeteksi di website saya dan berikan langkah mitigasi konkritnya.">
-        Analisis Insiden Terakhir
-      </button>
-      <button class="chip-btn quick-q" data-q="Buatkan konfigurasi .htaccess dan Nginx untuk memblokir SQL Injection dan parameter mencurigakan.">
-        Rule .htaccess &amp; Nginx
-      </button>
-      <button class="chip-btn quick-q" data-q="Bagaimana cara terbaik memproteksi form login dari serangan SQLi dan Brute Force secara bersamaan?">
-        Proteksi Form Login
-      </button>
-      <button class="chip-btn quick-q" data-q="Jelaskan perbedaan mendasar antara DoS Hulk dan SYN Flood pada layer transport.">
-        DoS Hulk vs SYN Flood
-      </button>
-      <button class="chip-btn quick-q" data-q="Bagaimana mekanisme kerja ChaCha20-Poly1305 dalam mengamankan data rekam medis?">
-        ChaCha20 Security
-      </button>
-    </div>
-
-    <!-- ── INPUT FOOTER BAR ── -->
-    <div style="padding:14px 20px;background:rgba(10,14,22,0.98);border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:12px;align-items:flex-end;">
-      <div style="flex:1;position:relative;display:flex;align-items:center;">
-        <textarea id="chat-input"
-                  rows="1"
-                  placeholder="Ketik pertanyaan seputar keamanan siber, analisis log, atau diskusi umum..."
-                  style="width:100%;resize:none;max-height:120px;min-height:44px;line-height:1.5;padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:#F1F5F9;border-radius:10px;font-size:13px;outline:none;transition:border-color 0.2s;"
-                  onfocus="this.style.borderColor='#A78BFA';this.style.boxShadow='0 0 10px rgba(167,139,250,0.2)';"
-                  onblur="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none';"></textarea>
-      </div>
-      <button class="btn btn-primary" id="btn-send-chat" style="height:44px;padding:0 22px;display:inline-flex;align-items:center;gap:8px;flex-shrink:0;background:linear-gradient(135deg,#7C3AED,#06B6D4);border:none;border-radius:10px;font-weight:700;box-shadow:0 0 18px rgba(124,58,237,0.35);">
-        <span>Kirim</span>
-        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        <span id="selected-model-text" style="font-family:'JetBrains Mono',monospace;">Gemini 2.0 Flash</span>
+        <svg style="width:12px;height:12px;color:#94A3B8;transition:transform 0.2s;" id="chevron-model" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9"/>
         </svg>
       </button>
+
+      <!-- Upward Popover Menu -->
+      <div id="model-popover-menu" style="display:none;position:absolute;bottom:calc(100% + 10px);left:0;width:275px;background:#0F172A;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:8px;box-shadow:0 15px 35px rgba(0,0,0,0.6);z-index:9000;">
+        
+        <div style="padding:6px 8px 8px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748B;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:6px;">
+          Pilih Model Copilot
+        </div>
+
+        <!-- 1. Active Model: Gemini 2.0 Flash -->
+        <div class="model-item-active" onclick="selectModel('gemini-2.0-flash', 'Gemini 2.0 Flash')">
+          <div style="display:flex;align-items:center;gap:7px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#10B981;box-shadow:0 0 6px #10B981;"></span>
+            <span>Gemini 2.0 Flash</span>
+          </div>
+          <span style="font-size:10px;color:#10B981;font-weight:700;">Tersedia</span>
+        </div>
+
+        <!-- 2. Disabled Model: Gemini 1.5 Flash -->
+        <div class="model-item-disabled" title="Model ini belum tersedia">
+          <span>Gemini 1.5 Flash</span>
+          <span style="font-size:11px;">🚫</span>
+        </div>
+
+        <!-- 3. Disabled Model: Gemini 2.5 Flash -->
+        <div class="model-item-disabled" title="Model ini belum tersedia">
+          <span>Gemini 2.5 Flash</span>
+          <span style="font-size:11px;">🚫</span>
+        </div>
+
+        <!-- 4. Disabled Model: Claude 3.5 Sonnet -->
+        <div class="model-item-disabled" title="Model ini belum tersedia">
+          <span>Claude 3.5 Sonnet</span>
+          <span style="font-size:11px;">🚫</span>
+        </div>
+
+        <!-- 5. Disabled Model: OpenRouter -->
+        <div class="model-item-disabled" title="Model ini belum tersedia">
+          <span>OpenRouter Multi-Model</span>
+          <span style="font-size:11px;">🚫</span>
+        </div>
+
+      </div>
+
     </div>
+
+    <!-- Textarea Input Column -->
+    <div style="flex:1;position:relative;display:flex;align-items:center;">
+      <textarea id="chat-input"
+                rows="1"
+                placeholder="Ketik pertanyaan seputar keamanan siber, analisis log, atau diskusi umum..."
+                style="width:100%;resize:none;max-height:100px;min-height:44px;line-height:1.5;padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:#F1F5F9;border-radius:10px;font-size:13px;outline:none;transition:border-color 0.2s;"
+                onfocus="this.style.borderColor='#A78BFA';this.style.boxShadow='0 0 10px rgba(167,139,250,0.2)';"
+                onblur="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none';"></textarea>
+    </div>
+
+    <!-- Kirim Button -->
+    <button class="btn btn-primary" id="btn-send-chat" style="height:44px;padding:0 20px;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;background:linear-gradient(135deg,#7C3AED,#06B6D4);border:none;border-radius:10px;font-weight:700;box-shadow:0 0 16px rgba(124,58,237,0.35);">
+      <span>Kirim</span>
+      <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
 
   </div>
 
@@ -356,137 +552,6 @@
 
   </div>
 </div>
-
-<style>
-/* ── Chat Messages Layout & Avatars ── */
-.chat-row {
-  display: flex;
-  gap: 12px;
-  max-width: 90%;
-  animation: fadeInMsg 0.3s ease;
-}
-.chat-row.user {
-  margin-left: auto;
-  flex-direction: row-reverse;
-}
-.chat-row.assistant {
-  margin-right: auto;
-}
-
-.msg-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-weight: 700;
-  font-size: 13px;
-}
-.msg-avatar.assistant {
-  background: linear-gradient(135deg, #7C3AED, #06B6D4);
-  box-shadow: 0 0 12px rgba(124,58,237,0.35);
-  color: #fff;
-}
-.msg-avatar.user {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.18);
-  color: #38BDF8;
-}
-
-.msg-body {
-  border-radius: 14px;
-  padding: 12px 18px;
-  line-height: 1.6;
-  font-size: 13.5px;
-}
-.msg-body.assistant {
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(167,139,250,0.18);
-  border-bottom-left-radius: 4px;
-  color: #E2E8F0;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-}
-.msg-body.user {
-  background: linear-gradient(135deg, #2563EB, #7C3AED);
-  border-bottom-right-radius: 4px;
-  color: #FFFFFF;
-  box-shadow: 0 4px 15px rgba(37,99,235,0.3);
-}
-
-.msg-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  padding-bottom: 6px;
-}
-
-/* ── Interactive Chips ── */
-.chip-btn {
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(255,255,255,0.09);
-  color: #94A3B8;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.chip-btn:hover {
-  background: rgba(167,139,250,0.15);
-  border-color: rgba(167,139,250,0.4);
-  color: #E2E8F0;
-  transform: translateY(-1px);
-}
-
-.feature-tile:hover {
-  background: rgba(167,139,250,0.08) !important;
-  border-color: rgba(167,139,250,0.3) !important;
-  transform: translateY(-2px);
-}
-
-/* ── Code Blocks inside Chat ── */
-.code-container {
-  margin: 10px 0;
-  background: rgba(0,0,0,0.55);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.code-header {
-  background: rgba(255,255,255,0.06);
-  padding: 5px 12px;
-  font-size: 11px;
-  color: #94A3B8;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-@keyframes fadeInMsg {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.typing-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #A78BFA;
-  display: inline-block;
-  animation: bounce 1.2s infinite ease-in-out;
-}
-@keyframes bounce {
-  0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-  40% { transform: scale(1); opacity: 1; }
-}
-</style>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -496,7 +561,8 @@ const TARGET_ALERT_ID = {{ target_alert.id if target_alert else 'null' }};
 const chatBox   = document.getElementById('chat-box');
 const chatInput = document.getElementById('chat-input');
 const btnSend   = document.getElementById('btn-send-chat');
-const modelSelect = document.getElementById('model-select');
+
+let currentActiveModel = 'gemini-2.0-flash';
 
 const USER_INITIAL = '{{ current_user.full_name[0]|upper if current_user.full_name else "U" }}';
 
@@ -510,6 +576,32 @@ scrollBottom();
 chatInput.addEventListener('input', function() {
   this.style.height = 'auto';
   this.style.height = (this.scrollHeight) + 'px';
+});
+
+// ── Model Picker Dropup Logic ──
+function toggleModelDropdown() {
+  const menu = document.getElementById('model-popover-menu');
+  const chevron = document.getElementById('chevron-model');
+  const isHidden = menu.style.display === 'none';
+  menu.style.display = isHidden ? 'block' : 'none';
+  chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+function selectModel(modelId, modelName) {
+  currentActiveModel = modelId;
+  document.getElementById('selected-model-text').textContent = modelName;
+  toggleModelDropdown();
+}
+
+// Close model popover when clicked outside
+document.addEventListener('click', function(e) {
+  const container = document.getElementById('model-picker-container');
+  const menu = document.getElementById('model-popover-menu');
+  const chevron = document.getElementById('chevron-model');
+  if (container && !container.contains(e.target) && menu && menu.style.display === 'block') {
+    menu.style.display = 'none';
+    if (chevron) chevron.style.transform = 'rotate(0deg)';
+  }
 });
 
 // ── BYOK LocalStorage Management ──
@@ -671,10 +763,9 @@ function addMsg(role, rawContent, meta = null) {
   body.className = `msg-body ${role}`;
 
   if (role === 'assistant') {
-    const model = meta ? (meta.model || 'gemini-2.0-flash') : 'gemini-2.0-flash';
+    const model = meta ? (meta.model || currentActiveModel) : currentActiveModel;
     const tokens = meta && meta.usage ? meta.usage.total_tokens : null;
     const tokensText = tokens ? ` &bull; ${tokens} tokens` : '';
-    const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
     body.innerHTML = `
       <div class="msg-header">
@@ -725,7 +816,6 @@ async function sendQuestion(text, explicitAlertId = null) {
   scrollBottom();
 
   const userApiKey = getStoredApiKey();
-  const selectedModel = modelSelect.value || 'gemini-2.0-flash';
   const alertIdToSend = explicitAlertId || TARGET_ALERT_ID;
 
   try {
@@ -739,7 +829,7 @@ async function sendQuestion(text, explicitAlertId = null) {
       headers: headers,
       body: JSON.stringify({
         message: prompt,
-        model: selectedModel,
+        model: currentActiveModel,
         website_id: WEBSITE_ID,
         alert_id: alertIdToSend
       })
