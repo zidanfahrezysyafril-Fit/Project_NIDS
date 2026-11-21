@@ -82,10 +82,15 @@ class SecurityAssistantService:
     @classmethod
     def _call_gemini_api(cls, model_name, prompt, history, api_key):
         clean_model = (model_name or '').replace('gemini/', '').replace('google/', '').strip()
-        if not clean_model:
-            clean_model = 'gemini-2.0-flash'
+        # Google AI Studio migrated gemini-2.0-flash to gemini-3.8-flash
+        if not clean_model or clean_model == 'gemini-2.0-flash':
+            clean_model = 'gemini-3.8-flash'
             
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={api_key}"
+        headers = {
+            'x-goog-api-key': api_key,
+            'Content-Type': 'application/json'
+        }
         
         # Build contents from history
         contents = []
@@ -115,7 +120,7 @@ class SecurityAssistantService:
         }
 
         try:
-            resp = requests.post(url, json=payload, timeout=25)
+            resp = requests.post(url, headers=headers, json=payload, timeout=25)
             status_code = resp.status_code
             
             if status_code == 200:
@@ -146,13 +151,21 @@ class SecurityAssistantService:
                 return {
                     'success': False,
                     'error_type': 'AUTH_ERROR',
-                    'reply': 'API Key Google AI Studio tidak valid atau tidak memiliki izin akses. Silakan periksa kembali API Key Anda pada tombol "Pengaturan API Key (BYOK)".'
+                    'reply': 'API Key Google AI Studio tidak valid atau tidak memiliki izin akses. Silakan periksa kembali API Key Anda pada tombol "API Key (BYOK)".'
                 }
             elif status_code == 429:
                 return {
                     'success': False,
                     'error_type': 'QUOTA_EXHAUSTED',
                     'reply': 'Batas kuota request (Rate Limit 429) Google AI Studio tercapai. Silakan tunggu beberapa saat atau masukkan API Key pribadi Anda di menu BYOK.'
+                }
+            elif status_code == 503:
+                # High traffic spike on Google servers - fallback gracefully
+                logger.warning(f"Gemini {clean_model} currently experiencing high demand (HTTP 503).")
+                return {
+                    'success': False,
+                    'error_type': 'HIGH_DEMAND',
+                    'reply': 'Server Google AI Studio saat ini sedang mengalami lonjakan beban trafik (HTTP 503 High Demand). Mengalihkan respons ke sistem analisis keamanan cadangan...'
                 }
             else:
                 err_msg = resp.text[:200]

@@ -3,9 +3,14 @@
 
 {% block page_title %}
 <div style="display:flex;align-items:center;gap:10px;">
-  <div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);display:flex;align-items:center;justify-content:center;color:#A78BFA;">
+  <div
+    style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);display:flex;align-items:center;justify-content:center;color:#A78BFA;">
     <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/>
+      <rect x="3" y="11" width="18" height="10" rx="2" />
+      <circle cx="12" cy="5" r="2" />
+      <path d="M12 7v4" />
+      <line x1="8" y1="16" x2="8" y2="16" />
+      <line x1="16" y1="16" x2="16" y2="16" />
     </svg>
   </div>
   <span style="font-weight:700;color:#fff;">AI Security Copilot</span>
@@ -16,197 +21,242 @@
 
 {% block content %}
 <style>
-/* Lock body scroll so ONLY chat box is scrollable */
-.page-content {
-  padding-top: 14px !important;
-  padding-bottom: 14px !important;
-}
+  /* Lock body scroll so ONLY chat box is scrollable */
+  .page-content {
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
 
-/* ── Chat Messages Layout & Avatars ── */
-.chat-row {
-  display: flex;
-  gap: 12px;
-  max-width: 90%;
-  animation: fadeInMsg 0.3s ease;
-}
-.chat-row.user {
-  margin-left: auto;
-  flex-direction: row-reverse;
-}
-.chat-row.assistant {
-  margin-right: auto;
-}
+  /* ── Chat Messages Layout & Avatars ── */
+  .chat-row {
+    display: flex;
+    gap: 12px;
+    max-width: 90%;
+    animation: fadeInMsg 0.3s ease;
+  }
 
-.msg-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-weight: 700;
-  font-size: 13px;
-}
-.msg-avatar.assistant {
-  background: linear-gradient(135deg, #7C3AED, #06B6D4);
-  box-shadow: 0 0 12px rgba(124,58,237,0.35);
-  color: #fff;
-}
-.msg-avatar.user {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.18);
-  color: #38BDF8;
-}
+  .chat-row.user {
+    margin-left: auto;
+    flex-direction: row-reverse;
+  }
 
-.msg-body {
-  border-radius: 14px;
-  padding: 12px 18px;
-  line-height: 1.6;
-  font-size: 13.5px;
-}
-.msg-body.assistant {
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(167,139,250,0.18);
-  border-bottom-left-radius: 4px;
-  color: #E2E8F0;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-}
-.msg-body.user {
-  background: linear-gradient(135deg, #2563EB, #7C3AED);
-  border-bottom-right-radius: 4px;
-  color: #FFFFFF;
-  box-shadow: 0 4px 15px rgba(37,99,235,0.3);
-}
+  .chat-row.assistant {
+    margin-right: auto;
+  }
 
-.msg-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  padding-bottom: 6px;
-}
+  .msg-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 13px;
+  }
 
-/* ── Interactive Chips ── */
-.chip-btn {
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(255,255,255,0.09);
-  color: #94A3B8;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.chip-btn:hover {
-  background: rgba(167,139,250,0.15);
-  border-color: rgba(167,139,250,0.4);
-  color: #E2E8F0;
-  transform: translateY(-1px);
-}
+  .msg-avatar.assistant {
+    background: linear-gradient(135deg, #7C3AED, #06B6D4);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.35);
+    color: #fff;
+  }
 
-.feature-tile:hover {
-  background: rgba(167,139,250,0.08) !important;
-  border-color: rgba(167,139,250,0.3) !important;
-  transform: translateY(-2px);
-}
+  .msg-avatar.user {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #38BDF8;
+  }
 
-/* ── Model Picker Dropup ── */
-.model-item-active {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(167,139,250,0.14);
-  border: 1px solid rgba(167,139,250,0.35);
-  color: #E2E8F0;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-.model-item-active:hover {
-  background: rgba(167,139,250,0.22);
-}
+  .msg-body {
+    border-radius: 14px;
+    padding: 12px 18px;
+    line-height: 1.6;
+    font-size: 13.5px;
+  }
 
-.model-item-disabled {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: #64748B;
-  opacity: 0.38;
-  cursor: not-allowed !important;
-  user-select: none;
-  font-size: 12px;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-}
-.model-item-disabled:hover {
-  opacity: 0.55;
-  background: rgba(239,68,68,0.05);
-  border-color: rgba(239,68,68,0.2);
-}
+  .msg-body.assistant {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(167, 139, 250, 0.18);
+    border-bottom-left-radius: 4px;
+    color: #E2E8F0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  }
 
-.code-container {
-  margin: 10px 0;
-  background: rgba(0,0,0,0.55);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.code-header {
-  background: rgba(255,255,255,0.06);
-  padding: 5px 12px;
-  font-size: 11px;
-  color: #94A3B8;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
+  .msg-body.user {
+    background: linear-gradient(135deg, #2563EB, #7C3AED);
+    border-bottom-right-radius: 4px;
+    color: #FFFFFF;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+  }
 
-@keyframes fadeInMsg {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.typing-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #A78BFA;
-  display: inline-block;
-  animation: bounce 1.2s infinite ease-in-out;
-}
-@keyframes bounce {
-  0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-  40% { transform: scale(1); opacity: 1; }
-}
+  .msg-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 6px;
+  }
+
+  /* ── Interactive Chips ── */
+  .chip-btn {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: #94A3B8;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .chip-btn:hover {
+    background: rgba(167, 139, 250, 0.15);
+    border-color: rgba(167, 139, 250, 0.4);
+    color: #E2E8F0;
+    transform: translateY(-1px);
+  }
+
+  .feature-tile:hover {
+    background: rgba(167, 139, 250, 0.08) !important;
+    border-color: rgba(167, 139, 250, 0.3) !important;
+    transform: translateY(-2px);
+  }
+
+  /* ── Model Picker Dropup ── */
+  .model-item-active {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(167, 139, 250, 0.14);
+    border: 1px solid rgba(167, 139, 250, 0.35);
+    color: #E2E8F0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .model-item-active:hover {
+    background: rgba(167, 139, 250, 0.22);
+  }
+
+  .model-item-disabled {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #64748B;
+    opacity: 0.38;
+    cursor: not-allowed !important;
+    user-select: none;
+    font-size: 12px;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+
+  .model-item-disabled:hover {
+    opacity: 0.55;
+    background: rgba(239, 68, 68, 0.05);
+    border-color: rgba(239, 68, 68, 0.2);
+  }
+
+  .code-container {
+    margin: 10px 0;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .code-header {
+    background: rgba(255, 255, 255, 0.06);
+    padding: 5px 12px;
+    font-size: 11px;
+    color: #94A3B8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  @keyframes fadeInMsg {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #A78BFA;
+    display: inline-block;
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+
+  @keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+      transform: scale(0);
+      opacity: 0.3;
+    }
+
+    40% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
 </style>
 
 <!-- ── SINGLE MAIN CHAT CARD (NON-SCROLL CONTAINER) ── -->
-<div class="card" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:calc(100vh - 150px);min-height:560px;background:linear-gradient(135deg,rgba(18,24,38,0.95) 0%,rgba(10,14,22,0.98) 100%);border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.4);border-radius:18px;">
-  
+<div class="card"
+  style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:calc(100vh - 150px);min-height:560px;background:linear-gradient(135deg,rgba(18,24,38,0.95) 0%,rgba(10,14,22,0.98) 100%);border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.4);border-radius:18px;">
+
   <!-- ── 1. CARD INTEGRATED HEADER (Filled from left to right) ── -->
-  <div style="padding:14px 22px;border-bottom:1px solid rgba(255,255,255,0.08);background:linear-gradient(135deg,rgba(167,139,250,0.06) 0%,rgba(15,23,42,0.95) 100%);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-    
+  <div
+    style="padding:14px 22px;border-bottom:1px solid rgba(255,255,255,0.08);background:linear-gradient(135deg,rgba(167,139,250,0.06) 0%,rgba(15,23,42,0.95) 100%);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+
     <!-- Left: Copilot Identity & Telemetry Tag -->
     <div style="display:flex;align-items:center;gap:12px;">
-      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 14px rgba(124,58,237,0.4);">
+      <div
+        style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 0 14px rgba(124,58,237,0.4);">
         <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
+          <rect x="3" y="11" width="18" height="10" rx="2" />
+          <circle cx="12" cy="5" r="2" />
+          <path d="M12 7v4" />
         </svg>
       </div>
       <div>
         <div style="font-weight:700;font-size:14.5px;color:#FFFFFF;display:flex;align-items:center;gap:8px;">
           <span>AI Security Copilot</span>
-          <span style="font-size:10px;font-weight:700;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);color:#A78BFA;padding:1px 6px;border-radius:4px;">SOC v2.0</span>
+          <span
+            style="font-size:10px;font-weight:700;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);color:#A78BFA;padding:1px 6px;border-radius:4px;">SOC
+            v2.0</span>
           <span style="font-size:11px;color:#64748B;">&bull; {{ site.name }}</span>
         </div>
         <div style="font-size:11px;color:#94A3B8;display:flex;align-items:center;gap:6px;margin-top:2px;">
@@ -218,25 +268,31 @@
 
     <!-- Right: BYOK Key Status & Token Badges (Fills the right area cleanly) -->
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-      
+
       <!-- Key Status Pill -->
-      <div id="byok-status-pill" onclick="openByokModal()" style="font-size:11px;padding:5px 12px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.2s ease;">
+      <div id="byok-status-pill" onclick="openByokModal()"
+        style="font-size:11px;padding:5px 12px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.2s ease;">
         <span style="width:6px;height:6px;border-radius:50%;" id="byok-dot"></span>
         <span id="byok-label">Server Key</span>
       </div>
 
       <!-- BYOK Settings Button -->
-      <button onclick="openByokModal()" class="btn btn-secondary btn-sm" style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;border-color:rgba(167,139,250,0.3);color:#A78BFA;">
+      <button onclick="openByokModal()" class="btn btn-secondary btn-sm"
+        style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;border-color:rgba(167,139,250,0.3);color:#A78BFA;">
         <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
         </svg>
         <span>API Key (BYOK)</span>
       </button>
 
       <!-- Usage Token Button -->
-      <button onclick="openUsageModal()" class="btn btn-secondary btn-sm" style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:6px;border-color:rgba(6,182,212,0.3);color:#38BDF8;" title="Lihat akumulasi pemakaian token">
+      <button onclick="openUsageModal()" class="btn btn-secondary btn-sm"
+        style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:6px;border-color:rgba(6,182,212,0.3);color:#38BDF8;"
+        title="Lihat akumulasi pemakaian token">
         <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
         </svg>
         <span>Token: <strong id="token-total-badge" style="font-family:'JetBrains Mono',monospace;">0</strong></span>
       </button>
@@ -247,37 +303,51 @@
 
   <!-- ── 2. CONTEXTUAL ALERT STRIP (If loaded with ?alert_id=...) ── -->
   {% if target_alert %}
-  <div id="target-alert-card" style="padding:10px 22px;background:rgba(239,68,68,0.08);border-bottom:1px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+  <div id="target-alert-card"
+    style="padding:10px 22px;background:rgba(239,68,68,0.08);border-bottom:1px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
     <div style="display:flex;align-items:center;gap:10px;font-size:12px;">
       <span style="color:#EF4444;font-weight:700;">[Inspeksi Insiden #{{ target_alert.id }}]</span>
-      <span class="badge badge-{{ 'critical' if target_alert.severity=='Kritis' else 'high' }}">{{ target_alert.severity }}</span>
+      <span class="badge badge-{{ 'critical' if target_alert.severity=='Kritis' else 'high' }}">{{ target_alert.severity
+        }}</span>
       <span style="font-weight:600;color:#FFFFFF;">{{ target_alert.attack_type }}</span>
-      <span style="color:#64748B;">&bull; Endpoint: <code style="color:#38BDF8;">{{ target_alert.target_endpoint or '/' }}</code></span>
+      <span style="color:#64748B;">&bull; Endpoint: <code
+          style="color:#38BDF8;">{{ target_alert.target_endpoint or '/' }}</code></span>
     </div>
-    <button onclick="analyzeTargetAlertNow()" class="btn btn-primary btn-sm" id="btn-analyze-target" style="padding:4px 12px;font-size:11px;display:inline-flex;align-items:center;gap:5px;">
-      <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    <button onclick="analyzeTargetAlertNow()" class="btn btn-primary btn-sm" id="btn-analyze-target"
+      style="padding:4px 12px;font-size:11px;display:inline-flex;align-items:center;gap:5px;">
+      <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
       <span>Mulai Analisis Mitigasi</span>
     </button>
   </div>
   {% endif %}
 
   <!-- ── 3. CHAT SCROLL AREA (Only this area scrolls) ── -->
-  <div id="chat-box" style="flex:1;min-height:0;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:18px;scroll-behavior:smooth;">
-    
+  <div id="chat-box"
+    style="flex:1;min-height:0;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:18px;scroll-behavior:smooth;">
+
     <!-- Hero Welcome Tile -->
-    <div style="background:linear-gradient(135deg,rgba(167,139,250,0.07) 0%,rgba(6,182,212,0.03) 50%,rgba(15,23,42,0.6) 100%);border:1px solid rgba(167,139,250,0.18);border-radius:14px;padding:20px;position:relative;">
+    <div
+      style="background:linear-gradient(135deg,rgba(167,139,250,0.07) 0%,rgba(6,182,212,0.03) 50%,rgba(15,23,42,0.6) 100%);border:1px solid rgba(167,139,250,0.18);border-radius:14px;padding:20px;position:relative;">
       <h3 style="margin:0 0 4px;font-size:15px;font-weight:700;color:#FFFFFF;display:flex;align-items:center;gap:8px;">
         <span>Asisten Keamanan Terintegrasi</span>
-        <span style="font-size:10.5px;color:#38BDF8;background:rgba(56,189,248,0.12);padding:1px 6px;border-radius:4px;border:1px solid rgba(56,189,248,0.25);">Dual-Mode Active</span>
+        <span
+          style="font-size:10.5px;color:#38BDF8;background:rgba(56,189,248,0.12);padding:1px 6px;border-radius:4px;border:1px solid rgba(56,189,248,0.25);">Dual-Mode
+          Active</span>
       </h3>
       <p style="font-size:12.5px;color:#94A3B8;line-height:1.5;margin:0 0 14px;">
-        Halo <strong>{{ current_user.full_name or current_user.username }}</strong>! Anda dapat menanyakan analisis teknis dari insiden serangan yang terdeteksi, langkah perbaikan celah kode, aturan firewall, maupun diskusi umum seputar keamanan siber.
+        Halo <strong>{{ current_user.full_name or current_user.username }}</strong>! Anda dapat menanyakan analisis
+        teknis dari insiden serangan yang terdeteksi, langkah perbaikan celah kode, aturan firewall, maupun diskusi umum
+        seputar keamanan siber.
       </p>
 
       <!-- 3 Quick Capability Cards -->
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:10px;">
-        
-        <div class="feature-tile" onclick="sendQuestion('Jelaskan mekanisme serangan SQL Injection yang umum menyerang endpoint PHP dan berikan contoh konkret perbaikan prepared statement PDO.')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.25s ease;">
+
+        <div class="feature-tile"
+          onclick="sendQuestion('Jelaskan mekanisme serangan SQL Injection yang umum menyerang endpoint PHP dan berikan contoh konkret perbaikan prepared statement PDO.')"
+          style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.25s ease;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             <span style="font-size:14px;">🛡️</span>
             <span style="font-size:11.5px;font-weight:700;color:#E2E8F0;">Analisis Celah &amp; SQLi</span>
@@ -287,7 +357,9 @@
           </div>
         </div>
 
-        <div class="feature-tile" onclick="sendQuestion('Bagaimana cara paling efektif memitigasi serangan DDoS HTTP Flood dan Slowloris pada server web dengan rate limiting?')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.25s ease;">
+        <div class="feature-tile"
+          onclick="sendQuestion('Bagaimana cara paling efektif memitigasi serangan DDoS HTTP Flood dan Slowloris pada server web dengan rate limiting?')"
+          style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.25s ease;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             <span style="font-size:14px;">⚡</span>
             <span style="font-size:11.5px;font-weight:700;color:#E2E8F0;">Mitigasi DDoS &amp; Flooding</span>
@@ -297,7 +369,9 @@
           </div>
         </div>
 
-        <div class="feature-tile" onclick="sendQuestion('Buatkan konfigurasi keamanan lengkap untuk file .htaccess guna mencegah XSS, directory listing, dan akses file konfigurasi .env.')" style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.25s ease;">
+        <div class="feature-tile"
+          onclick="sendQuestion('Buatkan konfigurasi keamanan lengkap untuk file .htaccess guna mencegah XSS, directory listing, dan akses file konfigurasi .env.')"
+          style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all 0.25s ease;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
             <span style="font-size:14px;">🔒</span>
             <span style="font-size:11.5px;font-weight:700;color:#E2E8F0;">Hardening .htaccess &amp; Server</span>
@@ -315,14 +389,18 @@
     <div class="chat-row {{ msg.role }}">
       {% if msg.role == 'assistant' %}
       <div class="msg-avatar assistant">
-        <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
+        <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2">
+          <rect x="3" y="11" width="18" height="10" rx="2" />
+          <circle cx="12" cy="5" r="2" />
+          <path d="M12 7v4" />
         </svg>
       </div>
       <div class="msg-body assistant">
         <div class="msg-header">
           <span style="font-weight:700;color:#A78BFA;font-size:12px;">AI Copilot</span>
-          <span style="font-size:10px;color:#64748B;">{{ msg.created_at|wib('%d/%m %H:%M') if msg.created_at else '' }}</span>
+          <span style="font-size:10px;color:#64748B;">{{ msg.created_at|wib('%d/%m %H:%M') if msg.created_at else ''
+            }}</span>
         </div>
         <div class="msg-text formatted-content">{{ msg.content|safe }}</div>
       </div>
@@ -340,51 +418,65 @@
   </div>
 
   <!-- ── 4. QUICK PROMPTS CHIPS BAR ── -->
-  <div style="padding:8px 20px;background:rgba(15,23,42,0.85);border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+  <div
+    style="padding:8px 20px;background:rgba(15,23,42,0.85);border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
     <span style="font-size:10.5px;color:#64748B;font-weight:600;display:flex;align-items:center;gap:4px;">
-      <svg style="width:11px;height:11px;color:#06B6D4;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      <svg style="width:11px;height:11px;color:#06B6D4;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+        stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>
       Saran Cepat:
     </span>
-    <button class="chip-btn quick-q" data-q="Analisis insiden serangan terakhir yang terdeteksi di website saya dan berikan langkah mitigasi konkritnya.">
+    <button class="chip-btn quick-q"
+      data-q="Analisis insiden serangan terakhir yang terdeteksi di website saya dan berikan langkah mitigasi konkritnya.">
       Analisis Insiden Terakhir
     </button>
-    <button class="chip-btn quick-q" data-q="Buatkan konfigurasi .htaccess dan Nginx untuk memblokir SQL Injection dan parameter mencurigakan.">
+    <button class="chip-btn quick-q"
+      data-q="Buatkan konfigurasi .htaccess dan Nginx untuk memblokir SQL Injection dan parameter mencurigakan.">
       Rule .htaccess &amp; Nginx
     </button>
-    <button class="chip-btn quick-q" data-q="Bagaimana cara terbaik memproteksi form login dari serangan SQLi dan Brute Force secara bersamaan?">
+    <button class="chip-btn quick-q"
+      data-q="Bagaimana cara terbaik memproteksi form login dari serangan SQLi dan Brute Force secara bersamaan?">
       Proteksi Form Login
     </button>
-    <button class="chip-btn quick-q" data-q="Jelaskan perbedaan mendasar antara DoS Hulk dan SYN Flood pada layer transport.">
+    <button class="chip-btn quick-q"
+      data-q="Jelaskan perbedaan mendasar antara DoS Hulk dan SYN Flood pada layer transport.">
       DoS Hulk vs SYN Flood
     </button>
-    <button class="chip-btn quick-q" data-q="Bagaimana mekanisme kerja ChaCha20-Poly1305 dalam mengamankan data rekam medis?">
+    <button class="chip-btn quick-q"
+      data-q="Bagaimana mekanisme kerja ChaCha20-Poly1305 dalam mengamankan data rekam medis?">
       ChaCha20 Security
     </button>
   </div>
 
   <!-- ── 5. INPUT FOOTER WITH MODEL PICKER BESIDE CHAT ── -->
-  <div style="padding:14px 20px;background:rgba(10,14,22,0.98);border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:10px;align-items:center;position:relative;">
-    
+  <div
+    style="padding:14px 20px;background:rgba(10,14,22,0.98);border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:10px;align-items:center;position:relative;">
+
     <!-- Model Picker Beside Chat Input (Left side of textarea) -->
     <div style="position:relative;" id="model-picker-container">
-      
+
       <!-- Trigger Button -->
-      <button type="button" id="btn-model-trigger" onclick="toggleModelDropdown()" style="height:44px;padding:0 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:10px;display:flex;align-items:center;gap:7px;color:#38BDF8;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;" title="Pilih Model AI">
-        <svg style="width:13px;height:13px;color:#38BDF8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      <button type="button" id="btn-model-trigger" onclick="toggleModelDropdown()"
+        style="height:44px;padding:0 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);border-radius:10px;display:flex;align-items:center;gap:7px;color:#38BDF8;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;"
+        title="Pilih Model AI">
+        <svg style="width:13px;height:13px;color:#38BDF8;" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          stroke-width="2.2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
         <span id="selected-model-text" style="font-family:'JetBrains Mono',monospace;">Gemini 2.0 Flash</span>
-        <svg style="width:12px;height:12px;color:#94A3B8;transition:transform 0.2s;" id="chevron-model" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <polyline points="6 9 12 15 18 9"/>
+        <svg style="width:12px;height:12px;color:#94A3B8;transition:transform 0.2s;" id="chevron-model" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
 
       <!-- Upward Popover Menu -->
-      <div id="model-popover-menu" style="display:none;position:absolute;bottom:calc(100% + 10px);left:0;width:275px;background:#0F172A;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:8px;box-shadow:0 15px 35px rgba(0,0,0,0.6);z-index:9000;">
-        
-        <div style="padding:6px 8px 8px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748B;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:6px;">
+      <div id="model-popover-menu"
+        style="display:none;position:absolute;bottom:calc(100% + 10px);left:0;width:275px;background:#0F172A;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:8px;box-shadow:0 15px 35px rgba(0,0,0,0.6);z-index:9000;">
+
+        <div
+          style="padding:6px 8px 8px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#64748B;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:6px;">
           Pilih Model Copilot
         </div>
 
@@ -397,28 +489,14 @@
           <span style="font-size:10px;color:#10B981;font-weight:700;">Tersedia</span>
         </div>
 
-        <!-- 2. Disabled Model: Gemini 1.5 Flash -->
-        <div class="model-item-disabled" title="Model ini belum tersedia">
-          <span>Gemini 1.5 Flash</span>
-          <span style="font-size:11px;">🚫</span>
-        </div>
-
         <!-- 3. Disabled Model: Gemini 2.5 Flash -->
         <div class="model-item-disabled" title="Model ini belum tersedia">
           <span>Gemini 2.5 Flash</span>
-          <span style="font-size:11px;">🚫</span>
-        </div>
-
-        <!-- 4. Disabled Model: Claude 3.5 Sonnet -->
-        <div class="model-item-disabled" title="Model ini belum tersedia">
-          <span>Claude 3.5 Sonnet</span>
-          <span style="font-size:11px;">🚫</span>
         </div>
 
         <!-- 5. Disabled Model: OpenRouter -->
         <div class="model-item-disabled" title="Model ini belum tersedia">
           <span>OpenRouter Multi-Model</span>
-          <span style="font-size:11px;">🚫</span>
         </div>
 
       </div>
@@ -427,19 +505,20 @@
 
     <!-- Textarea Input Column -->
     <div style="flex:1;position:relative;display:flex;align-items:center;">
-      <textarea id="chat-input"
-                rows="1"
-                placeholder="Ketik pertanyaan seputar keamanan siber, analisis log, atau diskusi umum..."
-                style="width:100%;resize:none;max-height:100px;min-height:44px;line-height:1.5;padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:#F1F5F9;border-radius:10px;font-size:13px;outline:none;transition:border-color 0.2s;"
-                onfocus="this.style.borderColor='#A78BFA';this.style.boxShadow='0 0 10px rgba(167,139,250,0.2)';"
-                onblur="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none';"></textarea>
+      <textarea id="chat-input" rows="1"
+        placeholder="Ketik pertanyaan seputar keamanan siber, analisis log, atau diskusi umum..."
+        style="width:100%;resize:none;max-height:100px;min-height:44px;line-height:1.5;padding:10px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.12);color:#F1F5F9;border-radius:10px;font-size:13px;outline:none;transition:border-color 0.2s;"
+        onfocus="this.style.borderColor='#A78BFA';this.style.boxShadow='0 0 10px rgba(167,139,250,0.2)';"
+        onblur="this.style.borderColor='rgba(255,255,255,0.12)';this.style.boxShadow='none';"></textarea>
     </div>
 
     <!-- Kirim Button -->
-    <button class="btn btn-primary" id="btn-send-chat" style="height:44px;padding:0 20px;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;background:linear-gradient(135deg,#7C3AED,#06B6D4);border:none;border-radius:10px;font-weight:700;box-shadow:0 0 16px rgba(124,58,237,0.35);">
+    <button class="btn btn-primary" id="btn-send-chat"
+      style="height:44px;padding:0 20px;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;background:linear-gradient(135deg,#7C3AED,#06B6D4);border:none;border-radius:10px;font-weight:700;box-shadow:0 0 16px rgba(124,58,237,0.35);">
       <span>Kirim</span>
       <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
       </svg>
     </button>
 
@@ -448,14 +527,18 @@
 </div>
 
 <!-- ── MODAL: BYOK API Key Settings ── -->
-<div id="modal-byok" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#0F172A;border:1px solid rgba(167,139,250,0.3);border-radius:16px;width:90%;max-width:540px;padding:26px;box-shadow:0 25px 60px -10px rgba(0,0,0,0.7);">
-    
+<div id="modal-byok"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
+  <div
+    style="background:#0F172A;border:1px solid rgba(167,139,250,0.3);border-radius:16px;width:90%;max-width:540px;padding:26px;box-shadow:0 25px 60px -10px rgba(0,0,0,0.7);">
+
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:34px;height:34px;border-radius:10px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);display:flex;align-items:center;justify-content:center;color:#A78BFA;">
+        <div
+          style="width:34px;height:34px;border-radius:10px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);display:flex;align-items:center;justify-content:center;color:#A78BFA;">
           <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
           </svg>
         </div>
         <div>
@@ -464,41 +547,60 @@
         </div>
       </div>
       <button onclick="closeByokModal()" style="background:none;border:none;color:#64748B;cursor:pointer;padding:4px;">
-        <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
     </div>
 
     <div style="font-size:12.5px;color:#CBD5E1;line-height:1.55;margin-bottom:18px;">
-      Dengan mengisi API Key pribadi, seluruh interaksi AI Copilot menggunakan kuota akun Google Anda sendiri tanpa berbagi limit server dengan pengguna lain.
-      <div style="margin-top:10px;padding:10px 12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:8px;font-size:11.5px;color:#10B981;">
-        Privasi Terjamin: API Key Anda <strong>hanya disimpan di localStorage peramban ini</strong> dan dikirim via header <code>X-User-Api-Key</code> saat request. Server Flask tidak pernah menyimpan key Anda ke database.
+      Dengan mengisi API Key pribadi, seluruh interaksi AI Copilot menggunakan kuota akun Google Anda sendiri tanpa
+      berbagi limit server dengan pengguna lain.
+      <div
+        style="margin-top:10px;padding:10px 12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:8px;font-size:11.5px;color:#10B981;">
+        Privasi Terjamin: API Key Anda <strong>hanya disimpan di localStorage peramban ini</strong> dan dikirim via
+        header <code>X-User-Api-Key</code> saat request. Server Flask tidak pernah menyimpan key Anda ke database.
       </div>
     </div>
 
     <div style="margin-bottom:18px;">
-      <label style="display:block;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px;">Google AI Studio API Key (Gemini):</label>
+      <label style="display:block;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px;">Google AI Studio API
+        Key (Gemini):</label>
       <div style="position:relative;">
-        <input type="password" id="input-api-key" placeholder="AIzaSy..." style="width:100%;padding:10px 40px 10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:12.5px;outline:none;">
-        <button type="button" onclick="toggleKeyVisibility()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94A3B8;cursor:pointer;">
-          <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        <input type="password" id="input-api-key" placeholder="AIzaSy... / AQ.Ab8..."
+          style="width:100%;padding:10px 40px 10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);border-radius:8px;color:#F1F5F9;font-family:'JetBrains Mono',monospace;font-size:12.5px;outline:none;">
+        <button type="button" onclick="toggleKeyVisibility()"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94A3B8;cursor:pointer;">
+          <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
         </button>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
         <span style="font-size:11px;color:#64748B;">Belum punya key? Gratis tanpa kartu kredit:</span>
-        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size:11.5px;color:#38BDF8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:3px;">
+        <a href="https://aistudio.google.com/app/apikey" target="_blank"
+          style="font-size:11.5px;color:#38BDF8;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:3px;">
           <span>Ambil di aistudio.google.com</span>
-          <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
         </a>
       </div>
     </div>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
-      <button onclick="removeApiKey()" class="btn btn-secondary btn-sm" style="color:#EF4444;border-color:rgba(239,68,68,0.3);">
+    <div
+      style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
+      <button onclick="removeApiKey()" class="btn btn-secondary btn-sm"
+        style="color:#EF4444;border-color:rgba(239,68,68,0.3);">
         Hapus Key
       </button>
       <div style="display:flex;gap:8px;">
         <button onclick="closeByokModal()" class="btn btn-secondary btn-sm">Batal</button>
-        <button onclick="saveApiKey()" class="btn btn-primary btn-sm" style="background:#7C3AED;border:none;">Simpan ke Browser</button>
+        <button onclick="saveApiKey()" class="btn btn-primary btn-sm" style="background:#7C3AED;border:none;">Simpan ke
+          Browser</button>
       </div>
     </div>
 
@@ -506,13 +608,17 @@
 </div>
 
 <!-- ── MODAL: Usage Token Statistics ── -->
-<div id="modal-usage" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#0F172A;border:1px solid rgba(6,182,212,0.3);border-radius:16px;width:90%;max-width:480px;padding:26px;box-shadow:0 25px 60px -10px rgba(0,0,0,0.7);">
-    
+<div id="modal-usage"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
+  <div
+    style="background:#0F172A;border:1px solid rgba(6,182,212,0.3);border-radius:16px;width:90%;max-width:480px;padding:26px;box-shadow:0 25px 60px -10px rgba(0,0,0,0.7);">
+
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <h3 style="margin:0;font-size:16px;font-weight:700;color:#fff;">Akumulasi Pemakaian Token</h3>
       <button onclick="closeUsageModal()" style="background:none;border:none;color:#64748B;cursor:pointer;padding:4px;">
-        <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
       </button>
     </div>
 
@@ -521,30 +627,40 @@
     </p>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:12px;">
+      <div
+        style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:12px;">
         <div style="font-size:10.5px;color:#64748B;text-transform:uppercase;font-weight:600;">Prompt Tokens</div>
-        <div style="font-size:22px;font-weight:700;color:#38BDF8;font-family:'JetBrains Mono',monospace;margin-top:4px;" id="u-prompt">0</div>
+        <div style="font-size:22px;font-weight:700;color:#38BDF8;font-family:'JetBrains Mono',monospace;margin-top:4px;"
+          id="u-prompt">0</div>
         <div style="font-size:10px;color:#475569;margin-top:2px;">Input prompt &amp; konteks</div>
       </div>
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:12px;">
+      <div
+        style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:12px;">
         <div style="font-size:10.5px;color:#64748B;text-transform:uppercase;font-weight:600;">Completion Tokens</div>
-        <div style="font-size:22px;font-weight:700;color:#A78BFA;font-family:'JetBrains Mono',monospace;margin-top:4px;" id="u-completion">0</div>
+        <div style="font-size:22px;font-weight:700;color:#A78BFA;font-family:'JetBrains Mono',monospace;margin-top:4px;"
+          id="u-completion">0</div>
         <div style="font-size:10px;color:#475569;margin-top:2px;">Jawaban asisten AI</div>
       </div>
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:12px;">
+      <div
+        style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:12px;">
         <div style="font-size:10.5px;color:#64748B;text-transform:uppercase;font-weight:600;">Total Tokens</div>
-        <div style="font-size:22px;font-weight:700;color:#10B981;font-family:'JetBrains Mono',monospace;margin-top:4px;" id="u-total">0</div>
+        <div style="font-size:22px;font-weight:700;color:#10B981;font-family:'JetBrains Mono',monospace;margin-top:4px;"
+          id="u-total">0</div>
         <div style="font-size:10px;color:#475569;margin-top:2px;">Akumulasi keseluruhan</div>
       </div>
-      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:12px;">
+      <div
+        style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);padding:14px;border-radius:12px;">
         <div style="font-size:10.5px;color:#64748B;text-transform:uppercase;font-weight:600;">Total Interaksi</div>
-        <div style="font-size:22px;font-weight:700;color:#F59E0B;font-family:'JetBrains Mono',monospace;margin-top:4px;" id="u-requests">0</div>
+        <div style="font-size:22px;font-weight:700;color:#F59E0B;font-family:'JetBrains Mono',monospace;margin-top:4px;"
+          id="u-requests">0</div>
         <div style="font-size:10px;color:#475569;margin-top:2px;">Jumlah pertanyaan dijawab</div>
       </div>
     </div>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
-      <button onclick="resetUsageStats()" class="btn btn-secondary btn-sm" style="color:#EF4444;border-color:rgba(239,68,68,0.3);">
+    <div
+      style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
+      <button onclick="resetUsageStats()" class="btn btn-secondary btn-sm"
+        style="color:#EF4444;border-color:rgba(239,68,68,0.3);">
         Reset Hitungan
       </button>
       <button onclick="closeUsageModal()" class="btn btn-primary btn-sm">Tutup</button>
@@ -556,218 +672,218 @@
 
 {% block extra_scripts %}
 <script>
-const WEBSITE_ID = {{ site.id }};
-const TARGET_ALERT_ID = {{ target_alert.id if target_alert else 'null' }};
-const chatBox   = document.getElementById('chat-box');
-const chatInput = document.getElementById('chat-input');
-const btnSend   = document.getElementById('btn-send-chat');
+  const WEBSITE_ID = {{ site.id }};
+  const TARGET_ALERT_ID = {{ target_alert.id if target_alert else 'null' }};
+  const chatBox = document.getElementById('chat-box');
+  const chatInput = document.getElementById('chat-input');
+  const btnSend = document.getElementById('btn-send-chat');
 
-let currentActiveModel = 'gemini-2.0-flash';
+  let currentActiveModel = 'gemini-2.0-flash';
 
-const USER_INITIAL = '{{ current_user.full_name[0]|upper if current_user.full_name else "U" }}';
+  const USER_INITIAL = '{{ current_user.full_name[0]|upper if current_user.full_name else "U" }}';
 
-// ── Auto-scroll Helper ──
-function scrollBottom() {
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-scrollBottom();
-
-// ── Auto-resize Textarea ──
-chatInput.addEventListener('input', function() {
-  this.style.height = 'auto';
-  this.style.height = (this.scrollHeight) + 'px';
-});
-
-// ── Model Picker Dropup Logic ──
-function toggleModelDropdown() {
-  const menu = document.getElementById('model-popover-menu');
-  const chevron = document.getElementById('chevron-model');
-  const isHidden = menu.style.display === 'none';
-  menu.style.display = isHidden ? 'block' : 'none';
-  chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-}
-
-function selectModel(modelId, modelName) {
-  currentActiveModel = modelId;
-  document.getElementById('selected-model-text').textContent = modelName;
-  toggleModelDropdown();
-}
-
-// Close model popover when clicked outside
-document.addEventListener('click', function(e) {
-  const container = document.getElementById('model-picker-container');
-  const menu = document.getElementById('model-popover-menu');
-  const chevron = document.getElementById('chevron-model');
-  if (container && !container.contains(e.target) && menu && menu.style.display === 'block') {
-    menu.style.display = 'none';
-    if (chevron) chevron.style.transform = 'rotate(0deg)';
+  // ── Auto-scroll Helper ──
+  function scrollBottom() {
+    chatBox.scrollTop = chatBox.scrollHeight;
   }
-});
+  scrollBottom();
 
-// ── BYOK LocalStorage Management ──
-const BYOK_KEY_NAME = 'nids_gemini_api_key';
-const USAGE_KEY_NAME = 'nids_token_usage';
+  // ── Auto-resize Textarea ──
+  chatInput.addEventListener('input', function () {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+  });
 
-function getStoredApiKey() {
-  return (localStorage.getItem(BYOK_KEY_NAME) || '').trim();
-}
-
-function updateByokUiStatus() {
-  const key = getStoredApiKey();
-  const pill = document.getElementById('byok-status-pill');
-  const dot = document.getElementById('byok-dot');
-  const label = document.getElementById('byok-label');
-
-  if (key) {
-    pill.style.background = 'rgba(16,185,129,0.14)';
-    pill.style.border = '1px solid rgba(16,185,129,0.35)';
-    pill.style.color = '#10B981';
-    dot.style.background = '#10B981';
-    dot.style.boxShadow = '0 0 8px #10B981';
-    label.textContent = 'BYOK Key Aktif';
-  } else {
-    pill.style.background = 'rgba(245,158,11,0.14)';
-    pill.style.border = '1px solid rgba(245,158,11,0.35)';
-    pill.style.color = '#F59E0B';
-    dot.style.background = '#F59E0B';
-    dot.style.boxShadow = 'none';
-    label.textContent = 'Server Key';
+  // ── Model Picker Dropup Logic ──
+  function toggleModelDropdown() {
+    const menu = document.getElementById('model-popover-menu');
+    const chevron = document.getElementById('chevron-model');
+    const isHidden = menu.style.display === 'none';
+    menu.style.display = isHidden ? 'block' : 'none';
+    chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
   }
-}
-updateByokUiStatus();
 
-function openByokModal() {
-  const modal = document.getElementById('modal-byok');
-  const input = document.getElementById('input-api-key');
-  input.value = getStoredApiKey();
-  modal.style.display = 'flex';
-}
-function closeByokModal() {
-  document.getElementById('modal-byok').style.display = 'none';
-}
-function toggleKeyVisibility() {
-  const input = document.getElementById('input-api-key');
-  input.type = input.type === 'password' ? 'text' : 'password';
-}
-function saveApiKey() {
-  const input = document.getElementById('input-api-key').value.trim();
-  if (input) {
-    localStorage.setItem(BYOK_KEY_NAME, input);
-  } else {
+  function selectModel(modelId, modelName) {
+    currentActiveModel = modelId;
+    document.getElementById('selected-model-text').textContent = modelName;
+    toggleModelDropdown();
+  }
+
+  // Close model popover when clicked outside
+  document.addEventListener('click', function (e) {
+    const container = document.getElementById('model-picker-container');
+    const menu = document.getElementById('model-popover-menu');
+    const chevron = document.getElementById('chevron-model');
+    if (container && !container.contains(e.target) && menu && menu.style.display === 'block') {
+      menu.style.display = 'none';
+      if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+  });
+
+  // ── BYOK LocalStorage Management ──
+  const BYOK_KEY_NAME = 'nids_gemini_api_key';
+  const USAGE_KEY_NAME = 'nids_token_usage';
+
+  function getStoredApiKey() {
+    return (localStorage.getItem(BYOK_KEY_NAME) || '').trim();
+  }
+
+  function updateByokUiStatus() {
+    const key = getStoredApiKey();
+    const pill = document.getElementById('byok-status-pill');
+    const dot = document.getElementById('byok-dot');
+    const label = document.getElementById('byok-label');
+
+    if (key) {
+      pill.style.background = 'rgba(16,185,129,0.14)';
+      pill.style.border = '1px solid rgba(16,185,129,0.35)';
+      pill.style.color = '#10B981';
+      dot.style.background = '#10B981';
+      dot.style.boxShadow = '0 0 8px #10B981';
+      label.textContent = 'BYOK Key Aktif';
+    } else {
+      pill.style.background = 'rgba(245,158,11,0.14)';
+      pill.style.border = '1px solid rgba(245,158,11,0.35)';
+      pill.style.color = '#F59E0B';
+      dot.style.background = '#F59E0B';
+      dot.style.boxShadow = 'none';
+      label.textContent = 'Server Key';
+    }
+  }
+  updateByokUiStatus();
+
+  function openByokModal() {
+    const modal = document.getElementById('modal-byok');
+    const input = document.getElementById('input-api-key');
+    input.value = getStoredApiKey();
+    modal.style.display = 'flex';
+  }
+  function closeByokModal() {
+    document.getElementById('modal-byok').style.display = 'none';
+  }
+  function toggleKeyVisibility() {
+    const input = document.getElementById('input-api-key');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+  function saveApiKey() {
+    const input = document.getElementById('input-api-key').value.trim();
+    if (input) {
+      localStorage.setItem(BYOK_KEY_NAME, input);
+    } else {
+      localStorage.removeItem(BYOK_KEY_NAME);
+    }
+    updateByokUiStatus();
+    closeByokModal();
+  }
+  function removeApiKey() {
     localStorage.removeItem(BYOK_KEY_NAME);
+    document.getElementById('input-api-key').value = '';
+    updateByokUiStatus();
+    closeByokModal();
   }
-  updateByokUiStatus();
-  closeByokModal();
-}
-function removeApiKey() {
-  localStorage.removeItem(BYOK_KEY_NAME);
-  document.getElementById('input-api-key').value = '';
-  updateByokUiStatus();
-  closeByokModal();
-}
 
-// ── Token Usage LocalStorage Management ──
-function getStoredUsage() {
-  try {
-    return JSON.parse(localStorage.getItem(USAGE_KEY_NAME)) || { prompt: 0, completion: 0, total: 0, requests: 0 };
-  } catch(e) {
-    return { prompt: 0, completion: 0, total: 0, requests: 0 };
+  // ── Token Usage LocalStorage Management ──
+  function getStoredUsage() {
+    try {
+      return JSON.parse(localStorage.getItem(USAGE_KEY_NAME)) || { prompt: 0, completion: 0, total: 0, requests: 0 };
+    } catch (e) {
+      return { prompt: 0, completion: 0, total: 0, requests: 0 };
+    }
   }
-}
-function recordUsage(usage) {
-  if (!usage) return;
-  const current = getStoredUsage();
-  current.prompt += (usage.prompt_tokens || 0);
-  current.completion += (usage.completion_tokens || 0);
-  current.total += (usage.total_tokens || 0);
-  current.requests += 1;
-  localStorage.setItem(USAGE_KEY_NAME, JSON.stringify(current));
+  function recordUsage(usage) {
+    if (!usage) return;
+    const current = getStoredUsage();
+    current.prompt += (usage.prompt_tokens || 0);
+    current.completion += (usage.completion_tokens || 0);
+    current.total += (usage.total_tokens || 0);
+    current.requests += 1;
+    localStorage.setItem(USAGE_KEY_NAME, JSON.stringify(current));
+    updateUsageBadge();
+  }
+  function updateUsageBadge() {
+    const u = getStoredUsage();
+    document.getElementById('token-total-badge').textContent = u.total.toLocaleString('id-ID');
+  }
   updateUsageBadge();
-}
-function updateUsageBadge() {
-  const u = getStoredUsage();
-  document.getElementById('token-total-badge').textContent = u.total.toLocaleString('id-ID');
-}
-updateUsageBadge();
 
-function openUsageModal() {
-  const u = getStoredUsage();
-  document.getElementById('u-prompt').textContent = u.prompt.toLocaleString('id-ID');
-  document.getElementById('u-completion').textContent = u.completion.toLocaleString('id-ID');
-  document.getElementById('u-total').textContent = u.total.toLocaleString('id-ID');
-  document.getElementById('u-requests').textContent = u.requests.toLocaleString('id-ID');
-  document.getElementById('modal-usage').style.display = 'flex';
-}
-function closeUsageModal() {
-  document.getElementById('modal-usage').style.display = 'none';
-}
-function resetUsageStats() {
-  localStorage.removeItem(USAGE_KEY_NAME);
-  updateUsageBadge();
-  openUsageModal();
-}
+  function openUsageModal() {
+    const u = getStoredUsage();
+    document.getElementById('u-prompt').textContent = u.prompt.toLocaleString('id-ID');
+    document.getElementById('u-completion').textContent = u.completion.toLocaleString('id-ID');
+    document.getElementById('u-total').textContent = u.total.toLocaleString('id-ID');
+    document.getElementById('u-requests').textContent = u.requests.toLocaleString('id-ID');
+    document.getElementById('modal-usage').style.display = 'flex';
+  }
+  function closeUsageModal() {
+    document.getElementById('modal-usage').style.display = 'none';
+  }
+  function resetUsageStats() {
+    localStorage.removeItem(USAGE_KEY_NAME);
+    updateUsageBadge();
+    openUsageModal();
+  }
 
-// ── Markdown Parser Helper ──
-function formatMarkdown(text) {
-  if (!text) return '';
-  let escaped = text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  // ── Markdown Parser Helper ──
+  function formatMarkdown(text) {
+    if (!text) return '';
+    let escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
 
-  // Code blocks with syntax copy button
-  escaped = escaped.replace(/```([a-zA-Z0-9_\-]+)?\n([\s\S]*?)```/g, function(match, lang, code) {
-    const language = lang || 'code';
-    return `<div class="code-container">
+    // Code blocks with syntax copy button
+    escaped = escaped.replace(/```([a-zA-Z0-9_\-]+)?\n([\s\S]*?)```/g, function (match, lang, code) {
+      const language = lang || 'code';
+      return `<div class="code-container">
       <div class="code-header">
         <span style="font-family:'JetBrains Mono',monospace;text-transform:uppercase;">${language}</span>
         <button onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.innerText);this.textContent='Tersalin!';setTimeout(()=>this.textContent='Salin',2000);" style="background:none;border:none;color:#38BDF8;font-size:11px;font-weight:600;cursor:pointer;padding:2px 8px;">Salin</button>
       </div>
       <pre style="margin:0;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#F1F5F9;overflow-x:auto;line-height:1.5;"><code>${code}</code></pre>
     </div>`;
-  });
+    });
 
-  // Inline code
-  escaped = escaped.replace(/`([^`]+)`/g, '<code style="font-family:\'JetBrains Mono\',monospace;background:rgba(255,255,255,0.08);color:#38BDF8;padding:2px 6px;border-radius:4px;font-size:12px;">$1</code>');
-  // Bold
-  escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  // Italic
-  escaped = escaped.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  // Headings
-  escaped = escaped.replace(/^### (.*$)/gim, '<h4 style="margin:14px 0 6px;font-size:14px;color:#FFFFFF;font-weight:700;">$1</h4>');
-  escaped = escaped.replace(/^## (.*$)/gim, '<h3 style="margin:16px 0 8px;font-size:15px;color:#FFFFFF;font-weight:700;">$1</h3>');
-  // Unordered list items
-  escaped = escaped.replace(/^\s*[\-\*]\s+(.*)$/gim, '<li style="margin-left:18px;">$1</li>');
-  // Ordered list items
-  escaped = escaped.replace(/^\s*\d+\.\s+(.*)$/gim, '<li style="margin-left:18px;">$1</li>');
-  // Linebreaks
-  escaped = escaped.replace(/\n/g, '<br>');
+    // Inline code
+    escaped = escaped.replace(/`([^`]+)`/g, '<code style="font-family:\'JetBrains Mono\',monospace;background:rgba(255,255,255,0.08);color:#38BDF8;padding:2px 6px;border-radius:4px;font-size:12px;">$1</code>');
+    // Bold
+    escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // Italic
+    escaped = escaped.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    // Headings
+    escaped = escaped.replace(/^### (.*$)/gim, '<h4 style="margin:14px 0 6px;font-size:14px;color:#FFFFFF;font-weight:700;">$1</h4>');
+    escaped = escaped.replace(/^## (.*$)/gim, '<h3 style="margin:16px 0 8px;font-size:15px;color:#FFFFFF;font-weight:700;">$1</h3>');
+    // Unordered list items
+    escaped = escaped.replace(/^\s*[\-\*]\s+(.*)$/gim, '<li style="margin-left:18px;">$1</li>');
+    // Ordered list items
+    escaped = escaped.replace(/^\s*\d+\.\s+(.*)$/gim, '<li style="margin-left:18px;">$1</li>');
+    // Linebreaks
+    escaped = escaped.replace(/\n/g, '<br>');
 
-  return escaped;
-}
-
-// ── Append Message to DOM ──
-function addMsg(role, rawContent, meta = null) {
-  const row = document.createElement('div');
-  row.className = `chat-row ${role}`;
-
-  const avatar = document.createElement('div');
-  avatar.className = `msg-avatar ${role}`;
-  if (role === 'assistant') {
-    avatar.innerHTML = `<svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>`;
-  } else {
-    avatar.textContent = USER_INITIAL;
+    return escaped;
   }
 
-  const body = document.createElement('div');
-  body.className = `msg-body ${role}`;
+  // ── Append Message to DOM ──
+  function addMsg(role, rawContent, meta = null) {
+    const row = document.createElement('div');
+    row.className = `chat-row ${role}`;
 
-  if (role === 'assistant') {
-    const model = meta ? (meta.model || currentActiveModel) : currentActiveModel;
-    const tokens = meta && meta.usage ? meta.usage.total_tokens : null;
-    const tokensText = tokens ? ` &bull; ${tokens} tokens` : '';
+    const avatar = document.createElement('div');
+    avatar.className = `msg-avatar ${role}`;
+    if (role === 'assistant') {
+      avatar.innerHTML = `<svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>`;
+    } else {
+      avatar.textContent = USER_INITIAL;
+    }
 
-    body.innerHTML = `
+    const body = document.createElement('div');
+    body.className = `msg-body ${role}`;
+
+    if (role === 'assistant') {
+      const model = meta ? (meta.model || currentActiveModel) : currentActiveModel;
+      const tokens = meta && meta.usage ? meta.usage.total_tokens : null;
+      const tokensText = tokens ? ` &bull; ${tokens} tokens` : '';
+
+      body.innerHTML = `
       <div class="msg-header">
         <span style="font-weight:700;color:#A78BFA;font-size:12px;display:flex;align-items:center;gap:6px;">
           <span>AI Copilot</span>
@@ -777,33 +893,33 @@ function addMsg(role, rawContent, meta = null) {
       </div>
       <div class="msg-text">${formatMarkdown(rawContent)}</div>
     `;
-  } else {
-    const formatted = rawContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
-    body.innerHTML = `<div class="msg-text">${formatted}</div>`;
+    } else {
+      const formatted = rawContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+      body.innerHTML = `<div class="msg-text">${formatted}</div>`;
+    }
+
+    row.appendChild(avatar);
+    row.appendChild(body);
+    chatBox.appendChild(row);
+    scrollBottom();
   }
 
-  row.appendChild(avatar);
-  row.appendChild(body);
-  chatBox.appendChild(row);
-  scrollBottom();
-}
+  // ── Send Question to Copilot Backend ──
+  async function sendQuestion(text, explicitAlertId = null) {
+    const prompt = text.trim();
+    if (!prompt) return;
 
-// ── Send Question to Copilot Backend ──
-async function sendQuestion(text, explicitAlertId = null) {
-  const prompt = text.trim();
-  if (!prompt) return;
+    addMsg('user', prompt);
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+    btnSend.disabled = true;
+    btnSend.innerHTML = `<svg style="width:14px;height:14px;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>Menganalisis...</span>`;
 
-  addMsg('user', prompt);
-  chatInput.value = '';
-  chatInput.style.height = 'auto';
-  btnSend.disabled = true;
-  btnSend.innerHTML = `<svg style="width:14px;height:14px;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>Menganalisis...</span>`;
-
-  // Typing indicator
-  const typing = document.createElement('div');
-  typing.className = 'chat-row assistant';
-  typing.id = 'typing-indicator';
-  typing.innerHTML = `
+    // Typing indicator
+    const typing = document.createElement('div');
+    typing.className = 'chat-row assistant';
+    typing.id = 'typing-indicator';
+    typing.innerHTML = `
     <div class="msg-avatar assistant">
       <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
     </div>
@@ -812,73 +928,73 @@ async function sendQuestion(text, explicitAlertId = null) {
       <span style="margin-left:4px;">AI Copilot sedang membedah pertanyaan...</span>
     </div>
   `;
-  chatBox.appendChild(typing);
-  scrollBottom();
+    chatBox.appendChild(typing);
+    scrollBottom();
 
-  const userApiKey = getStoredApiKey();
-  const alertIdToSend = explicitAlertId || TARGET_ALERT_ID;
+    const userApiKey = getStoredApiKey();
+    const alertIdToSend = explicitAlertId || TARGET_ALERT_ID;
 
-  try {
-    const headers = { 'Content-Type': 'application/json' };
-    if (userApiKey) {
-      headers['X-User-Api-Key'] = userApiKey;
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (userApiKey) {
+        headers['X-User-Api-Key'] = userApiKey;
+      }
+
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          message: prompt,
+          model: currentActiveModel,
+          website_id: WEBSITE_ID,
+          alert_id: alertIdToSend
+        })
+      });
+
+      const data = await res.json();
+      document.getElementById('typing-indicator')?.remove();
+
+      if (data.reply) {
+        addMsg('assistant', data.reply, data);
+        recordUsage(data.usage);
+      } else {
+        addMsg('assistant', 'Maaf, tidak menerima respons yang valid dari gateway AI.');
+      }
+    } catch (err) {
+      console.error('Chat error:', err);
+      document.getElementById('typing-indicator')?.remove();
+      addMsg('assistant', 'Terjadi kesalahan koneksi saat berkomunikasi dengan asisten AI. Silakan periksa jaringan Anda atau coba sesaat lagi.');
+    } finally {
+      btnSend.disabled = false;
+      btnSend.innerHTML = `<span>Kirim</span> <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
     }
+  }
 
-    const res = await fetch('/api/ai/chat', {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({
-        message: prompt,
-        model: currentActiveModel,
-        website_id: WEBSITE_ID,
-        alert_id: alertIdToSend
-      })
-    });
-
-    const data = await res.json();
-    document.getElementById('typing-indicator')?.remove();
-
-    if (data.reply) {
-      addMsg('assistant', data.reply, data);
-      recordUsage(data.usage);
-    } else {
-      addMsg('assistant', 'Maaf, tidak menerima respons yang valid dari gateway AI.');
+  // ── Event Listeners ──
+  btnSend.addEventListener('click', () => sendQuestion(chatInput.value));
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendQuestion(chatInput.value);
     }
-  } catch(err) {
-    console.error('Chat error:', err);
-    document.getElementById('typing-indicator')?.remove();
-    addMsg('assistant', 'Terjadi kesalahan koneksi saat berkomunikasi dengan asisten AI. Silakan periksa jaringan Anda atau coba sesaat lagi.');
-  } finally {
-    btnSend.disabled = false;
-    btnSend.innerHTML = `<span>Kirim</span> <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+  });
+
+  // Quick question buttons
+  document.querySelectorAll('.quick-q').forEach(btn => {
+    btn.addEventListener('click', () => sendQuestion(btn.dataset.q));
+  });
+
+  // Contextual Target Alert Trigger
+  function analyzeTargetAlertNow() {
+    const card = document.getElementById('target-alert-card');
+    if (card) {
+      sendQuestion("Tolong bedah dan analisis insiden serangan ini secara menyeluruh: jelaskan mekanisme eksploitasi, tingkat risiko, dan panduan mitigasi teknis konkret (rule firewall / code patch).", TARGET_ALERT_ID);
+    }
   }
-}
 
-// ── Event Listeners ──
-btnSend.addEventListener('click', () => sendQuestion(chatInput.value));
-chatInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendQuestion(chatInput.value);
-  }
-});
-
-// Quick question buttons
-document.querySelectorAll('.quick-q').forEach(btn => {
-  btn.addEventListener('click', () => sendQuestion(btn.dataset.q));
-});
-
-// Contextual Target Alert Trigger
-function analyzeTargetAlertNow() {
-  const card = document.getElementById('target-alert-card');
-  if (card) {
-    sendQuestion("Tolong bedah dan analisis insiden serangan ini secara menyeluruh: jelaskan mekanisme eksploitasi, tingkat risiko, dan panduan mitigasi teknis konkret (rule firewall / code patch).", TARGET_ALERT_ID);
-  }
-}
-
-// Format existing history bubbles on page load
-document.querySelectorAll('.formatted-content').forEach(el => {
-  el.innerHTML = formatMarkdown(el.textContent);
-});
+  // Format existing history bubbles on page load
+  document.querySelectorAll('.formatted-content').forEach(el => {
+    el.innerHTML = formatMarkdown(el.textContent);
+  });
 </script>
 {% endblock %}
