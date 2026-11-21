@@ -28,7 +28,7 @@ class SecurityAssistantService:
         return anonymized
 
     @classmethod
-    def generate_copilot_response(cls, prompt, model="gemini-3.8-flash", user_api_key=None, attack_log=None, history=None):
+    def generate_copilot_response(cls, prompt, model="gemini-3.5-flash-lite", user_api_key=None, attack_log=None, history=None):
         """
         Main method for AI Security Copilot with BYOK support, Gemini API integration,
         dual-mode system prompt, and indirect prompt injection mitigation.
@@ -60,7 +60,7 @@ class SecurityAssistantService:
             )
             structured_user_prompt = f"{log_block}Pertanyaan/Instruksi Analis:\n{prompt}"
 
-        # If API key is available, call Gemini API
+        # If API key is available, call Gemini API with multi-model failover
         if api_key:
             res = cls._call_gemini_api(model, structured_user_prompt, history, api_key)
             if res.get('success'):
@@ -73,7 +73,7 @@ class SecurityAssistantService:
         fallback_text = cls._generate_expert_mock_response(prompt, attack_log)
         return {
             'success': True,
-            'reply': f"{fallback_text}\n\n---\n*Info: Mode Offline / Expert Knowledge Base aktif. Untuk respon generatif Gemini 3.8 Flash, Anda dapat memasukkan API Key di menu 'API Key (BYOK)'.*",
+            'reply': f"{fallback_text}\n\n---\n*Info: Mode Offline / Expert Knowledge Base aktif. Untuk respon generatif Gemini, Anda dapat memasukkan API Key di menu 'API Key (BYOK)'.*",
             'usage': {'prompt_tokens': 0, 'completion_tokens': 0, 'total_tokens': 0},
             'model': 'local-expert-engine',
             'provider': 'offline'
@@ -83,14 +83,15 @@ class SecurityAssistantService:
     def _call_gemini_api(cls, model_name, prompt, history, api_key):
         clean_model = (model_name or '').replace('gemini/', '').replace('google/', '').strip()
         if not clean_model:
-            clean_model = 'gemini-3.8-flash'
+            clean_model = 'gemini-3.5-flash-lite'
+
+        # Candidate fallback models to ensure zero 503/timeout downtime
+        candidates = [clean_model, 'gemini-3.5-flash-lite', 'gemini-3-flash-preview', 'gemini-3.8-flash']
+        models_to_try = []
+        for m in candidates:
+            if m and m not in models_to_try:
+                models_to_try.append(m)
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={api_key}"
-        headers = {
-            'x-goog-api-key': api_key,
-            'Content-Type': 'application/json'
-        }
-        
         # Build contents from history
         contents = []
         for h in (history or [])[-6:]:
@@ -118,69 +119,96 @@ class SecurityAssistantService:
             }
         }
 
-        try:
-            resp = requests.post(url, headers=headers, json=payload, timeout=25)
-            status_code = resp.status_code
-            
-            if status_code == 200:
-                data = resp.json()
-                candidates = data.get('candidates', [])
-                if candidates and 'content' in candidates[0]:
-                    parts = candidates[0]['content'].get('parts', [])
-                    reply_text = "".join(p.get('text', '') for p in parts)
-                    usage_meta = data.get('usageMetadata', {})
-                    return {
-                        'success': True,
-                        'reply': f"{reply_text}\n\n---\n*{cls.DISCLAIMER}*",
-                        'usage': {
-                            'prompt_tokens': usage_meta.get('promptTokenCount', 0),
-                            'completion_tokens': usage_meta.get('candidatesTokenCount', 0),
-                            'total_tokens': usage_meta.get('totalTokenCount', 0)
-                        },
-                        'model': clean_model,
-                        'provider': 'google-ai-studio'
-                    }
-                return {
-                    'success': False,
-                    'error_type': 'EMPTY_RESPONSE',
-                    'reply': 'Model Gemini merespons dengan konten kosong atau terblokir filter keamanan.'
-                }
-                
-            elif status_code in (401, 403):
-                return {
-                    'success': False,
-                    'error_type': 'AUTH_ERROR',
-                    'reply': 'API Key Google AI Studio tidak valid atau tidak memiliki izin akses. Silakan periksa kembali API Key Anda pada tombol "API Key (BYOK)".'
-                }
-            elif status_code == 429:
-                return {
-                    'success': False,
-                    'error_type': 'QUOTA_EXHAUSTED',
-                    'reply': 'Batas kuota request (Rate Limit 429) Google AI Studio tercapai. Silakan tunggu beberapa saat atau masukkan API Key pribadi Anda di menu BYOK.'
-                }
-            elif status_code == 503:
-                # High traffic spike on Google servers - fallback gracefully
-                logger.warning(f"Gemini {clean_model} currently experiencing high demand (HTTP 503).")
-                return {
-                    'success': False,
-                    'error_type': 'HIGH_DEMAND',
-                    'reply': 'Server Google AI Studio saat ini sedang mengalami lonjakan beban trafik (HTTP 503 High Demand). Mengalihkan respons ke sistem analisis keamanan cadangan...'
-                }
-            else:
-                err_msg = resp.text[:200]
-                logger.warning(f"Gemini API returned status {status_code}: {err_msg}")
-                return {
-                    'success': False,
-                    'error_type': 'API_ERROR',
-                    'reply': f'Terjadi kendala pada gateway Google Gemini (HTTP {status_code}). Mengaktifkan engine cadangan...'
-                }
-        except Exception as e:
-            logger.error(f"Error calling Gemini API: {e}")
-            return {
-                'success': False,
-                'error_type': 'NETWORK_ERROR',
-                'reply': 'Koneksi ke server Google AI Studio terputus atau timeout.'
+        last_error = None
+        for candidate_model in models_to_try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:generateContent?key={api_key}"
+            headers = {
+                'x-goog-api-key': api_key,
+                'Content-Type': 'application/json'
             }
+
+            try:
+                resp = requests.post(url, headers=headers, json=payload, timeout=12)
+                status_code = resp.status_code
+                
+                if status_code == 200:
+                    data = resp.json()
+                    candidates_resp = data.get('candidates', [])
+                    if candidates_resp and 'content' in candidates_resp[0]:
+                        parts = candidates_resp[0]['content'].get('parts', [])
+                        reply_text = "".join(p.get('text', '') for p in parts)
+                        usage_meta = data.get('usageMetadata', {})
+                        return {
+                            'success': True,
+                            'reply': f"{reply_text}\n\n---\n*{cls.DISCLAIMER}*",
+                            'usage': {
+                                'prompt_tokens': usage_meta.get('promptTokenCount', 0),
+                                'completion_tokens': usage_meta.get('candidatesTokenCount', 0),
+                                'total_tokens': usage_meta.get('totalTokenCount', 0)
+                            },
+                            'model': candidate_model,
+                            'provider': 'google-ai-studio'
+                        }
+                    last_error = {
+                        'success': False,
+                        'error_type': 'EMPTY_RESPONSE',
+                        'reply': 'Model Gemini merespons dengan konten kosong atau terblokir filter keamanan.'
+                    }
+                    continue
+                    
+                elif status_code in (401, 403):
+                    return {
+                        'success': False,
+                        'error_type': 'AUTH_ERROR',
+                        'reply': 'API Key Google AI Studio tidak valid atau tidak memiliki izin akses. Silakan periksa kembali API Key Anda pada tombol "API Key (BYOK)".'
+                    }
+                elif status_code == 429:
+                    logger.warning(f"Gemini {candidate_model} rate limited (429). Trying fallback...")
+                    last_error = {
+                        'success': False,
+                        'error_type': 'QUOTA_EXHAUSTED',
+                        'reply': 'Batas kuota request (Rate Limit 429) Google AI Studio tercapai.'
+                    }
+                    continue
+                elif status_code in (404, 503):
+                    logger.warning(f"Gemini {candidate_model} returned {status_code}. Trying next fallback...")
+                    last_error = {
+                        'success': False,
+                        'error_type': 'HIGH_DEMAND',
+                        'reply': f'Server Google AI Studio saat ini sedang mengalami lonjakan beban trafik (HTTP {status_code}).'
+                    }
+                    continue
+                else:
+                    err_msg = resp.text[:200]
+                    logger.warning(f"Gemini API ({candidate_model}) returned status {status_code}: {err_msg}")
+                    last_error = {
+                        'success': False,
+                        'error_type': 'API_ERROR',
+                        'reply': f'Terjadi kendala pada gateway Google Gemini (HTTP {status_code}).'
+                    }
+                    continue
+            except requests.Timeout:
+                logger.warning(f"Gemini {candidate_model} timed out. Trying next fallback...")
+                last_error = {
+                    'success': False,
+                    'error_type': 'NETWORK_ERROR',
+                    'reply': 'Koneksi ke server Google AI Studio timeout.'
+                }
+                continue
+            except Exception as e:
+                logger.error(f"Error calling Gemini {candidate_model}: {e}")
+                last_error = {
+                    'success': False,
+                    'error_type': 'NETWORK_ERROR',
+                    'reply': f'Koneksi terputus: {str(e)}'
+                }
+                continue
+
+        return last_error or {
+            'success': False,
+            'error_type': 'NETWORK_ERROR',
+            'reply': 'Semua model Gemini sedang tidak dapat dijangkau.'
+        }
 
     @classmethod
     def _generate_expert_mock_response(cls, prompt, attack_log=None):
@@ -259,18 +287,24 @@ class SecurityAssistantService:
                 "```"
             )
             
-        if 'ddos' in atk_type or 'flood' in prompt_lower or 'hulk' in atk_type or 'slowloris' in atk_type:
+        if 'ddos' in atk_type or 'ddos' in prompt_lower or 'denial of service' in prompt_lower or 'flood' in prompt_lower or 'hulk' in atk_type or 'slowloris' in atk_type:
             return (
-                "### Langkah Mitigasi Serangan DDoS & Volumetrik (L3/L4)\n\n"
-                "Serangan DDoS membanjiri server dengan ribuan request serentak untuk melumpuhkan ketersediaan (availability).\n\n"
-                "#### Langkah Mitigasi Terstruktur:\n"
-                "1. **Aktifkan Layer 1 Rate Limiting:**\n"
-                "   - Di menu NIDS 'Metode Proteksi', aktifkan pembatasan rate limit (misal: maksimum 20 request per 10 detik per IP).\n"
-                "2. **Mitigasi di Sisi Web Server (Nginx / Apache):**\n"
-                "   - Di Nginx: gunakan direktif `limit_req_zone $binary_remote_addr zone=one:10m rate=10r/s;`.\n"
-                "   - Di Apache: aktifkan module `mod_evasive` atau `mod_qos`.\n"
-                "3. **Gunakan Reverse Proxy CDN (Cloudflare):**\n"
-                "   - Alihkan domain ke Cloudflare dan aktifkan mode 'Under Attack Mode' saat lonjakan trafik abnormal terjadi."
+                "### Analisis & Panduan Lengkap Serangan DDoS (Distributed Denial of Service)\n\n"
+                "Serangan DDoS adalah upaya siber terdistribusi untuk melumpuhkan ketersediaan (*availability*) suatu server atau aplikasi dengan membanjirinya menggunakan ribuan hingga jutaan request palsu secara serentak dari banyak komputer yang terinfeksi (botnet).\n\n"
+                "#### 1. Mekanisme Serangan:\n"
+                "- **Layer 3/4 (Volumetrik & Transport):** Seperti SYN Flood atau UDP Flood yang membanjiri kapasitas bandwidth jaringan dan menghabiskan tabel state koneksi router/firewall.\n"
+                "- **Layer 7 (Application Layer):** Seperti HTTP GET/POST Flood (misal DoS Hulk) dan Slowloris yang mengirimkan request HTTP sah secara kontinu hingga alokasi thread/worker web server (Apache/Nginx) habis terkuras.\n\n"
+                "#### 2. Tingkat Risiko terhadap Sistem:\n"
+                "- **Kritis (Availability Down):** Website atau API tidak dapat diakses sama sekali oleh pengguna legal.\n"
+                "- **Smoke Screen Tactic:** Sering dimanfaatkan penyerang sebagai pengalih perhatian tim keamanan sementara mereka menyusupkan celah lain seperti SQL Injection atau eksfiltrasi data.\n\n"
+                "#### 3. Rekomendasi Mitigasi Teknis:\n"
+                "1. **Aktifkan Rate Limiting di Reverse Proxy / Web Server:**\n"
+                "   - Di Nginx: tambahkan `limit_req_zone $binary_remote_addr zone=req_limit:10m rate=15r/s;` dan terapkan pada blok `location /`.\n"
+                "   - Di Apache: aktifkan modul `mod_evasive` atau `mod_qos` untuk mendrop IP yang melebihi batas request normal.\n"
+                "2. **Fitur Proteksi NIDS Monitor:**\n"
+                "   - Buka menu **Metode Proteksi**, aktifkan mode pembatasan laju (*Rate Limiting*) otomatis untuk memutus koneksi IP yang melakukan flooding.\n"
+                "3. **Perlindungan Cloudflare / CDN Anti-DDoS:**\n"
+                "   - Rute trafik publik melalui reverse proxy CDN dengan proteksi DDoS bawaan dan aktifkan *Under Attack Mode* saat terjadi lonjakan trafik abnormal."
             )
 
         if 'portscan' in atk_type or 'scan' in prompt_lower:
@@ -283,6 +317,13 @@ class SecurityAssistantService:
             )
 
         # General response
+        if not attack_log:
+            return (
+                "### Konsultasi Keamanan Siber & Analisis Sistem\n\n"
+                "Halo! Saya siap menjawab pertanyaan seputar konsep keamanan siber, arsitektur proteksi jaringan, analisis log deteksi NIDS, panduan konfigurasi firewall (.htaccess, Nginx, iptables), maupun perbaikan kode celah keamanan (PHP/SQL).\n\n"
+                "Silakan ajukan pertanyaan teknis yang ingin Anda diskusikan atau pilih topik analisis dari saran cepat di bawah!"
+            )
+
         return (
             f"### Analisis Insiden & Konsultasi Keamanan\n\n"
             f"Berdasarkan telemetri keamanan sistem NIDS pada target `{endpoint}`:\n\n"
@@ -294,7 +335,7 @@ class SecurityAssistantService:
         )
 
 
-def answer_security_question(question, website_id=None, alert_id=None, history=None, model="gemini-3.8-flash", user_api_key=None):
+def answer_security_question(question, website_id=None, alert_id=None, history=None, model="gemini-3.5-flash-lite", user_api_key=None):
     """
     Helper function used by routes to generate AI security guidance.
     """

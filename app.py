@@ -1139,7 +1139,7 @@ def api_ai_chat():
     if not message:
         return jsonify({'success': False, 'reply': 'Pesan pertanyaan tidak boleh kosong.'}), 400
 
-    model = data.get('model', 'gemini-3.8-flash').strip()
+    model = data.get('model', 'gemini-3.5-flash-lite').strip()
     website_id = None
     try:
         if data.get('website_id') is not None:

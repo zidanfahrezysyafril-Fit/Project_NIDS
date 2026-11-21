@@ -255,8 +255,7 @@
         <div style="font-weight:700;font-size:14.5px;color:#FFFFFF;display:flex;align-items:center;gap:8px;">
           <span>AI Security Copilot</span>
           <span
-            style="font-size:10px;font-weight:700;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);color:#A78BFA;padding:1px 6px;border-radius:4px;">SOC
-            v2.0</span>
+            style="font-size:10px;font-weight:700;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.35);color:#A78BFA;padding:1px 6px;border-radius:4px;">SOC Copilot</span>
           <span style="font-size:11px;color:#64748B;">&bull; {{ site.name }}</span>
         </div>
         <div style="font-size:11px;color:#94A3B8;display:flex;align-items:center;gap:6px;margin-top:2px;">
@@ -464,7 +463,7 @@
           stroke-width="2.2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
-        <span id="selected-model-text" style="font-family:'JetBrains Mono',monospace;">Gemini 3.8 Flash</span>
+        <span id="selected-model-text" style="font-family:'JetBrains Mono',monospace;">Gemini 3.5 Flash</span>
         <svg style="width:12px;height:12px;color:#94A3B8;transition:transform 0.2s;" id="chevron-model" fill="none"
           viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <polyline points="6 9 12 15 18 9" />
@@ -480,21 +479,24 @@
           Pilih Model Copilot
         </div>
 
-        <!-- 1. Active Model: Gemini 3.8 Flash -->
-        <div class="model-item-active" onclick="selectModel('gemini-3.8-flash', 'Gemini 3.8 Flash')">
+        <!-- 1. Active Model: Gemini 3.5 Flash -->
+        <div class="model-item-active" onclick="selectModel('gemini-3.5-flash-lite', 'Gemini 3.5 Flash')">
           <div style="display:flex;align-items:center;gap:7px;">
             <span style="width:6px;height:6px;border-radius:50%;background:#10B981;box-shadow:0 0 6px #10B981;"></span>
-            <span>Gemini 3.8 Flash</span>
+            <span>Gemini 3.5 Flash</span>
           </div>
           <span style="font-size:10px;color:#10B981;font-weight:700;">Tersedia</span>
         </div>
 
-        <!-- 3. Disabled Model: Gemini 2.5 Flash -->
+        <!-- 2. Disabled Models with not-allowed cursor -->
         <div class="model-item-disabled" title="Model ini belum tersedia">
-          <span>Gemini 2.5 Flash</span>
+          <span>Gemini 3.8 Flash</span>
         </div>
 
-        <!-- 5. Disabled Model: OpenRouter -->
+        <div class="model-item-disabled" title="Model ini belum tersedia">
+          <span>Gemini Pro</span>
+        </div>
+
         <div class="model-item-disabled" title="Model ini belum tersedia">
           <span>OpenRouter Multi-Model</span>
         </div>
@@ -678,7 +680,7 @@
   const chatInput = document.getElementById('chat-input');
   const btnSend = document.getElementById('btn-send-chat');
 
-  let currentActiveModel = 'gemini-3.8-flash';
+  let currentActiveModel = 'gemini-3.5-flash-lite';
 
   const USER_INITIAL = '{{ current_user.full_name[0]|upper if current_user.full_name else "U" }}';
 
