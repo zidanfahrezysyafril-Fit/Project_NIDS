@@ -28,7 +28,7 @@ class SecurityAssistantService:
         return anonymized
 
     @classmethod
-    def generate_copilot_response(cls, prompt, model="gemini-2.0-flash", user_api_key=None, attack_log=None, history=None):
+    def generate_copilot_response(cls, prompt, model="gemini-3.8-flash", user_api_key=None, attack_log=None, history=None):
         """
         Main method for AI Security Copilot with BYOK support, Gemini API integration,
         dual-mode system prompt, and indirect prompt injection mitigation.
@@ -82,8 +82,7 @@ class SecurityAssistantService:
     @classmethod
     def _call_gemini_api(cls, model_name, prompt, history, api_key):
         clean_model = (model_name or '').replace('gemini/', '').replace('google/', '').strip()
-        # Google AI Studio migrated gemini-2.0-flash to gemini-3.8-flash
-        if not clean_model or clean_model == 'gemini-2.0-flash':
+        if not clean_model:
             clean_model = 'gemini-3.8-flash'
             
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent?key={api_key}"
@@ -287,7 +286,7 @@ class SecurityAssistantService:
         )
 
 
-def answer_security_question(question, website_id=None, alert_id=None, history=None, model="gemini-2.0-flash", user_api_key=None):
+def answer_security_question(question, website_id=None, alert_id=None, history=None, model="gemini-3.8-flash", user_api_key=None):
     """
     Helper function used by routes to generate AI security guidance.
     """
