@@ -1140,8 +1140,20 @@ def api_ai_chat():
         return jsonify({'success': False, 'reply': 'Pesan pertanyaan tidak boleh kosong.'}), 400
 
     model = data.get('model', 'gemini-3.8-flash').strip()
-    website_id = data.get('website_id', type=int)
-    alert_id = data.get('alert_id', type=int)
+    website_id = None
+    try:
+        if data.get('website_id') is not None:
+            website_id = int(data.get('website_id'))
+    except (ValueError, TypeError):
+        pass
+
+    alert_id = None
+    try:
+        if data.get('alert_id') is not None:
+            alert_id = int(data.get('alert_id'))
+    except (ValueError, TypeError):
+        pass
+
     attack_log = data.get('attack_log')
     client_history = data.get('history') or []
 

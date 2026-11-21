@@ -73,7 +73,7 @@ class SecurityAssistantService:
         fallback_text = cls._generate_expert_mock_response(prompt, attack_log)
         return {
             'success': True,
-            'reply': f"{fallback_text}\n\n---\n*Info: Mode Offline / Expert Knowledge Base aktif. Untuk respon generatif Gemini 2.0 Flash, Anda dapat memasukkan API Key di menu 'Pengaturan API Key (BYOK)'.*",
+            'reply': f"{fallback_text}\n\n---\n*Info: Mode Offline / Expert Knowledge Base aktif. Untuk respon generatif Gemini 3.8 Flash, Anda dapat memasukkan API Key di menu 'API Key (BYOK)'.*",
             'usage': {'prompt_tokens': 0, 'completion_tokens': 0, 'total_tokens': 0},
             'model': 'local-expert-engine',
             'provider': 'offline'
@@ -185,10 +185,18 @@ class SecurityAssistantService:
     @classmethod
     def _generate_expert_mock_response(cls, prompt, attack_log=None):
         """Intelligent offline knowledge base response with specific contextual code solutions."""
-        prompt_lower = (prompt or '').lower()
+        prompt_lower = (prompt or '').lower().strip()
         atk_type = (attack_log.get('attack_type', '') if attack_log else '').lower()
         payload = (attack_log.get('payload_sample', '') if attack_log else '') or ''
         endpoint = (attack_log.get('target_endpoint', '') if attack_log else '') or '/'
+
+        # Natural conversational greetings
+        if prompt_lower in ('halo', 'hai', 'hello', 'hi', 'pagi', 'siang', 'sore', 'malam', 'tes', 'assalamualaikum'):
+            return (
+                "Halo! Saya adalah **AI Security Copilot** yang terintegrasi pada sistem NIDS Monitor.\n\n"
+                "Saya siap membantu Anda membedah insiden serangan jaringan, menganalisis payload mencurigakan, memberikan panduan mitigasi kode teknis (PHP, Prepared Statements, .htaccess, Nginx), atau berdiskusi seputar keamanan siber dan topik umum.\n\n"
+                "Silakan tanyakan hal teknis atau klik salah satu kartu rekomendasi analisis di atas!"
+            )
 
         if 'htaccess' in prompt_lower or 'blokir' in prompt_lower:
             return (
