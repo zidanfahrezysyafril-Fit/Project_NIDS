@@ -28,13 +28,53 @@ class SecurityAssistantService:
         return anonymized
 
     @classmethod
+    def get_effective_api_key(cls, user_api_key=None):
+        """
+        Get the effective Gemini API key:
+        1. From request header (BYOK from user)
+        2. From os.environ
+        3. Force reload from .env in project root
+        4. Hardcoded fallback key from configuration
+        """
+        if user_api_key and str(user_api_key).strip():
+            return str(user_api_key).strip()
+            
+        key = os.environ.get('LLM_API_KEY', '').strip() or os.environ.get('GEMINI_API_KEY', '').strip()
+        if key:
+            return key
+            
+        try:
+            from dotenv import dotenv_values
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            env_file = os.path.join(base_dir, '.env')
+            if os.path.exists(env_file):
+                vals = dotenv_values(env_file)
+                k = vals.get('LLM_API_KEY') or vals.get('GEMINI_API_KEY')
+                if k and k.strip():
+                    os.environ['LLM_API_KEY'] = k.strip()
+                    return k.strip()
+            # Also fallback to direct text parse if dotenv_values fails
+            if os.path.exists(env_file):
+                with open(env_file, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        if line.startswith('LLM_API_KEY='):
+                            val = line.split('=', 1)[1].strip().strip('"\'')
+                            if val:
+                                os.environ['LLM_API_KEY'] = val
+                                return val
+        except Exception as e:
+            logger.warning(f"Error reading .env dynamically: {e}")
+
+        return ""
+
+    @classmethod
     def generate_copilot_response(cls, prompt, model="gemini-3.5-flash-lite", user_api_key=None, attack_log=None, history=None):
         """
         Main method for AI Security Copilot with BYOK support, Gemini API integration,
         dual-mode system prompt, and indirect prompt injection mitigation.
         """
         history = history or []
-        api_key = (user_api_key or '').strip() or os.environ.get('LLM_API_KEY', '').strip() or os.environ.get('GEMINI_API_KEY', '').strip()
+        api_key = cls.get_effective_api_key(user_api_key)
         
         # Build prompt with strict delimiter for attack_log if provided
         structured_user_prompt = prompt
@@ -98,10 +138,14 @@ class SecurityAssistantService:
             role = "user" if h.get('role') in ('user', 'human') else "model"
             content_text = str(h.get('content', '')).strip()
             if content_text:
-                contents.append({
-                    "role": role,
-                    "parts": [{"text": content_text}]
-                })
+                # Strip previous offline notices or system disclaimers so Gemini does not repeat them
+                content_text = re.sub(r'---\s*\*Info:\s*Mode Offline.*?\*', '', content_text, flags=re.DOTALL)
+                content_text = re.sub(r'---\s*\*Catatan Keamanan:.*?\*', '', content_text, flags=re.DOTALL).strip()
+                if content_text:
+                    contents.append({
+                        "role": role,
+                        "parts": [{"text": content_text}]
+                    })
                 
         contents.append({
             "role": "user",
@@ -316,22 +360,75 @@ class SecurityAssistantService:
                 "2. Blokir port yang tidak digunakan secara publik via iptables/firewall (hanya izinkan port 80 dan 443 untuk web)."
             )
 
-        # General response
-        if not attack_log:
+        if 'idor' in prompt_lower or 'object reference' in prompt_lower or 'insecure direct' in prompt_lower:
             return (
-                "### Konsultasi Keamanan Siber & Analisis Sistem\n\n"
-                "Halo! Saya siap menjawab pertanyaan seputar konsep keamanan siber, arsitektur proteksi jaringan, analisis log deteksi NIDS, panduan konfigurasi firewall (.htaccess, Nginx, iptables), maupun perbaikan kode celah keamanan (PHP/SQL).\n\n"
-                "Silakan ajukan pertanyaan teknis yang ingin Anda diskusikan atau pilih topik analisis dari saran cepat di bawah!"
+                "### Panduan Pencegahan Celah IDOR (Insecure Direct Object References)\n\n"
+                "IDOR terjadi ketika aplikasi menerima parameter identitas objek (seperti `?id=105`) dari klien dan langsung mengambil data dari database tanpa memverifikasi apakah pengguna yang sedang login berhak mengakses objek tersebut.\n\n"
+                "#### 1. Mekanisme & Risiko Serangan:\n"
+                "- Penyerang memanipulasi parameter ID (misal `id=105` diubah menjadi `id=106`) untuk melihat, mengedit, atau menghapus data milik pengguna lain.\n"
+                "- Risiko: Kebocoran data pribadi (PII), manipulasi rekam medis/keuangan, dan pelanggaran privasi massal.\n\n"
+                "#### 2. Solusi Pencegahan di Sisi Kode (PHP PDO):\n"
+                "```php\n"
+                "// Wajib validasi sesi kepemilikan data:\n"
+                "$userId = $_SESSION['user_id']; // ID pengguna yang sedang login\n"
+                "$recordId = (int)$_GET['id'];\n\n"
+                "// Query database harus memvalidasi id data DAN user_id pemilik secara bersamaan:\n"
+                "$stmt = $pdo->prepare('SELECT * FROM data_pasien WHERE id = :id AND user_id = :uid');\n"
+                "$stmt->execute(['id' => $recordId, 'uid' => $userId]);\n"
+                "$data = $stmt->fetch();\n\n"
+                "if (!$data) {\n"
+                "    http_response_code(403);\n"
+                "    exit('Akses ditolak: Anda tidak memiliki izin untuk melihat data ini.');\n"
+                "}\n"
+                "```\n\n"
+                "#### 3. Rekomendasi Hardening Tambahan:\n"
+                "- Gunakan **UUID v4** yang acak dan tidak dapat ditebak daripada integer berurutan (misal: `/rekam-medis/550e8400-e29b-41d4-a716-446655440000`).\n"
+                "- Terapkan Access Control List (ACL) atau Role-Based Access Control (RBAC) pada middleware aplikasi."
             )
 
+        if 'csrf' in prompt_lower or 'cross-site request' in prompt_lower:
+            return (
+                "### Panduan Pencegahan Celah CSRF (Cross-Site Request Forgery)\n\n"
+                "CSRF mengeksploitasi kepercayaan aplikasi terhadap peramban pengguna yang telah login untuk mengirimkan permintaan jahat tanpa disadari.\n\n"
+                "#### Langkah Pencegahan Utama:\n"
+                "1. **Anti-CSRF Token Unik:** Sisipkan token acak kriptografis rahasia di setiap form POST/PUT dan validasi di sisi server.\n"
+                "2. **SameSite Cookie:** Setel atribut cookie sesi ke `SameSite=Strict` atau `SameSite=Lax` agar browser tidak menyertakan cookie pada request lintas situs.\n"
+                "3. **Re-autentikasi:** Minta pengguna memasukkan kembali password untuk tindakan kritis (seperti ganti email atau transfer)."
+            )
+
+        if 'brute' in prompt_lower or 'password' in prompt_lower or 'login' in prompt_lower:
+            return (
+                "### Mitigasi Serangan Brute Force & Credential Stuffing\n\n"
+                "#### Langkah Mitigasi Terstruktur:\n"
+                "1. **Account Lockout & Rate Limiting:** Kunci akun sementara setelah 5 kali gagal login berturut-turut dalam kurun waktu 15 menit.\n"
+                "2. **Implementasi CAPTCHA:** Tampilkan verifikasi CAPTCHA setelah 3 kali percobaan gagal.\n"
+                "3. **Multi-Factor Authentication (MFA):** Wajibkan 2FA (OTP via Google Authenticator atau SMS).\n"
+                "4. **Hashing Password yang Kuat:** Gunakan algoritma hashing modern seperti `bcrypt` (`PASSWORD_BCRYPT` di PHP) atau `Argon2id`."
+            )
+
+        # General intelligent fallback if prompt is not a simple greeting
+        if prompt_lower not in ('halo', 'hai', 'hello', 'hi', 'pagi', 'siang', 'sore', 'malam', 'tes', 'assalamualaikum'):
+            clean_q = prompt.strip()
+            return (
+                f"### Analisis & Panduan Keamanan Siber: {clean_q}\n\n"
+                "Berikut adalah prinsip pengamanan teknis yang relevan dengan topik pertanyaan Anda:\n\n"
+                "1. **Prinsip Least Privilege & Validasi Otorisasi:**\n"
+                "   - Setiap endpoint dan fungsi sistem wajib memvalidasi identitas serta hak akses pengguna di sisi server sebelum memproses instruksi.\n"
+                "   - Jangan pernah mempercayai input langsung dari sisi klien (URL parameter, form input, maupun header).\n\n"
+                "2. **Proteksi di Layer Web Server & Gateway NIDS:**\n"
+                "   - Konfigurasi pembatasan akses direktori sensitif (.env, vendor, backup) pada web server.\n"
+                "   - Aktifkan fitur inspeksi lalu lintas pada sistem NIDS Monitor untuk mendeteksi pola anomali secara real-time.\n\n"
+                "3. **Hardening Lingkungan Produksi:**\n"
+                "   - Nonaktifkan `display_errors` pada server PHP di lingkungan live untuk mencegah *information disclosure*.\n"
+                "   - Terapkan enkripsi end-to-end (HTTPS) dan amankan cookie dengan atribut `HttpOnly`, `Secure`, serta `SameSite=Lax`.\n\n"
+                "Silakan tanyakan aspek teknis spesifik yang ingin Anda diskusikan lebih lanjut!"
+            )
+
+        # General greeting response
         return (
-            f"### Analisis Insiden & Konsultasi Keamanan\n\n"
-            f"Berdasarkan telemetri keamanan sistem NIDS pada target `{endpoint}`:\n\n"
-            "#### Rekomendasi Penanganan Cepat:\n"
-            "1. Periksa log akses web server pada rentang waktu insiden untuk mengidentifikasi IP penyerang.\n"
-            "2. Lakukan audit integritas file untuk memastikan tidak ada webshell atau backdoor yang disusupkan.\n"
-            "3. Pastikan gateway reverse proxy NIDS selalu aktif di depan aplikasi web Anda.\n\n"
-            "Silakan ajukan pertanyaan teknis lanjutan seputar mitigasi, aturan firewall, atau perbaikan kode."
+            "### Konsultasi Keamanan Siber & Analisis Sistem\n\n"
+            "Halo! Saya siap menjawab pertanyaan seputar konsep keamanan siber, arsitektur proteksi jaringan, analisis log deteksi NIDS, panduan konfigurasi firewall (.htaccess, Nginx, iptables), maupun perbaikan kode celah keamanan (PHP/SQL).\n\n"
+            "Silakan ajukan pertanyaan teknis yang ingin Anda diskusikan atau pilih topik analisis dari saran cepat di bawah!"
         )
 
 
