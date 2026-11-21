@@ -1116,17 +1116,79 @@ def proxy_gateway(website_id, subpath):
 def assistant(website_id):
     site = Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
     if request.method == 'POST':
-        question = (request.json or {}).get('question', '')
-        answer = answer_security_question(question, website_id=website_id)
-        msg = ChatMessage(user_id=current_user.id, website_id=website_id, role='user', content=question)
-        db.session.add(msg)
-        msg2 = ChatMessage(user_id=current_user.id, website_id=website_id, role='assistant', content=answer)
-        db.session.add(msg2)
-        db.session.commit()
-        return jsonify({'answer': answer})
+        # Delegate to api_ai_chat logic
+        return api_ai_chat()
+
+    alert_id = request.args.get('alert_id', type=int)
+    target_alert = None
+    if alert_id:
+        target_alert = Alert.query.filter_by(id=alert_id, website_id=website_id).first()
+
     history = ChatMessage.query.filter_by(website_id=website_id)\
                                .order_by(ChatMessage.created_at).all()
-    return render_template('dashboard/assistant.html', site=site, history=history)
+    return render_template('dashboard/assistant.html', site=site, history=history, target_alert=target_alert)
+
+
+@app.route('/api/ai/chat', methods=['POST'])
+@login_required
+def api_ai_chat():
+    from services.assistant_service import SecurityAssistantService
+    user_api_key = request.headers.get('X-User-Api-Key', '').strip()
+    data = request.get_json(silent=True) or {}
+    message = (data.get('message') or data.get('question') or '').strip()
+    if not message:
+        return jsonify({'success': False, 'reply': 'Pesan pertanyaan tidak boleh kosong.'}), 400
+
+    model = data.get('model', 'gemini-2.0-flash').strip()
+    website_id = data.get('website_id', type=int)
+    alert_id = data.get('alert_id', type=int)
+    attack_log = data.get('attack_log')
+    client_history = data.get('history') or []
+
+    # If attack_log not supplied but alert_id is, load from DB
+    if not attack_log and alert_id:
+        a = Alert.query.get(alert_id)
+        if a:
+            attack_log = {
+                'attack_type': a.attack_type,
+                'severity': a.severity,
+                'target_endpoint': a.target_endpoint or '/',
+                'pattern_detected': a.pattern_detected or a.attack_type,
+                'payload_sample': a.payload_sample or '',
+                'source_ip': a.source_ip or '-',
+                'created_at': a.created_at.strftime('%Y-%m-%d %H:%M:%S') if a.created_at else '-'
+            }
+
+    # Format history if not supplied by client
+    db_history = []
+    if website_id:
+        recent_chats = ChatMessage.query.filter_by(website_id=website_id)\
+                                        .order_by(ChatMessage.created_at.desc()).limit(6).all()
+        for c in reversed(recent_chats):
+            db_history.append({'role': c.role, 'content': c.content})
+
+    history_to_use = client_history if client_history else db_history
+
+    result = SecurityAssistantService.generate_copilot_response(
+        prompt=message,
+        model=model,
+        user_api_key=user_api_key,
+        attack_log=attack_log,
+        history=history_to_use
+    )
+
+    # Persist conversation to DB if website_id provided
+    if website_id:
+        try:
+            msg1 = ChatMessage(user_id=current_user.id, website_id=website_id, alert_id=alert_id, role='user', content=message)
+            msg2 = ChatMessage(user_id=current_user.id, website_id=website_id, alert_id=alert_id, role='assistant', content=result.get('reply', ''))
+            db.session.add(msg1)
+            db.session.add(msg2)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    return jsonify(result)
 
 
 # ── Routes: Mitigation Guide ──────────────────────────────────────────────────

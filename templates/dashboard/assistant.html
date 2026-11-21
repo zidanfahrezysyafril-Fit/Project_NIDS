@@ -1,161 +1,589 @@
 {% extends "base_app.html" %}
-{% block title %}AI Assistant – {{ site.name }}{% endblock %}
+{% block title %}AI Security Copilot – {{ site.name }}{% endblock %}
 {% block page_title %}
-<div style="display:flex;align-items:center;gap:10px;">
-  <div style="width:28px;height:28px;border-radius:8px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;color:#06B6D4;">
-    <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+<div style="display:flex;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;gap:12px;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,rgba(167,139,250,0.2),rgba(6,182,212,0.2));border:1px solid rgba(167,139,250,0.4);display:flex;align-items:center;justify-content:center;color:#A78BFA;">
+      <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/>
+      </svg>
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:16px;color:#fff;display:flex;align-items:center;gap:8px;">
+        <span>AI Security Copilot</span>
+        <span style="font-size:10.5px;padding:2px 8px;border-radius:6px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#A78BFA;font-weight:600;">SOC v2.0</span>
+      </div>
+      <div style="font-size:11.5px;color:#94A3B8;">Context-Aware Hybrid Chatbot &amp; Multi-Model BYOK</div>
+    </div>
   </div>
-  <span style="font-weight:700;color:#fff;">AI Security Assistant</span>
+
+  <!-- Top Controls: Model Switcher & BYOK Settings -->
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <!-- Model Selector -->
+    <div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:4px 8px;">
+      <svg style="width:13px;height:13px;color:#06B6D4;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+      <select id="model-select" style="background:transparent;border:none;color:#E2E8F0;font-size:12px;font-weight:600;outline:none;cursor:pointer;">
+        <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash (Default • Cepat)</option>
+        <option value="gemini-1.5-flash">Gemini 1.5 Flash (Stabil)</option>
+        <option value="gemini-2.5-flash">Gemini 2.5 Flash (Deep Thinking)</option>
+      </select>
+    </div>
+
+    <!-- Key Status Pill -->
+    <span id="byok-status-pill" style="font-size:11px;padding:5px 10px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:5px;cursor:pointer;" onclick="openByokModal()">
+      <span style="width:6px;height:6px;border-radius:50%;background:#F59E0B;" id="byok-dot"></span>
+      <span id="byok-label">Server Key</span>
+    </span>
+
+    <!-- BYOK Settings Button -->
+    <button onclick="openByokModal()" class="btn btn-secondary btn-sm" style="font-size:11.5px;padding:6px 12px;display:inline-flex;align-items:center;gap:5px;">
+      <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+      </svg>
+      <span>API Key (BYOK)</span>
+    </button>
+
+    <!-- Usage Token Button -->
+    <button onclick="openUsageModal()" class="btn btn-secondary btn-sm" style="font-size:11.5px;padding:6px 12px;display:inline-flex;align-items:center;gap:5px;" title="Lihat estimasi token yang digunakan">
+      <svg style="width:13px;height:13px;color:#38BDF8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      <span>Token: <strong id="token-total-badge" style="color:#38BDF8;">0</strong></span>
+    </button>
+  </div>
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="grid-2" style="align-items:start;">
+<div style="display:flex;flex-direction:column;gap:16px;">
 
-  <!-- Chat Panel -->
-  <div class="card" style="grid-column:1/3;">
-    <div class="card-header">
-      <div class="card-title">
-        <svg style="width:17px;height:17px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
-        Tanya Jawab Keamanan
+  <!-- Contextual Alert Inspection Banner (Shown if user opened with ?alert_id=...) -->
+  {% if target_alert %}
+  <div id="target-alert-card" style="background:linear-gradient(135deg,rgba(167,139,250,0.08) 0%,rgba(10,14,22,0.92) 100%);border:1px solid rgba(167,139,250,0.3);border-radius:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+      <div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);display:flex;align-items:center;justify-content:center;color:#EF4444;flex-shrink:0;margin-top:2px;">
+        <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
       </div>
-      <div style="font-size:12px;color:var(--text-muted);">IP dianonim otomatis untuk privasi</div>
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-weight:700;color:#FFFFFF;font-size:14px;">Inspeksi Insiden #{{ target_alert.id }}: {{ target_alert.attack_type }}</span>
+          <span class="badge badge-{{ 'critical' if target_alert.severity=='Kritis' else 'high' }}">{{ target_alert.severity }}</span>
+          <span style="font-size:11px;color:#94A3B8;">IP: {{ target_alert.source_ip or '-' }}</span>
+        </div>
+        <div style="font-size:12px;color:#CBD5E1;margin-top:4px;word-break:break-all;">
+          Target Endpoint: <code style="color:#38BDF8;font-family:'JetBrains Mono',monospace;">{{ target_alert.target_endpoint or '/' }}</code>
+          {% if target_alert.payload_sample %}
+            &bull; Payload: <span style="color:#F43F5E;font-family:'JetBrains Mono',monospace;">{{ target_alert.payload_sample }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <button onclick="analyzeTargetAlertNow()" class="btn btn-primary btn-sm" id="btn-analyze-target" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;">
+      <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+      <span>Mulai Analisis Mitigasi AI</span>
+    </button>
+  </div>
+  {% endif %}
+
+  <!-- Main Chat Card -->
+  <div class="card" style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:calc(100vh - 250px);min-height:550px;">
+    
+    <!-- Chat Header Sub-bar -->
+    <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.01);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#94A3B8;">
+        <span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;"></span>
+        <span>Asisten Aktif &bull; Dilindungi Filter Sanitasi Delimiter <code>&lt;attack_log&gt;</code></span>
+      </div>
+      <div style="font-size:11px;color:#64748B;">
+        Tekan <kbd style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;color:#CBD5E1;">Enter</kbd> untuk kirim, <kbd style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;color:#CBD5E1;">Shift+Enter</kbd> untuk baris baru
+      </div>
     </div>
 
-    <!-- Chat Messages -->
-    <div class="chat-box" id="chat-box">
-      <!-- Welcome message -->
+    <!-- Messages Container -->
+    <div class="chat-box" id="chat-box" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:18px;">
+      
+      <!-- Welcome Message -->
       <div class="chat-msg assistant">
-        <div class="avatar" style="width:32px;height:32px;flex-shrink:0;background:linear-gradient(135deg,#2563EB,#06B6D4);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-          <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+        <div class="avatar" style="width:34px;height:34px;flex-shrink:0;background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;">
+          <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
+          </svg>
         </div>
-        <div class="chat-bubble">
-          Halo! Saya adalah <strong>NIDS AI Assistant</strong>. Tanyakan apa saja seputar keamanan website Anda, analisis serangan, atau langkah mitigasi. Data IP akan dianonim secara otomatis untuk menjaga privasi.
+        <div class="chat-bubble" style="max-width:85%;line-height:1.6;font-size:13.5px;">
+          Halo <strong>{{ current_user.full_name or current_user.username }}</strong>! Saya adalah <strong>AI Security Copilot</strong> untuk website <strong>{{ site.name }}</strong>.<br><br>
+          Saya dapat membantu Anda:
+          <ul style="margin:8px 0 8px 18px;padding:0;">
+            <li>Menganalisis mekanisme &amp; risiko serangan yang terdeteksi oleh sistem NIDS.</li>
+            <li>Memberikan rekomendasi kode perbaikan (Prepared Statements, escaping, CSP, dll).</li>
+            <li>Menyusun aturan firewall (<code>.htaccess</code>, Nginx config, iptables rate limiting).</li>
+            <li>Menjawab pertanyaan umum seputar arsitektur keamanan siber maupun diskusi umum.</li>
+          </ul>
+          <span style="font-size:11.5px;color:#94A3B8;">Anda dapat memasukkan API Key Google AI Studio pribadi pada menu <strong>API Key (BYOK)</strong> di atas untuk kuota independen.</span>
         </div>
       </div>
 
+      <!-- History Messages Rendered from DB -->
       {% for msg in history %}
       <div class="chat-msg {{ msg.role }}">
         {% if msg.role == 'assistant' %}
-        <div class="avatar" style="width:32px;height:32px;flex-shrink:0;background:linear-gradient(135deg,#2563EB,#06B6D4);border-radius:8px;display:flex;align-items:center;justify-content:center;">
-          <svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+        <div class="avatar" style="width:34px;height:34px;flex-shrink:0;background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;">
+          <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/>
+          </svg>
         </div>
         {% else %}
-        <div class="avatar" style="width:32px;height:32px;flex-shrink:0;">{{ current_user.full_name[0]|upper if current_user.full_name else '?' }}</div>
+        <div class="avatar" style="width:34px;height:34px;flex-shrink:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#CBD5E1;">
+          {{ current_user.full_name[0]|upper if current_user.full_name else 'U' }}
+        </div>
         {% endif %}
-        <div class="chat-bubble">{{ msg.content }}</div>
+        <div class="chat-bubble formatted-content" style="max-width:85%;line-height:1.6;font-size:13.5px;">{{ msg.content|safe }}</div>
       </div>
       {% endfor %}
+
     </div>
 
-    <!-- Quick Questions -->
-    <div style="margin:12px 0 8px;display:flex;flex-wrap:wrap;gap:8px;">
-      <button class="btn btn-secondary btn-sm quick-q" data-q="Apa serangan yang paling sering terjadi di website saya?" style="display:inline-flex;align-items:center;gap:5px;">
-        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        Serangan terbanyak?
+    <!-- Quick Question Chips -->
+    <div style="padding:10px 20px;background:rgba(255,255,255,0.015);border-top:1px solid rgba(255,255,255,0.04);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+      <span style="font-size:11px;color:#64748B;font-weight:600;margin-right:4px;">Rekomendasi Analis:</span>
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Analisis insiden serangan terbaru yang terdeteksi di website saya dan berikan langkah mitigasi konkritnya." style="font-size:11px;padding:4px 10px;">
+        Analisis Insiden Terakhir
       </button>
-      <button class="btn btn-secondary btn-sm quick-q" data-q="Bagaimana cara mencegah serangan DDoS di shared hosting?" style="display:inline-flex;align-items:center;gap:5px;">
-        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        Cara cegah DDoS?
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Buatkan konfigurasi .htaccess dan Nginx untuk memblokir SQL Injection dan parameter mencurigakan." style="font-size:11px;padding:4px 10px;">
+        Rule .htaccess &amp; Nginx
       </button>
-      <button class="btn btn-secondary btn-sm quick-q" data-q="Berikan contoh payload XSS yang berbahaya dan cara membloknya" style="display:inline-flex;align-items:center;gap:5px;">
-        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-        Contoh payload XSS?
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Bagaimana cara terbaik memproteksi form login dari serangan SQLi dan Brute Force secara bersamaan?" style="font-size:11px;padding:4px 10px;">
+        Proteksi Form Login
       </button>
-      <button class="btn btn-secondary btn-sm quick-q" data-q="Buatkan aturan .htaccess untuk memblokir SQL Injection" style="display:inline-flex;align-items:center;gap:5px;">
-        <svg style="width:12px;height:12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        Generate .htaccess?
+      <button class="btn btn-secondary btn-sm quick-q" data-q="Jelaskan perbedaan mendasar antara DoS Hulk dan SYN Flood pada layer transport." style="font-size:11px;padding:4px 10px;">
+        DoS Hulk vs SYN Flood
       </button>
     </div>
 
-    <!-- Input Row -->
-    <div class="chat-input-row">
-      <input type="text" id="chat-input" class="form-control"
-             placeholder="Ketik pertanyaan seputar keamanan..."
-             autocomplete="off" />
-      <button class="btn btn-primary" id="btn-send-chat" style="display:inline-flex;align-items:center;gap:6px;">
-        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Kirim
+    <!-- Input Footer Row -->
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.06);background:rgba(10,14,22,0.95);display:flex;gap:12px;align-items:flex-end;">
+      <textarea id="chat-input"
+                class="form-control"
+                rows="1"
+                placeholder="Tanyakan analisis insiden keamanan, mitigasi teknis, atau pertanyaan umum..."
+                style="resize:none;max-height:120px;min-height:44px;line-height:1.5;padding:10px 14px;background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.12);color:#E2E8F0;border-radius:10px;"></textarea>
+      <button class="btn btn-primary" id="btn-send-chat" style="height:44px;padding:0 20px;display:inline-flex;align-items:center;gap:8px;flex-shrink:0;">
+        <span>Kirim</span>
+        <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
       </button>
     </div>
 
-    <!-- Rate limit info -->
-    <div style="font-size:11px;color:var(--text-dim);margin-top:8px;text-align:right;">
-      Limit: 20 pertanyaan/hari
-    </div>
   </div>
+</div>
 
+<!-- ── MODAL: BYOK API Key Settings ── -->
+<div id="modal-byok" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0F172A;border:1px solid rgba(255,255,255,0.12);border-radius:16px;width:90%;max-width:540px;padding:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+    
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);display:flex;align-items:center;justify-content:center;color:#06B6D4;">
+          <svg style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 style="margin:0;font-size:16px;font-weight:700;color:#fff;">Pengaturan API Key (BYOK)</h3>
+          <p style="margin:2px 0 0;font-size:12px;color:#94A3B8;">Bring Your Own Key untuk kuota Google AI Studio mandiri</p>
+        </div>
+      </div>
+      <button onclick="closeByokModal()" style="background:none;border:none;color:#64748B;cursor:pointer;padding:4px;">
+        <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div style="font-size:12.5px;color:#CBD5E1;line-height:1.5;margin-bottom:18px;">
+      Dengan mengisi API Key pribadi, seluruh interaksi AI akan menggunakan kuota akun Google Anda sendiri tanpa berbagi limit server.
+      <div style="margin-top:10px;padding:10px 12px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.25);border-radius:8px;font-size:11.5px;color:#38BDF8;">
+        Privasi Terjamin: API Key Anda <strong>hanya disimpan di localStorage peramban</strong> ini dan dikirim via header <code>X-User-Api-Key</code> saat request. Server Flask tidak pernah menyimpan key Anda ke database.
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+      <label style="display:block;font-size:12px;font-weight:600;color:#94A3B8;margin-bottom:6px;">Google AI Studio API Key (Gemini):</label>
+      <div style="position:relative;">
+        <input type="password" id="input-api-key" class="form-control" placeholder="AIzaSy..." style="padding-right:40px;font-family:'JetBrains Mono',monospace;font-size:12.5px;">
+        <button type="button" onclick="toggleKeyVisibility()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94A3B8;cursor:pointer;">
+          <svg id="eye-icon" style="width:16px;height:16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        </button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+        <span style="font-size:11px;color:#64748B;">Belum punya key? Gratis tanpa kartu kredit:</span>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size:11.5px;color:#06B6D4;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:3px;">
+          <span>Ambil di aistudio.google.com</span>
+          <svg style="width:11px;height:11px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;">
+      <button onclick="removeApiKey()" class="btn btn-secondary btn-sm" style="color:#EF4444;border-color:rgba(239,68,68,0.3);">
+        Hapus Key
+      </button>
+      <div style="display:flex;gap:8px;">
+        <button onclick="closeByokModal()" class="btn btn-secondary btn-sm">Batal</button>
+        <button onclick="saveApiKey()" class="btn btn-primary btn-sm">Simpan ke Browser</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── MODAL: Usage Token Statistics ── -->
+<div id="modal-usage" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#0F172A;border:1px solid rgba(255,255,255,0.12);border-radius:16px;width:90%;max-width:480px;padding:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+    
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h3 style="margin:0;font-size:16px;font-weight:700;color:#fff;">Akumulasi Pemakaian Token</h3>
+      <button onclick="closeUsageModal()" style="background:none;border:none;color:#64748B;cursor:pointer;padding:4px;">
+        <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <p style="font-size:12px;color:#94A3B8;margin-bottom:16px;">
+      Hitungan ini diakumulasikan secara lokal pada peramban Anda dari setiap respons Gemini yang berhasil diterima.
+    </p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:12px;border-radius:10px;">
+        <div style="font-size:10.5px;color:#64748B;text-transform:uppercase;font-weight:600;">Prompt Tokens</div>
+        <div style="font-size:20px;font-weight:700;color:#38BDF8;font-family:'JetBrains Mono',monospace;margin-top:4px;" id="u-prompt">0</div>
+        <div style="font-size:10px;color:#475569;">Input prompt &amp; konteks</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:12px;border-radius:10px;">
+        <div style="font-size:10.5px;color:#64748B;text-transform:uppercase;font-weight:600;">Completion Tokens</div>
+        <div style="font-size:20px;font-weight:700;color:#A78BFA;font-family:'JetBrains Mono',monospace;margin-top:4px;" id="u-completion">0</div>
+        <div style="font-size:10px;color:#475569;">Jawaban asisten AI</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:12px;border-radius:10px;">
+        <div style="font-size:10.5px;color:#64748B;text-transform:uppercase;font-weight:600;">Total Tokens</div>
+        <div style="font-size:20px;font-weight:700;color:#10B981;font-family:'JetBrains Mono',monospace;margin-top:4px;" id="u-total">0</div>
+        <div style="font-size:10px;color:#475569;">Akumulasi keseluruhan</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:12px;border-radius:10px;">
+        <div style="font-size:10.5px;color:#64748B;text-transform:uppercase;font-weight:600;">Total Request</div>
+        <div style="font-size:20px;font-weight:700;color:#F59E0B;font-family:'JetBrains Mono',monospace;margin-top:4px;" id="u-requests">0</div>
+        <div style="font-size:10px;color:#475569;">Jumlah interaksi</div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.08);padding-top:14px;">
+      <button onclick="resetUsageStats()" class="btn btn-secondary btn-sm" style="color:#EF4444;border-color:rgba(239,68,68,0.3);">
+        Reset Statistik
+      </button>
+      <button onclick="closeUsageModal()" class="btn btn-primary btn-sm">Tutup</button>
+    </div>
+
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+const WEBSITE_ID = {{ site.id }};
+const TARGET_ALERT_ID = {{ target_alert.id if target_alert else 'null' }};
 const chatBox   = document.getElementById('chat-box');
 const chatInput = document.getElementById('chat-input');
 const btnSend   = document.getElementById('btn-send-chat');
-const WEBSITE_ID = {{ site.id }};
+const modelSelect = document.getElementById('model-select');
 
-const AI_SVG = `<div class="avatar" style="width:32px;height:32px;flex-shrink:0;background:linear-gradient(135deg,#2563EB,#06B6D4);border-radius:8px;display:flex;align-items:center;justify-content:center;"><svg style="width:16px;height:16px;color:#fff;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>`;
-const USER_INITIAL = '{{ current_user.full_name[0]|upper if current_user.full_name else "?" }}';
+const USER_INITIAL = '{{ current_user.full_name[0]|upper if current_user.full_name else "U" }}';
+const AI_SVG = `<div class="avatar" style="width:34px;height:34px;flex-shrink:0;background:linear-gradient(135deg,#7C3AED,#06B6D4);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;"><svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg></div>`;
 
+// ── Auto-scroll Helper ──
 function scrollBottom() {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 scrollBottom();
 
-function addMsg(role, text) {
+// ── Auto-resize Textarea ──
+chatInput.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = (this.scrollHeight) + 'px';
+});
+
+// ── BYOK LocalStorage Management ──
+const BYOK_KEY_NAME = 'nids_gemini_api_key';
+const USAGE_KEY_NAME = 'nids_token_usage';
+
+function getStoredApiKey() {
+  return (localStorage.getItem(BYOK_KEY_NAME) || '').trim();
+}
+
+function updateByokUiStatus() {
+  const key = getStoredApiKey();
+  const pill = document.getElementById('byok-status-pill');
+  const dot = document.getElementById('byok-dot');
+  const label = document.getElementById('byok-label');
+
+  if (key) {
+    pill.style.background = 'rgba(16,185,129,0.12)';
+    pill.style.border = '1px solid rgba(16,185,129,0.3)';
+    pill.style.color = '#10B981';
+    dot.style.background = '#10B981';
+    dot.style.boxShadow = '0 0 8px #10B981';
+    label.textContent = 'BYOK Key Aktif';
+  } else {
+    pill.style.background = 'rgba(245,158,11,0.12)';
+    pill.style.border = '1px solid rgba(245,158,11,0.3)';
+    pill.style.color = '#F59E0B';
+    dot.style.background = '#F59E0B';
+    dot.style.boxShadow = 'none';
+    label.textContent = 'Server Key';
+  }
+}
+updateByokUiStatus();
+
+function openByokModal() {
+  const modal = document.getElementById('modal-byok');
+  const input = document.getElementById('input-api-key');
+  input.value = getStoredApiKey();
+  modal.style.display = 'flex';
+}
+function closeByokModal() {
+  document.getElementById('modal-byok').style.display = 'none';
+}
+function toggleKeyVisibility() {
+  const input = document.getElementById('input-api-key');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+function saveApiKey() {
+  const input = document.getElementById('input-api-key').value.trim();
+  if (input) {
+    localStorage.setItem(BYOK_KEY_NAME, input);
+  } else {
+    localStorage.removeItem(BYOK_KEY_NAME);
+  }
+  updateByokUiStatus();
+  closeByokModal();
+}
+function removeApiKey() {
+  localStorage.removeItem(BYOK_KEY_NAME);
+  document.getElementById('input-api-key').value = '';
+  updateByokUiStatus();
+  closeByokModal();
+}
+
+// ── Token Usage LocalStorage Management ──
+function getStoredUsage() {
+  try {
+    return JSON.parse(localStorage.getItem(USAGE_KEY_NAME)) || { prompt: 0, completion: 0, total: 0, requests: 0 };
+  } catch(e) {
+    return { prompt: 0, completion: 0, total: 0, requests: 0 };
+  }
+}
+function recordUsage(usage) {
+  if (!usage) return;
+  const current = getStoredUsage();
+  current.prompt += (usage.prompt_tokens || 0);
+  current.completion += (usage.completion_tokens || 0);
+  current.total += (usage.total_tokens || 0);
+  current.requests += 1;
+  localStorage.setItem(USAGE_KEY_NAME, JSON.stringify(current));
+  updateUsageBadge();
+}
+function updateUsageBadge() {
+  const u = getStoredUsage();
+  document.getElementById('token-total-badge').textContent = u.total.toLocaleString('id-ID');
+}
+updateUsageBadge();
+
+function openUsageModal() {
+  const u = getStoredUsage();
+  document.getElementById('u-prompt').textContent = u.prompt.toLocaleString('id-ID');
+  document.getElementById('u-completion').textContent = u.completion.toLocaleString('id-ID');
+  document.getElementById('u-total').textContent = u.total.toLocaleString('id-ID');
+  document.getElementById('u-requests').textContent = u.requests.toLocaleString('id-ID');
+  document.getElementById('modal-usage').style.display = 'flex';
+}
+function closeUsageModal() {
+  document.getElementById('modal-usage').style.display = 'none';
+}
+function resetUsageStats() {
+  localStorage.removeItem(USAGE_KEY_NAME);
+  updateUsageBadge();
+  openUsageModal();
+}
+
+// ── Markdown Parser Helper ──
+function formatMarkdown(text) {
+  if (!text) return '';
+  let escaped = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Code blocks with syntax copy button
+  escaped = escaped.replace(/```([a-zA-Z0-9_\-]+)?\n([\s\S]*?)```/g, function(match, lang, code) {
+    const language = lang || 'code';
+    return `<div style="margin:10px 0;background:rgba(0,0,0,0.45);border:1px solid rgba(255,255,255,0.1);border-radius:8px;overflow:hidden;">
+      <div style="background:rgba(255,255,255,0.05);padding:4px 10px;font-size:10.5px;color:#94A3B8;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <span style="font-family:monospace;text-transform:uppercase;">${language}</span>
+        <button onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.innerText);this.textContent='Tersalin!';setTimeout(()=>this.textContent='Salin',2000);" style="background:none;border:none;color:#38BDF8;font-size:10.5px;cursor:pointer;padding:2px 6px;">Salin</button>
+      </div>
+      <pre style="margin:0;padding:12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#E2E8F0;overflow-x:auto;"><code>${code}</code></pre>
+    </div>`;
+  });
+
+  // Inline code
+  escaped = escaped.replace(/`([^`]+)`/g, '<code style="font-family:\'JetBrains Mono\',monospace;background:rgba(255,255,255,0.08);color:#38BDF8;padding:2px 6px;border-radius:4px;font-size:12px;">$1</code>');
+  // Bold
+  escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Italic
+  escaped = escaped.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  // Headings
+  escaped = escaped.replace(/^### (.*$)/gim, '<h4 style="margin:12px 0 6px;font-size:14px;color:#FFFFFF;font-weight:700;">$1</h4>');
+  escaped = escaped.replace(/^## (.*$)/gim, '<h3 style="margin:14px 0 8px;font-size:15px;color:#FFFFFF;font-weight:700;">$1</h3>');
+  // Unordered list items
+  escaped = escaped.replace(/^\s*[\-\*]\s+(.*)$/gim, '<li style="margin-left:18px;">$1</li>');
+  // Ordered list items
+  escaped = escaped.replace(/^\s*\d+\.\s+(.*)$/gim, '<li style="margin-left:18px;">$1</li>');
+  // Linebreaks
+  escaped = escaped.replace(/\n/g, '<br>');
+
+  return escaped;
+}
+
+// ── Append Message to DOM ──
+function addMsg(role, rawContent, meta = null) {
   const div = document.createElement('div');
   div.className = `chat-msg ${role}`;
+  div.style.animation = 'slideIn 0.3s ease';
+
   const avatarHtml = role === 'assistant'
     ? AI_SVG
-    : `<div class="avatar" style="width:32px;height:32px;flex-shrink:0;">${USER_INITIAL}</div>`;
-  div.innerHTML = `${avatarHtml}<div class="chat-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+    : `<div class="avatar" style="width:34px;height:34px;flex-shrink:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#CBD5E1;">${USER_INITIAL}</div>`;
+
+  let metaBadge = '';
+  if (role === 'assistant' && meta) {
+    const tokens = meta.usage ? meta.usage.total_tokens : 0;
+    const model = meta.model || 'gemini-2.0-flash';
+    metaBadge = `<div style="display:flex;align-items:center;gap:8px;font-size:10.5px;color:#64748B;margin-top:8px;border-top:1px solid rgba(255,255,255,0.05);padding-top:6px;">
+      <span style="font-family:monospace;color:#94A3B8;">${model}</span>
+      <span>&bull;</span>
+      <span>${tokens} tokens</span>
+    </div>`;
+  }
+
+  const formattedHtml = role === 'assistant' ? formatMarkdown(rawContent) : rawContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+
+  div.innerHTML = `${avatarHtml}<div class="chat-bubble" style="max-width:85%;line-height:1.6;font-size:13.5px;">${formattedHtml}${metaBadge}</div>`;
   chatBox.appendChild(div);
   scrollBottom();
 }
 
-async function sendQuestion(q) {
-  if (!q.trim()) return;
-  addMsg('user', q);
+// ── Send Question to Copilot Backend ──
+async function sendQuestion(text, explicitAlertId = null) {
+  const prompt = text.trim();
+  if (!prompt) return;
+
+  addMsg('user', prompt);
   chatInput.value = '';
+  chatInput.style.height = 'auto';
   btnSend.disabled = true;
-  btnSend.innerHTML = '<svg style="width:14px;height:14px;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Memproses...';
+  btnSend.innerHTML = `<svg style="width:14px;height:14px;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> <span>Menganalisis...</span>`;
 
   // Typing indicator
   const typing = document.createElement('div');
   typing.className = 'chat-msg assistant';
   typing.id = 'typing-indicator';
-  typing.innerHTML = `${AI_SVG}<div class="chat-bubble" style="color:var(--text-muted);">Menganalisis pertanyaan...</div>`;
+  typing.innerHTML = `${AI_SVG}<div class="chat-bubble" style="color:#94A3B8;display:flex;align-items:center;gap:6px;"><span class="typing-dot"></span><span class="typing-dot" style="animation-delay:0.2s"></span><span class="typing-dot" style="animation-delay:0.4s"></span> <span style="margin-left:6px;font-size:12px;">AI Copilot sedang membedah pertanyaan...</span></div>`;
   chatBox.appendChild(typing);
   scrollBottom();
 
+  const userApiKey = getStoredApiKey();
+  const selectedModel = modelSelect.value || 'gemini-2.0-flash';
+  const alertIdToSend = explicitAlertId || TARGET_ALERT_ID;
+
   try {
-    const res = await fetch(`/assistant/${WEBSITE_ID}`, {
+    const headers = { 'Content-Type': 'application/json' };
+    if (userApiKey) {
+      headers['X-User-Api-Key'] = userApiKey;
+    }
+
+    const res = await fetch('/api/ai/chat', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: q })
+      headers: headers,
+      body: JSON.stringify({
+        message: prompt,
+        model: selectedModel,
+        website_id: WEBSITE_ID,
+        alert_id: alertIdToSend
+      })
     });
+
     const data = await res.json();
     document.getElementById('typing-indicator')?.remove();
-    addMsg('assistant', data.answer || 'Maaf, tidak dapat memproses pertanyaan.');
-  } catch(e) {
+
+    if (data.reply) {
+      addMsg('assistant', data.reply, data);
+      recordUsage(data.usage);
+    } else {
+      addMsg('assistant', 'Maaf, tidak menerima respons yang valid dari gateway AI.');
+    }
+  } catch(err) {
+    console.error('Chat error:', err);
     document.getElementById('typing-indicator')?.remove();
-    addMsg('assistant', 'Terjadi kesalahan koneksi. Coba lagi.');
+    addMsg('assistant', 'Terjadi kesalahan koneksi saat berkomunikasi dengan asisten AI. Silakan coba kembali.');
   } finally {
     btnSend.disabled = false;
-    btnSend.innerHTML = '<svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Kirim';
+    btnSend.innerHTML = `<span>Kirim</span> <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
   }
 }
 
+// ── Event Listeners ──
 btnSend.addEventListener('click', () => sendQuestion(chatInput.value));
-chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendQuestion(chatInput.value); });
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendQuestion(chatInput.value);
+  }
+});
 
-// Quick questions
+// Quick question buttons
 document.querySelectorAll('.quick-q').forEach(btn => {
   btn.addEventListener('click', () => sendQuestion(btn.dataset.q));
 });
+
+// Contextual Target Alert Trigger
+function analyzeTargetAlertNow() {
+  const card = document.getElementById('target-alert-card');
+  if (card) {
+    sendQuestion("Tolong bedah dan analisis insiden serangan ini secara menyeluruh: jelaskan mekanisme eksploitasi, tingkat risiko, dan panduan mitigasi teknis konkret (rule firewall / code patch).", TARGET_ALERT_ID);
+  }
+}
+
+// Format existing history bubbles on page load
+document.querySelectorAll('.formatted-content').forEach(el => {
+  el.innerHTML = formatMarkdown(el.textContent);
+});
 </script>
+
 <style>
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #38BDF8;
+  display: inline-block;
+  animation: bounce 1.2s infinite ease-in-out;
+}
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
+}
 </style>
 {% endblock %}
