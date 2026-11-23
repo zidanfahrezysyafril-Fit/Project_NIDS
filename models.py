@@ -187,6 +187,10 @@ class ChatMessage(db.Model):
     website_id = db.Column(db.Integer, nullable=True, index=True)
     alert_id = db.Column(db.Integer, db.ForeignKey('alerts.id', ondelete='CASCADE'), nullable=True)
     
+    # Session grouping — each "Chat Baru" gets a new UUID
+    session_id = db.Column(db.String(36), nullable=True, index=True)
+    session_title = db.Column(db.String(120), nullable=True)  # auto-generated from first user message
+
     role = db.Column(db.String(20), nullable=False) # user, assistant, system
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

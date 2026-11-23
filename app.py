@@ -1151,6 +1151,47 @@ def api_clear_ai_history(website_id):
     return jsonify({'success': True, 'message': 'Riwayat percakapan berhasil dibersihkan.'})
 
 
+@app.route('/api/ai/history/sessions/<int:website_id>', methods=['GET'])
+@login_required
+def api_ai_history_sessions(website_id):
+    """Return grouped sessions (title + meta) for the history sidebar list."""
+    Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
+    from sqlalchemy import func
+    rows = db.session.query(
+        ChatMessage.session_id,
+        ChatMessage.session_title,
+        func.count(ChatMessage.id).label('msg_count'),
+        func.min(ChatMessage.created_at).label('started_at'),
+        func.max(ChatMessage.created_at).label('last_at')
+    ).filter_by(
+        website_id=website_id, user_id=current_user.id
+    ).group_by(ChatMessage.session_id, ChatMessage.session_title)\
+     .order_by(func.max(ChatMessage.created_at).desc()).all()
+
+    sessions = []
+    for r in rows:
+        sessions.append({
+            'session_id': r.session_id or '',
+            'title': r.session_title or 'Percakapan',
+            'msg_count': r.msg_count,
+            'started_at': r.started_at.strftime('%d %b %Y, %H:%M') if r.started_at else '-',
+            'last_at': r.last_at.strftime('%d %b %Y, %H:%M') if r.last_at else '-',
+        })
+    return jsonify({'success': True, 'sessions': sessions, 'total': len(sessions)})
+
+
+@app.route('/api/ai/history/session/<int:website_id>/<string:session_id>', methods=['DELETE'])
+@login_required
+def api_delete_ai_session(website_id, session_id):
+    """Delete all messages belonging to one session."""
+    Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
+    ChatMessage.query.filter_by(
+        website_id=website_id, user_id=current_user.id, session_id=session_id
+    ).delete()
+    db.session.commit()
+    return jsonify({'success': True})
+
+
 @app.route('/api/ai/chat', methods=['POST'])
 @login_required
 def api_ai_chat():
@@ -1178,6 +1219,7 @@ def api_ai_chat():
 
     attack_log = data.get('attack_log')
     client_history = data.get('history') or []
+    client_session_id = (data.get('session_id') or '').strip()
 
     # If attack_log not supplied but alert_id is, load from DB
     if not attack_log and alert_id:
@@ -1208,11 +1250,30 @@ def api_ai_chat():
     # Persist conversation to DB if website_id provided
     if website_id:
         try:
-            msg1 = ChatMessage(user_id=current_user.id, website_id=website_id, alert_id=alert_id, role='user', content=message)
-            msg2 = ChatMessage(user_id=current_user.id, website_id=website_id, alert_id=alert_id, role='assistant', content=result.get('reply', ''))
+            import uuid as _uuid
+            # Generate or reuse session_id
+            sess_id = client_session_id if client_session_id else str(_uuid.uuid4())
+            # Auto-generate session title from first user message (truncate to 60 chars)
+            raw_title = message[:60].strip()
+            if len(message) > 60:
+                raw_title += '...'
+            # Check if session already has a title stored
+            existing = ChatMessage.query.filter_by(
+                website_id=website_id, user_id=current_user.id, session_id=sess_id
+            ).first()
+            sess_title = existing.session_title if existing and existing.session_title else raw_title
+
+            msg1 = ChatMessage(user_id=current_user.id, website_id=website_id, alert_id=alert_id,
+                               role='user', content=message,
+                               session_id=sess_id, session_title=sess_title)
+            msg2 = ChatMessage(user_id=current_user.id, website_id=website_id, alert_id=alert_id,
+                               role='assistant', content=result.get('reply', ''),
+                               session_id=sess_id, session_title=sess_title)
             db.session.add(msg1)
             db.session.add(msg2)
             db.session.commit()
+            result['session_id'] = sess_id
+            result['session_title'] = sess_title
         except Exception:
             db.session.rollback()
 
