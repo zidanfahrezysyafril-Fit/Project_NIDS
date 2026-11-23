@@ -1180,16 +1180,35 @@ def api_ai_history_sessions(website_id):
     return jsonify({'success': True, 'sessions': sessions, 'total': len(sessions)})
 
 
-@app.route('/api/ai/history/session/<int:website_id>/<string:session_id>', methods=['DELETE'])
+@app.route('/api/ai/history/session/<int:website_id>/<string:session_id>', methods=['GET', 'DELETE'])
 @login_required
-def api_delete_ai_session(website_id, session_id):
-    """Delete all messages belonging to one session."""
+def api_ai_session_handler(website_id, session_id):
+    """Retrieve all messages or delete an entire session."""
     Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
-    ChatMessage.query.filter_by(
+    if request.method == 'DELETE':
+        ChatMessage.query.filter_by(
+            website_id=website_id, user_id=current_user.id, session_id=session_id
+        ).delete()
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Sesi berhasil dihapus.'})
+
+    # GET: return all messages belonging to this session
+    messages = ChatMessage.query.filter_by(
         website_id=website_id, user_id=current_user.id, session_id=session_id
-    ).delete()
-    db.session.commit()
-    return jsonify({'success': True})
+    ).order_by(ChatMessage.created_at.asc()).all()
+
+    first_title = messages[0].session_title if messages and messages[0].session_title else 'Percakapan'
+    return jsonify({
+        'success': True,
+        'session_id': session_id,
+        'title': first_title,
+        'messages': [{
+            'id': m.id,
+            'role': m.role,
+            'content': m.content,
+            'created_at': m.created_at.strftime('%d/%m/%Y %H:%M:%S') if m.created_at else ''
+        } for m in messages]
+    })
 
 
 @app.route('/api/ai/chat', methods=['POST'])

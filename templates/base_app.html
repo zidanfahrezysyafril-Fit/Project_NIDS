@@ -161,10 +161,10 @@
           </a>
 
           <!-- History -->
-          <a href="#"
+          <a href="{{ url_for('assistant', website_id=site.id) }}?open_history=1"
              class="nav-subitem"
              id="nav-sub-history"
-             onclick="event.preventDefault(); if(window.openHistoryModal) openHistoryModal();"
+             onclick="if(window.openHistoryModal){event.preventDefault();openHistoryModal();}"
              title="Lihat riwayat percakapan tersimpan">
             <span class="subitem-icon">
               <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
