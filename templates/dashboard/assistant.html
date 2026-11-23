@@ -21,10 +21,17 @@
 
 {% block content %}
 <style>
-  /* Lock body scroll so ONLY chat box is scrollable */
+  /* Full window responsive fitting for AI Security Copilot */
   .page-content {
-    padding-top: 14px !important;
-    padding-bottom: 14px !important;
+    padding: 8px 16px !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    height: calc(100vh - var(--header-h, 64px)) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
   /* ── Chat Messages Layout & Avatars ── */
@@ -234,8 +241,8 @@
 </style>
 
 <!-- ── SINGLE MAIN CHAT CARD (NON-SCROLL CONTAINER) ── -->
-<div class="card"
-  style="padding:0;overflow:hidden;display:flex;flex-direction:column;height:calc(100vh - 150px);min-height:560px;background:linear-gradient(135deg,rgba(18,24,38,0.95) 0%,rgba(10,14,22,0.98) 100%);border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.4);border-radius:18px;">
+<div class="card" id="main-assistant-card"
+  style="padding:0;overflow:hidden;display:flex;flex-direction:column;flex:1;width:100%;height:100%;min-height:0;background:linear-gradient(135deg,rgba(18,24,38,0.95) 0%,rgba(10,14,22,0.98) 100%);border:1px solid rgba(255,255,255,0.08);box-shadow:0 20px 40px rgba(0,0,0,0.4);border-radius:16px;">
 
   <!-- ── 1. CARD INTEGRATED HEADER (Filled from left to right) ── -->
   <div
@@ -265,14 +272,35 @@
       </div>
     </div>
 
-    <!-- Right: BYOK Key Status & Token Badges (Fills the right area cleanly) -->
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <!-- Right: BYOK Key Status, Token, New Chat & History Buttons -->
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+
+      <!-- New Chat Button -->
+      <button onclick="startNewChatSession()" class="btn btn-secondary btn-sm" id="btn-new-chat"
+        style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.45);color:#C4B5FD;font-weight:600;transition:all 0.2s;"
+        title="Mulai obrolan baru (reset sesi tampilan)">
+        <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        <span>Chat Baru</span>
+      </button>
+
+      <!-- History Modal Trigger -->
+      <button onclick="openHistoryModal()" class="btn btn-secondary btn-sm" id="btn-history-trigger"
+        style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,0.15);color:#E2E8F0;font-weight:600;transition:all 0.2s;"
+        title="Buka seluruh riwayat percakapan yang tersimpan">
+        <svg style="width:13px;height:13px;color:#38BDF8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Riwayat (<strong id="history-count-badge" style="color:#38BDF8;font-family:'JetBrains Mono',monospace;">{{ all_saved_history|length }}</strong>)</span>
+      </button>
 
       <!-- Key Status Pill -->
       <div id="byok-status-pill" onclick="openByokModal()"
         style="font-size:11px;padding:5px 12px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.2s ease;">
         <span style="width:6px;height:6px;border-radius:50%;" id="byok-dot"></span>
-        <span id="byok-label">Server Key</span>
+        <span id="byok-label">Server Key Aktif</span>
       </div>
 
       <!-- BYOK Settings Button -->
@@ -327,7 +355,7 @@
     style="flex:1;min-height:0;overflow-y:auto;padding:22px;display:flex;flex-direction:column;gap:18px;scroll-behavior:smooth;">
 
     <!-- Hero Welcome Tile -->
-    <div
+    <div id="hero-welcome-tile"
       style="background:linear-gradient(135deg,rgba(167,139,250,0.07) 0%,rgba(6,182,212,0.03) 50%,rgba(15,23,42,0.6) 100%);border:1px solid rgba(167,139,250,0.18);border-radius:14px;padding:20px;position:relative;">
       <h3 style="margin:0 0 4px;font-size:15px;font-weight:700;color:#FFFFFF;display:flex;align-items:center;gap:8px;">
         <span>Asisten Keamanan Terintegrasi</span>
@@ -382,6 +410,16 @@
 
       </div>
     </div>
+
+    <!-- Optional: History Banner if Loaded -->
+    {% if load_history and history %}
+    <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:10px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;font-size:12px;">
+      <span style="color:#38BDF8;">Menampilkan riwayat percakapan tersimpan ({{ history|length }} pesan).</span>
+      <button onclick="startNewChatSession()" class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 10px;">
+        + Chat Baru Bersih
+      </button>
+    </div>
+    {% endif %}
 
     <!-- History Messages from DB -->
     {% for msg in history %}
@@ -670,6 +708,90 @@
 
   </div>
 </div>
+
+<!-- ── MODAL: Riwayat Percakapan AI Copilot (Chat History) ── -->
+<div id="modal-history"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
+  <div
+    style="background:#0F172A;border:1px solid rgba(56,189,248,0.25);border-radius:16px;width:92%;max-width:820px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 25px 60px -10px rgba(0,0,0,0.8);overflow:hidden;">
+
+    <!-- Modal Header -->
+    <div style="padding:16px 22px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:34px;height:34px;border-radius:10px;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);display:flex;align-items:center;justify-content:center;color:#38BDF8;">
+          <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h3 style="margin:0;font-size:16px;font-weight:700;color:#fff;">Riwayat Percakapan AI Copilot</h3>
+          <p style="margin:2px 0 0;font-size:12px;color:#94A3B8;">
+            Arsip riwayat percakapan tersimpan aman untuk website <strong>{{ site.name }}</strong>
+          </p>
+        </div>
+      </div>
+      <button onclick="closeHistoryModal()" style="background:none;border:none;color:#64748B;cursor:pointer;padding:4px;" title="Tutup">
+        <svg style="width:18px;height:18px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Body (Scrollable History List) -->
+    <div style="flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:12px;" id="history-list-container">
+      {% if all_saved_history %}
+        {% for msg in all_saved_history %}
+        <div style="background:rgba(255,255,255,0.03);border:1px solid {% if msg.role=='assistant' %}rgba(167,139,250,0.18){% else %}rgba(56,189,248,0.18){% endif %};border-radius:12px;padding:12px 16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:10.5px;padding:2px 8px;border-radius:6px;font-weight:700;background:{% if msg.role=='assistant' %}rgba(167,139,250,0.18);color:#A78BFA{% else %}rgba(56,189,248,0.18);color:#38BDF8{% endif %};">
+                {{ 'AI Copilot' if msg.role=='assistant' else (current_user.full_name or 'Pengguna') }}
+              </span>
+              <span style="font-size:11px;color:#64748B;">
+                {{ msg.created_at|wib('%d/%m/%Y %H:%M:%S') if msg.created_at else '' }}
+              </span>
+            </div>
+            <button onclick="navigator.clipboard.writeText(this.closest('div').parentElement.querySelector('.hist-content').innerText);this.textContent='Tersalin!';setTimeout(()=>this.textContent='Salin',1800);"
+              style="background:none;border:none;color:#64748B;font-size:11px;cursor:pointer;padding:2px 6px;">
+              Salin
+            </button>
+          </div>
+          <div class="hist-content formatted-content" style="font-size:12.5px;color:#CBD5E1;line-height:1.5;white-space:pre-wrap;word-break:break-word;">{{ msg.content }}</div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:45px 20px;color:#64748B;">
+          <svg style="width:38px;height:38px;margin:0 auto 10px;opacity:0.4;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          <div style="font-size:14px;font-weight:600;color:#94A3B8;">Belum Ada Riwayat Percakapan</div>
+          <div style="font-size:12px;margin-top:4px;">Setiap sesi obrolan dengan AI Copilot akan otomatis tersimpan di sini.</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Modal Footer -->
+    <div style="padding:14px 22px;border-top:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <button onclick="clearHistoryAll()" class="btn btn-secondary btn-sm"
+        style="color:#EF4444;border-color:rgba(239,68,68,0.3);font-size:11.5px;display:inline-flex;align-items:center;gap:6px;">
+        <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        <span>Hapus Seluruh Riwayat</span>
+      </button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        {% if all_saved_history and not load_history %}
+        <a href="{{ url_for('assistant', website_id=site.id) }}?load_history=1" class="btn btn-secondary btn-sm"
+          style="font-size:11.5px;color:#38BDF8;border-color:rgba(56,189,248,0.35);">
+          Muat Riwayat ke Obrolan Aktif
+        </a>
+        {% endif %}
+        <button onclick="closeHistoryModal()" class="btn btn-primary btn-sm" style="font-size:11.5px;">Tutup</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -681,6 +803,61 @@
   const btnSend = document.getElementById('btn-send-chat');
 
   let currentActiveModel = 'gemini-3.5-flash-lite';
+  let activeSessionHistory = [];
+
+  const heroWelcomeElement = document.getElementById('hero-welcome-tile');
+  const heroWelcomeHtml = heroWelcomeElement ? heroWelcomeElement.outerHTML : '';
+
+  function startNewChatSession() {
+    activeSessionHistory = [];
+    if (chatBox && heroWelcomeHtml) {
+      chatBox.innerHTML = heroWelcomeHtml;
+    }
+    if (chatInput) {
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      chatInput.focus();
+    }
+    scrollBottom();
+  }
+
+  function openHistoryModal() {
+    const modal = document.getElementById('modal-history');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  function closeHistoryModal() {
+    const modal = document.getElementById('modal-history');
+    if (modal) modal.style.display = 'none';
+  }
+
+  async function clearHistoryAll() {
+    if (!confirm('Apakah Anda yakin ingin menghapus seluruh arsip riwayat obrolan untuk website ini?')) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/ai/history/clear/${WEBSITE_ID}`, { method: 'POST' });
+      const d = await res.json();
+      if (d.success) {
+        const container = document.getElementById('history-list-container');
+        if (container) {
+          container.innerHTML = '<div style="text-align:center;padding:45px 20px;color:#64748B;"><div style="font-size:14px;font-weight:600;color:#94A3B8;">Riwayat percakapan telah dibersihkan.</div></div>';
+        }
+        const badge = document.getElementById('history-count-badge');
+        if (badge) badge.textContent = '0';
+        startNewChatSession();
+      }
+    } catch (err) {
+      alert('Gagal membersihkan riwayat: ' + err);
+    }
+  }
+
+  window.addEventListener('click', function(e) {
+    const modalHist = document.getElementById('modal-history');
+    if (modalHist && e.target === modalHist) {
+      modalHist.style.display = 'none';
+    }
+  });
 
   const USER_INITIAL = '{{ current_user.full_name[0]|upper if current_user.full_name else "U" }}';
 
@@ -911,6 +1088,7 @@
     const prompt = text.trim();
     if (!prompt) return;
 
+    activeSessionHistory.push({ role: 'user', content: prompt });
     addMsg('user', prompt);
     chatInput.value = '';
     chatInput.style.height = 'auto';
@@ -949,7 +1127,8 @@
           message: prompt,
           model: currentActiveModel,
           website_id: WEBSITE_ID,
-          alert_id: alertIdToSend
+          alert_id: alertIdToSend,
+          history: activeSessionHistory.slice(-6)
         })
       });
 
@@ -957,8 +1136,16 @@
       document.getElementById('typing-indicator')?.remove();
 
       if (data.reply) {
+        activeSessionHistory.push({ role: 'assistant', content: data.reply });
         addMsg('assistant', data.reply, data);
         recordUsage(data.usage);
+
+        // Update history count badge dynamically
+        const badge = document.getElementById('history-count-badge');
+        if (badge) {
+          let currentCount = parseInt(badge.textContent || '0', 10);
+          badge.textContent = currentCount + 2;
+        }
       } else {
         addMsg('assistant', 'Maaf, tidak menerima respons yang valid dari gateway AI.');
       }

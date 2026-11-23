@@ -1124,9 +1124,31 @@ def assistant(website_id):
     if alert_id:
         target_alert = Alert.query.filter_by(id=alert_id, website_id=website_id).first()
 
-    history = ChatMessage.query.filter_by(website_id=website_id)\
-                               .order_by(ChatMessage.created_at).all()
-    return render_template('dashboard/assistant.html', site=site, history=history, target_alert=target_alert)
+    # Load all saved history messages for this website & user
+    all_history = ChatMessage.query.filter_by(website_id=website_id, user_id=current_user.id)\
+                                   .order_by(ChatMessage.created_at.asc()).all()
+
+    # If user explicitly requested to restore old chats in the active window (?load_history=1)
+    load_history = request.args.get('load_history', '0') == '1'
+    chat_history = all_history if load_history else []
+
+    return render_template(
+        'dashboard/assistant.html',
+        site=site,
+        history=chat_history,
+        all_saved_history=all_history,
+        target_alert=target_alert,
+        load_history=load_history
+    )
+
+
+@app.route('/api/ai/history/clear/<int:website_id>', methods=['POST'])
+@login_required
+def api_clear_ai_history(website_id):
+    Website.query.filter_by(id=website_id, user_id=current_user.id).first_or_404()
+    ChatMessage.query.filter_by(website_id=website_id, user_id=current_user.id).delete()
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Riwayat percakapan berhasil dibersihkan.'})
 
 
 @app.route('/api/ai/chat', methods=['POST'])
@@ -1171,15 +1193,9 @@ def api_ai_chat():
                 'created_at': a.created_at.strftime('%Y-%m-%d %H:%M:%S') if a.created_at else '-'
             }
 
-    # Format history if not supplied by client
-    db_history = []
-    if website_id:
-        recent_chats = ChatMessage.query.filter_by(website_id=website_id)\
-                                        .order_by(ChatMessage.created_at.desc()).limit(6).all()
-        for c in reversed(recent_chats):
-            db_history.append({'role': c.role, 'content': c.content})
-
-    history_to_use = client_history if client_history else db_history
+    # Use client active session history if provided (even empty list [])
+    # This ensures that starting a new session on refresh starts with a clean context
+    history_to_use = client_history if (client_history is not None) else []
 
     result = SecurityAssistantService.generate_copilot_response(
         prompt=message,
