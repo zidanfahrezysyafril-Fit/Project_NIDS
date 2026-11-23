@@ -142,52 +142,54 @@
 
       <!-- Sub-menu Items -->
       <div class="nav-submenu" id="nav-submenu-assistant"
-           style="overflow:hidden;transition:max-height 0.3s ease,opacity 0.25s;max-height:{% if request.endpoint=='assistant' %}200px{% else %}0{% endif %};opacity:{% if request.endpoint=='assistant' %}1{% else %}0{% endif %};">
+           style="max-height:{% if request.endpoint=='assistant' %}200px{% else %}0{% endif %};opacity:{% if request.endpoint=='assistant' %}1{% else %}0{% endif %};">
+        <div class="nav-submenu-track">
 
-        <!-- New Chat -->
-        <a href="{{ url_for('assistant', website_id=site.id) }}"
-           class="nav-subitem {% if request.endpoint=='assistant' and not request.args.get('load_history') %}active{% endif %}"
-           id="nav-sub-newchat"
-           onclick="if(window.startNewChatSession){event.preventDefault();startNewChatSession();}"
-           title="Mulai sesi obrolan baru yang bersih">
-          <span class="subitem-icon">
-            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-          </span>
-          <span>Chat Baru</span>
-        </a>
+          <!-- New Chat -->
+          <a href="{{ url_for('assistant', website_id=site.id) }}"
+             class="nav-subitem"
+             id="nav-sub-newchat"
+             onclick="if(window.startNewChatSession){event.preventDefault();startNewChatSession();}"
+             title="Mulai sesi obrolan baru yang bersih">
+            <span class="subitem-icon">
+              <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </span>
+            <span>Chat Baru</span>
+          </a>
 
-        <!-- History -->
-        <a href="#"
-           class="nav-subitem"
-           id="nav-sub-history"
-           onclick="event.preventDefault(); if(window.openHistoryModal) openHistoryModal();"
-           title="Lihat riwayat percakapan tersimpan">
-          <span class="subitem-icon">
-            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          </span>
-          <span>Riwayat</span>
-          <span id="sidebar-history-badge"
-                style="margin-left:auto;font-size:9.5px;padding:1px 6px;border-radius:9px;background:rgba(56,189,248,0.18);color:#38BDF8;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:16px;min-width:18px;text-align:center;">
-            {% if all_saved_history is defined %}{{ all_saved_history|length }}{% else %}0{% endif %}
-          </span>
-        </a>
+          <!-- History -->
+          <a href="#"
+             class="nav-subitem"
+             id="nav-sub-history"
+             onclick="event.preventDefault(); if(window.openHistoryModal) openHistoryModal();"
+             title="Lihat riwayat percakapan tersimpan">
+            <span class="subitem-icon">
+              <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </span>
+            <span>Riwayat</span>
+            <span id="sidebar-history-badge"
+                  style="margin-left:auto;font-size:9.5px;padding:1px 6px;border-radius:9px;background:rgba(56,189,248,0.18);color:#38BDF8;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:16px;min-width:18px;text-align:center;">
+              {% if all_saved_history is defined %}{{ all_saved_history|length }}{% else %}0{% endif %}
+            </span>
+          </a>
 
-        <!-- Main Chat Page link -->
-        <a href="{{ url_for('assistant', website_id=site.id) }}"
-           class="nav-subitem {% if request.endpoint=='assistant' %}active{% endif %}"
-           id="nav-sub-main">
-          <span class="subitem-icon">
-            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-            </svg>
-          </span>
-          <span>Obrolan Utama</span>
-        </a>
+          <!-- Main Chat Page link -->
+          <a href="{{ url_for('assistant', website_id=site.id) }}"
+             class="nav-subitem {% if request.endpoint=='assistant' %}active{% endif %}"
+             id="nav-sub-main">
+            <span class="subitem-icon">
+              <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+            </span>
+            <span>Obrolan Utama</span>
+          </a>
 
+        </div>
       </div>
     </div>
 
@@ -260,85 +262,78 @@
   /* ── AI Assistant Expandable Submenu ── */
   .nav-group { display: flex; flex-direction: column; }
 
+  /* Parent toggle — same style as a normal nav-item */
   .nav-group-toggle {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 16px;
+    padding: 9px 14px;
     border-radius: 10px;
     font-size: 13px;
     font-weight: 500;
     color: var(--text-muted, #94A3B8);
     text-decoration: none;
-    transition: all 0.18s ease;
+    transition: background 0.18s, color 0.18s;
     cursor: pointer;
     margin: 1px 8px;
+    list-style: none;
   }
-  .nav-group-toggle:hover,
-  .nav-group-toggle.active {
-    background: rgba(6,182,212,0.1);
-    color: #E2E8F0;
-  }
-  .nav-group-toggle.active {
-    color: #38BDF8;
-  }
+  .nav-group-toggle:hover { background: rgba(255,255,255,0.05); color: #E2E8F0; }
+  .nav-group-toggle.active { background: rgba(6,182,212,0.12); color: #38BDF8; }
 
-  /* Sub-menu container */
+  /* Submenu wrapper — slides open */
   .nav-submenu {
     display: flex;
     flex-direction: column;
-    padding-left: 0;
-    gap: 1px;
+    gap: 2px;
+    padding: 2px 0 4px 0;
+    overflow: hidden;
+    transition: max-height 0.28s ease, opacity 0.22s ease;
   }
 
-  /* Sub-menu items */
+  /* Left accent track that connects sub-items */
+  .nav-submenu-track {
+    margin-left: 28px;
+    padding-left: 16px;
+    border-left: 1.5px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* Individual sub-item */
   .nav-subitem {
     display: flex;
     align-items: center;
-    gap: 9px;
-    padding: 7px 16px 7px 40px;
+    gap: 8px;
+    padding: 6px 10px;
     border-radius: 8px;
     font-size: 12.5px;
     font-weight: 500;
     color: var(--text-dim, #64748B);
     text-decoration: none;
-    transition: all 0.18s ease;
-    margin: 0 8px;
-    position: relative;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
   }
-  .nav-subitem::before {
-    content: '';
-    position: absolute;
-    left: 24px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 1px;
-    height: 70%;
-    background: rgba(255,255,255,0.08);
-    border-radius: 1px;
-  }
-  .nav-subitem:hover {
-    background: rgba(255,255,255,0.05);
-    color: #CBD5E1;
-  }
+  .nav-subitem:hover { background: rgba(255,255,255,0.05); color: #CBD5E1; }
   .nav-subitem.active {
-    background: rgba(56,189,248,0.1);
+    background: rgba(56,189,248,0.12);
     color: #38BDF8;
     font-weight: 600;
+    border-left: 2px solid #38BDF8;
+    margin-left: -2px;
+    padding-left: 12px;
   }
-  .nav-subitem.active::before {
-    background: #38BDF8;
-  }
+
   .subitem-icon {
     display: inline-flex;
     align-items: center;
     flex-shrink: 0;
-    opacity: 0.75;
+    opacity: 0.7;
   }
   .nav-subitem:hover .subitem-icon,
-  .nav-subitem.active .subitem-icon {
-    opacity: 1;
-  }
+  .nav-subitem.active .subitem-icon { opacity: 1; }
 </style>
 
 <script>
