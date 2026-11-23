@@ -272,30 +272,10 @@
       </div>
     </div>
 
-    <!-- Right: BYOK Key Status, Token, New Chat & History Buttons -->
+    <!-- Right: BYOK Key Status, Token Badges -->
+    <!-- Hidden badge for JS sidebar sync -->
+    <span id="history-count-badge" style="display:none;">{{ all_saved_history|length }}</span>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-
-      <!-- New Chat Button -->
-      <button onclick="startNewChatSession()" class="btn btn-secondary btn-sm" id="btn-new-chat"
-        style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.45);color:#C4B5FD;font-weight:600;transition:all 0.2s;"
-        title="Mulai obrolan baru (reset sesi tampilan)">
-        <svg style="width:13px;height:13px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        <span>Chat Baru</span>
-      </button>
-
-      <!-- History Modal Trigger -->
-      <button onclick="openHistoryModal()" class="btn btn-secondary btn-sm" id="btn-history-trigger"
-        style="font-size:11px;padding:5px 12px;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(255,255,255,0.15);color:#E2E8F0;font-weight:600;transition:all 0.2s;"
-        title="Buka seluruh riwayat percakapan yang tersimpan">
-        <svg style="width:13px;height:13px;color:#38BDF8;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>Riwayat (<strong id="history-count-badge" style="color:#38BDF8;font-family:'JetBrains Mono',monospace;">{{ all_saved_history|length }}</strong>)</span>
-      </button>
-
       <!-- Key Status Pill -->
       <div id="byok-status-pill" onclick="openByokModal()"
         style="font-size:11px;padding:5px 12px;border-radius:8px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all 0.2s ease;">
